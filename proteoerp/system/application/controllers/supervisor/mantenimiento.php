@@ -850,13 +850,24 @@ function elminacenti(cual){
 		/*echo $filter->output;
 		echo form_open('').$grid->output.form_close().$script;*/
 
+		$gout='';
+		$cliente=$filter->cliente->newValue;
+		if(!empty($cliente)){
+			$dbcliente = $this->db->escape($cliente);
+			$id_scli=$this->datasis->dameval("SELECT id FROM scli WHERE cliente=${dbcliente}");
+			if(!empty($id_scli)){
+				$gout='Si ya solventada la inconsistencia todavia presenta problema con el cliente '.$cliente.' puede ser que necesite evaluar '.anchor('supervisor/mantenimiento/clinconsissobreapl/'.$id_scli,'efectos sobre-aplicados');
+			}
+		}
+
 		$data['content']  = $filter->output;
-		$data['content'] .= form_open('').$grid->output.form_close().$script;
-		$data['title']    = "<h1>Clientes con problemas de incosistencias</h1>";
+		$data['content'] .= form_open('').$gout.$grid->output.form_close().$script;
+		$data['title']    = heading('Clientes con problemas de incosistencias');
 		$data['head']     = script('jquery.js');
 		$data['head']    .= script('plugins/jquery.checkboxes.pack.js').$this->rapyd->get_head();
 		$this->load->view('view_ventanas', $data);
 	}
+
 
 	function clinconsismasivo(){
 		$this->datasis->modulo_id('900',1);
@@ -883,6 +894,63 @@ function elminacenti(cual){
 				}
 			}
 		}
+	}
+
+	//Detecta los efectos sobreaplicados en clientes
+	function clinconsissobreapl($id_scli){
+		$this->rapyd->load('datagrid');
+
+		$this->rapyd->uri->keep_persistence();
+		$persistence = $this->rapyd->session->get_persistence('supervisor/mantenimiento/clinconsis', $this->rapyd->uri->gfid);
+		$back  = (isset($persistence['back_uri'])) ?$persistence['back_uri'] : 'supervisor/mantenimiento/clinconsis';
+
+		$dbid_scli = intval($id_scli);
+		$cod_cli   = $this->datasis->dameval("SELECT TRIM(cliente) AS val FROM scli WHERE id=${dbid_scli}");
+		if(empty($cod_cli )){ show_error('Error en los parametros'); /*redirect($back);*/ }
+		$dbcod_cli=$this->db->escape($cod_cli);
+
+		$mSQL = "SELECT
+			aa.tipo_doc,aa.transac,aa.numero,aa.monto,bb.monto AS aplicado
+			FROM smov AS aa
+			JOIN
+				(SELECT
+					a.tipoccli,a.numccli,SUM(a.abono) AS monto
+				FROM itccli AS a
+				WHERE a.cod_cli=${dbcod_cli} AND a.tipoccli IN ('NC','AB','ND')
+				GROUP BY a.tipoccli,a.numccli ) AS bb
+			ON aa.tipo_doc=bb.tipoccli AND aa.numero=bb.numccli
+			WHERE bb.monto>aa.monto";
+		$query = $this->db->query($mSQL);
+
+		$data=array();
+		foreach ($query->result() as $row){
+			$data[]=array(
+				'tipo_doc'=> $row->tipo_doc,
+				'transac' => $row->transac ,
+				'numero'  => $row->numero  ,
+				'monto'   => $row->monto   ,
+				'aplicado'=> $row->aplicado
+			);
+		}
+
+		$grid = new DataGrid('Lista',$data);
+		$grid->per_page = 1000;
+		//$grid->use_function('str_replace');
+
+		$grid->column('Tipo Doc' ,'tipo_doc');
+		$grid->column('Numero'   ,'numero'  );
+		$grid->column('Monto'    ,'<nformat><#monto#></nformat>'   ,'align=\'right\'');
+		$grid->column('Aplicado' ,'<nformat><#aplicado#></nformat>','align=\'right\'');
+
+		$action = 'javascript:window.location=\''.site_url($back).'\'';
+		$grid->button('btn_reg', 'Regresar', $action , 'TR');
+		$grid->build();
+
+		$data['content']  = $grid->output;
+		$data['title']    = heading('Efectos sobre-aplicados al cliente '.$cod_cli);
+		$data['head']     = script('jquery.js');
+		$data['head']    .= script('plugins/jquery.checkboxes.pack.js').$this->rapyd->get_head();
+		$this->load->view('view_ventanas', $data);
 	}
 
 	//Ajusta el saldo princonsis

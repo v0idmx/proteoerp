@@ -3053,7 +3053,13 @@ class Sprm extends Controller {
 			$dbcod_prv  = $this->db->escape($cod_prv );
 			$dbitfecha  = $this->db->escape($itfecha );
 
-			$mSQL = "UPDATE sprm SET abonos=abonos+${itabono}, preabono=0, preppago=0
+			//if($ittipo=='FC' && $tipo_doc=='NC'){
+			//	$noabo=", noabonable = IF(${itabono} > noabonable,0,noabonable-${itabono})";
+			//}else{
+			//	$noabo='';
+			//}
+
+			$mSQL = "UPDATE sprm SET abonos=abonos+${itabono}, preabono=0, preppago=0 ${noabo}
 			WHERE tipo_doc=${dbittipo} AND numero=${dbitnumero} AND cod_prv=${dbcod_prv}";
 			$this->db->query($mSQL);
 		}

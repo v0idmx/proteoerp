@@ -2433,8 +2433,6 @@ class Rivc extends Controller {
 				if($ban==false){ memowrite($sql,'rivc'); $error++;}
 
 				$this->datasis->actusal($codbanc, $sp_fecha, (-1)*$sobrante);
-				$ban=$this->db->simple_query($sql);
-				if($ban==false){ memowrite($sql,'rivc'); $error++; }
 
 			}elseif($operacion=='P' && $sobrante>0){ //Lo manda a cuenta por pagar
 

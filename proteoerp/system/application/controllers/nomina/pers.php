@@ -1281,19 +1281,20 @@ class Pers extends Controller {
 
 		$edit->depa = new dropdownField('Departamento', 'depto');
 		$edit->depa->style ="width:200px;";
-		$edit->depa->option('','');
+		//$edit->depa->option('','Seleccionar');
 		$edit->depa->group = 'Relaci&oacute;n Laboral';
+		$edit->depa->rule = 'required';
 		$divi=$edit->getval('divi');
 		if($divi !== false){
 			$dbdivi=$this->db->escape($divi);
 			$edit->depa->options("SELECT departa,depadesc FROM depa where division=${dbdivi} ORDER BY division");
 		}else{
-			$edit->depa->option('',"Seleccione un Division");
+			$edit->depa->option('','Seleccione un Division');
 		}
 
 		$edit->contrato = new dropdownField('Contrato','contrato');
 		$edit->contrato->style ='width:350px;';
-		$edit->contrato->option('','');
+		$edit->contrato->option('','Ninguno');
 		$edit->contrato->options("SELECT codigo,CONCAT('',codigo,nombre)as nombre FROM noco ORDER BY codigo");
 
 		$edit->vencimiento = new DateonlyField('Vencimiento', 'vence','d/m/Y');

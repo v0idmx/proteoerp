@@ -3543,7 +3543,7 @@ class Scst extends Controller {
 					$sql='SELECT a.codigo,IF(a.devcant<=a.cantidad, a.cantidad-a.devcant,a.cantidad) AS cantidad,
 						a.importe,a.importe/a.cantidad AS costo,a.id,
 						a.precio1,a.precio2,a.precio3,a.precio4,b.formcal,b.ultimo,b.standard,b.pond,b.existen,b.fracci,
-						a.rmargen,b.margen1,b.margen2,b.margen3,b.margen4,a.devcant,a.nentrega
+						a.rmargen,b.margen1,b.margen2,b.margen3,b.margen4,a.devcant,a.nentrega,a.iva
 						FROM itscst AS a JOIN sinv AS b ON a.codigo=b.codigo WHERE a.control=?';
 					$qquery=$this->db->query($sql,array($control));
 					if($qquery->num_rows()>0){
@@ -3552,7 +3552,8 @@ class Scst extends Controller {
 							$cbulto = $this->datasis->traevalor('SCSTBULTO','Colocal S para que asuma que TODAS las compras son por bulto');
 							if(empty($itrow->fracci)) $itrow->fracci=1;
 							if($cbulto=='S' && $itrow->fracci>1){//1 bulto = cantidad * fracci
-								$itrow->cantidad = round($itrow->cantidad*$itrow->fracci,2);
+								$itrow->cantidad = round($itrow->cantidad*$itrow->fracci ,2);
+								$itrow->devcant  = round($itrow->devcant*$itrow->fracci,2);
 								$itrow->costo    = round($itrow->costo/$itrow->fracci,4);
 								$itrow->precio1  = round($itrow->precio1/$itrow->fracci,2);
 								$itrow->precio2  = round($itrow->precio2/$itrow->fracci,2);
@@ -3561,6 +3562,7 @@ class Scst extends Controller {
 
 								$data = array(
 									'cantidad'=> $itrow->cantidad,
+									'devcant' => $itrow->devcant,
 									'costo'   => $itrow->costo,
 									'precio1' => $itrow->precio1,
 									'precio2' => $itrow->precio2,
@@ -3573,7 +3575,7 @@ class Scst extends Controller {
 
 							}
 							//Fin modalidad de bulto
-							$dfaltante+=$itrow->devcant*$itrow->costo;
+							$dfaltante+=round($itrow->devcant*$itrow->costo*(1+($itrow->iva/100)),2);
 
 							$pond     = $this->_pond($itrow->existen,$itrow->cantidad,$itrow->pond,$itrow->costo);
 							$dbcodigo = $this->db->escape($itrow->codigo);
@@ -4516,6 +4518,7 @@ class Scst extends Controller {
 			$cbulto = $this->datasis->traevalor('SCSTBULTO','Colocal S para que asuma que TODAS las compras son por bulto');
 			if($cbulto=='S' && $row->fracci>1){//1 bulto = cantidad * fracci
 				$row->cantidad = round($row->cantidad/$row->fracci,2);
+				$row->devcant  = round($row->devcant/$row->fracci ,2);
 				$row->costo    = round($row->costo*$row->fracci,4);
 				$row->precio1  = round($row->precio1*$row->fracci,2);
 				$row->precio2  = round($row->precio2*$row->fracci,2);
@@ -4523,7 +4526,8 @@ class Scst extends Controller {
 				$row->precio4  = round($row->precio4*$row->fracci,2);
 
 				$data = array(
-					'cantidad'=> $row->cantidad ,
+					'cantidad'=> $row->cantidad,
+					'devcant' => $row->devcant,
 					'costo'   => $row->costo,
 					'precio1' => $row->precio1,
 					'precio2' => $row->precio2,

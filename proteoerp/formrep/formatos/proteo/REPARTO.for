@@ -183,7 +183,8 @@ $npagina = true;
 $canat   = $pesot = 0;
 $i       = 0;
 $ubica   = '';
-foreach ($detalle2 as $items){ $i++;
+$restan  = count($detalle2);
+foreach ($detalle2 as $items){ $i++; $restan--;
 	$canat += $items->cana;
 	$pesot += $items->peso;
 	do {
@@ -240,7 +241,7 @@ foreach ($detalle2 as $items){ $i++;
 			</tr>
 <?php
 		if($npagina){
-			if($lineas+$pgrup!=$maxlin){
+			if($lineas+$pgrup!=$maxlin && $restan>0){
 				echo $pie_continuo;
 			}
 		}else{
@@ -317,8 +318,8 @@ $lineas+=$det2encab;
 $i = 0;
 echo '<h2>Lista de Facturas</h2>';
 echo $encabezado_tabla;
-
-foreach ($detalle as $items){ $i++; $nsitems=$nsitems-1; $totalg+=$items->totalg;
+$restan  = count($detalle);
+foreach ($detalle as $items){ $i++; $nsitems=$nsitems-1; $totalg+=$items->totalg; $restan--;
 	do {
 		if($npagina){
 			$this->incluir('X_CINTILLO');
@@ -364,7 +365,7 @@ foreach ($detalle as $items){ $i++; $nsitems=$nsitems-1; $totalg+=$items->totalg
 				<td style="text-align: right;"><?php echo ($clinea)? '': nformat($items->totalg ,2); ?></td>
 			</tr>
 <?php
-		if($npagina && $nsitems>0){
+		if($npagina && $nsitems>0 && $restan>0){
 			echo $pie_continuo.$nsitems;
 		}else{
 			$mod = ! $mod;
