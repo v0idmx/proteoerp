@@ -502,7 +502,7 @@ class Dpto extends Controller {
 		$edit->depto = new inputField('C&oacute;digo Departamento', 'depto');
 		$edit->depto->mode='autohide';
 		$edit->depto->size=5;
-		$edit->depto->maxlength=2;
+		$edit->depto->maxlength=3;
 		$edit->depto->rule ='trim|strtoupper|required|callback_chexiste|alpha_numeric';
 		$edit->depto->append($sugerir);
 		$edit->depto->append($ultimo);

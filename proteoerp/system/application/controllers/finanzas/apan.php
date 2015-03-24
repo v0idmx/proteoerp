@@ -1562,8 +1562,26 @@ class Apan extends Controller {
 	}
 
 	function _pre_delete($do){
+		$reinte  = $do->get('reinte');
+		$tipo    = $do->get('tipo');
+		$transac = $do->get('transac');
 
-		$do->error_message_ar['pre_del']='';
+		$dbtransac= $this->db->escape($transac);
+		$dbreinte = $this->db->escape($reinte );
+
+		if(!empty($reinte)){
+			if($tipo=='C'){
+				$abonos = floatval($this->datasis->dameval("SELECT abonos FROM sprm WHERE transac=${dbtransac} AND cod_prv=${dbreinte} AND tipo_doc='ND'"));
+			}else{
+				$abonos = floatval($this->datasis->dameval("SELECT abonos FROM smov WHERE transac=${dbtransac} AND cod_cli=${dbreinte} AND tipo_doc='ND'"));
+			}
+
+			if($abonos>0){
+				$do->error_message_ar['pre_del']='Esta operacion se hizo con un reintegro que ya fue pagado, debe primero reversar el pago para proseguir.';
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -1590,6 +1608,10 @@ class Apan extends Controller {
 		$clipro  = $do->get('clipro');
 		$dbtransa= $this->db->escape($transac);
 		$dbclipro= $this->db->escape($clipro);
+		$reinte  = $do->get('reinte');
+
+		$dbtransac= $this->db->escape($transac);
+		$dbreinte = $this->db->escape($reinte );
 
 		if($tipo=='C'){
 			$query = $this->db->query('SELECT numccli,tipoccli,numero,tipo_doc,fecha,abono FROM itccli WHERE transac='.$dbtransa.' AND cod_cli='.$dbclipro);
@@ -1609,6 +1631,15 @@ class Apan extends Controller {
 			$mSQL='DELETE FROM itccli WHERE transac='.$dbtransa.' AND cod_cli='.$dbclipro;
 			$this->db->simple_query($mSQL);
 
+			//Borra el efecto cuando tuvo reintegro
+			if(!empty($reinte)){
+				$mSQL="DELETE FROM sprm WHERE transac=${dbtransac} AND cod_prv=${dbreinte} AND tipo_doc='ND'";
+				$this->db->simple_query($mSQL);
+
+				$mSQL="DELETE FROM smov WHERE transac=${dbtransac} AND cod_cli=${dbclipro} AND tipo_doc='ND'";
+				$this->db->simple_query($mSQL);
+			}
+
 		}elseif($tipo=='P'){
 			$query = $this->db->query('SELECT numppro,tipoppro,numero,tipo_doc,fecha,abono FROM itppro WHERE transac='.$dbtransa.' AND cod_prv='.$dbclipro);
 
@@ -1626,6 +1657,16 @@ class Apan extends Controller {
 			}
 			$mSQL='DELETE FROM itppro WHERE transac='.$dbtransa.' AND cod_prv='.$dbclipro;
 			$this->db->simple_query($mSQL);
+
+			//Borra el efecto cuando tuvo reintegro
+			if(!empty($reinte)){
+				$mSQL="DELETE FROM smov WHERE transac=${dbtransac} AND cod_cli=${dbreinte} AND tipo_doc='ND'";
+				$this->db->simple_query($mSQL);
+
+				$mSQL="DELETE FROM sprm WHERE transac=${dbtransac} AND cod_prv=${dbclipro} AND tipo_doc='ND'";
+				$this->db->simple_query($mSQL);
+			}
+
 		}
 
 		$primary =implode(',',$do->pk);

@@ -1538,7 +1538,11 @@ class Sprm extends Controller {
 		$dbnumero   = $this->db->escape($numero);
 		$dbfecha    = $this->db->escape($do->get('fecha'));
 
-		if(empty($transac)){ return true; }
+		if(empty($transac)){
+			$do->error_message_ar['pre_del']='Transaccion de origen deconocido, probablemente de migracion, contacte a soporte para realizar esta operacion.';
+			return false;
+		}
+
 
 		$cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM casi WHERE comprob=${dbtransac}"));
 		if($cana>0){
