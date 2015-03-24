@@ -108,11 +108,13 @@ class Consultas extends Controller {
 		$query=$this->_gconsul($mSQL_p,$cod_bar,$bbus,$suple);
 		if($query!==false){
 			$row = $query->row();
+			$dbcodigo=$this->db->escape($row->codigo);
+
 			//Vemos si aplica descuento solo farmacias sinv
 			if($aplica=='sinv'){
 				if($row->descufijo==0){
 					if($this->db->table_exists('sinvpromo')){
-						$descufijo=$this->datasis->dameval('SELECT margen FROM sinvpromo WHERE codigo='.$this->db->escape($row->codigo));
+						$descufijo=$this->datasis->dameval('SELECT margen FROM sinvpromo WHERE codigo='.$dbcodigo);
 						$descurazon='Descuento promocional';
 						if(empty($descufijo)){
 							if($this->db->field_exists('margen','grup')){
@@ -142,7 +144,7 @@ class Consultas extends Controller {
 			$data['unidad']    = $row->unidad;
 			$data['descufijo'] = nformat($descufijo);
 			$data['corta']     = (isset($row->corta)) ?$row->corta : '';
-			$data['descurazon']=(isset($descurazon)) ? $descurazon: '';
+			$data['descurazon']= (isset($descurazon)) ? $descurazon: '';
 			$data['marca']     = $row->marca;
 			$data['existen']   = nformat($row->existen);
 			$data['barras']    = $row->barras;
@@ -152,7 +154,7 @@ class Consultas extends Controller {
 			$data['fecha']     = $this->datasis->dameval("SELECT b.recep FROM itscst a JOIN scst b ON a.control=b.control WHERE a.codigo=${dbcodigo} ORDER BY b.recep DESC LIMIT 1");
 
 			if($aplica=='maes'){
-				$dbcodigo=$this->db->escape($row->codigo);
+
 				$posdescu = $this->datasis->traevalor('POSDESCU','DESCUENTOS EN LOS PUNTOS DE VENTA Si o No');
 				if($posdescu=='S'){
 					$data['dvolum1']   = $row->dvolum1;
