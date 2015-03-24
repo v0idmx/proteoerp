@@ -149,8 +149,10 @@ class Consultas extends Controller {
 			$data['iva']       = $row->iva;
 			$data['referen']   = (isset($row->referen)) ? $row->referen : 'No disponible';
 			$data['moneda']    = 'Bs.F.';
+			$data['fecha']     = $this->datasis->dameval("SELECT b.recep FROM itscst a JOIN scst b ON a.control=b.control WHERE a.codigo=${dbcodigo} ORDER BY b.recep DESC LIMIT 1");
 
 			if($aplica=='maes'){
+				$dbcodigo=$this->db->escape($row->codigo);
 				$posdescu = $this->datasis->traevalor('POSDESCU','DESCUENTOS EN LOS PUNTOS DE VENTA Si o No');
 				if($posdescu=='S'){
 					$data['dvolum1']   = $row->dvolum1;
@@ -159,8 +161,7 @@ class Consultas extends Controller {
 				$data['precio4']   = nformat($row->precio4);
 				$data['corta']     = $row->corta;
 				$data['referen']   = $row->referen;
-				$data['existen']   = $this->datasis->dameval("SELECT SUM(a.cantidad*b.fracxuni+a.fraccion) FROM ubic a JOIN maes b ON a.codigo=b.codigo WHERE a.codigo='".$row->codigo."' AND a.ubica IN ('DE00','DE01')");
-				$data['fecha']     = $this->datasis->dameval("SELECT b.recep FROM itscst a JOIN scst b ON a.control=b.control WHERE a.codigo='".$row->codigo."' ORDER BY b.recep DESC LIMIT 1");
+				$data['existen']   = $this->datasis->dameval("SELECT SUM(a.cantidad*b.fracxuni+a.fraccion) FROM ubic a JOIN maes b ON a.codigo=b.codigo WHERE a.codigo=${dbcodigo} AND a.ubica IN ('DE00','DE01')");
 				//$data['fecha']     = $row->fprv1;
 
 			}else{
