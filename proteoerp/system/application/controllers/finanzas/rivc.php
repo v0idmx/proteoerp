@@ -2026,7 +2026,7 @@ class Rivc extends Controller {
 	}
 
 	function _post_insert($do){
-		$primary =implode(',',$do->pk);
+		$primary = implode(',',$do->pk);
 		$error   = 0;
 		$montan  = 0; //Monto para anticipar
 		$sobrante= 0; //Monto sobrante para anticipar, reitegrar o pagar
@@ -2047,11 +2047,12 @@ class Rivc extends Controller {
 		$comprob   = $periodo.$numero;
 		$dbcod_cli = $this->db->escape($cod_cli);
 
-		//$reinte  = $this->uri->segment($this->uri->total_segments());
 		$efecha   = $do->get('emision');
 		$fecha    = $do->get('fecha');
 		$ex_fecha = explode('-',$fecha);
 		$vence    = $ex_fecha[0].$ex_fecha[1].days_in_month($ex_fecha[1],$ex_fecha[0]);
+
+		$mNUMERO = 'R'.str_pad($primary, 7, "0", STR_PAD_LEFT);
 
 		$mSQL = "DELETE FROM smov WHERE transac='${transac}'";
 		$ban=$this->db->simple_query($mSQL);
@@ -2138,7 +2139,7 @@ class Rivc extends Controller {
 				}else{
 					//Como tiene saldo suficiente crea una NC y la aplica a la FC
 
-					$mnumnc = $this->datasis->fprox_numero('nccli');
+					$mnumnc = $mNUMERO; //$this->datasis->fprox_numero('nccli');
 					$data=array();
 					$data['cod_cli']    = $cod_cli;
 					$data['nombre']     = $nombre;
@@ -2200,7 +2201,7 @@ class Rivc extends Controller {
 					if($ban==false){ memowrite($mSQL,'rivc'); }
 				}
 
-				$mnumnd = $this->datasis->fprox_numero('ndcli');
+				$mnumnd = $mNUMERO; //$this->datasis->fprox_numero('ndcli');
 				$data=array();
 				$data['cod_cli']    = 'REIVA';
 				$data['nombre']     = 'RETENCION DE I.V.A. POR COMPENSAR';
@@ -2229,7 +2230,7 @@ class Rivc extends Controller {
 			}else{
 			//Si es una devolucion
 				// Devoluciones genera un ND al cliente
-				$mnumnd = $this->datasis->fprox_numero('ndcli');
+				$mnumnd = $mNUMERO; //$this->datasis->fprox_numero('ndcli');
 				$data=array();
 				$data['cod_cli']    = $cod_cli;
 				$data['nombre']     = $nombre;
@@ -2254,7 +2255,7 @@ class Rivc extends Controller {
 				if($ban==false){ memowrite($mSQL,'rivc'); }
 
 				//Devoluciones debe crear un NC si esta en el periodo
-				$mnumnc = $this->datasis->fprox_numero('nccli');
+				$mnumnc = $mNUMERO; //$this->datasis->fprox_numero('nccli');
 				$data=array();
 				$data['cod_cli']    = 'REIVA';
 				$data['nombre']     = 'RETENCION DE I.V.A. POR COMPENSAR';
@@ -2438,7 +2439,7 @@ class Rivc extends Controller {
 
 				$causado = $this->datasis->fprox_numero('ncausado');
 
-				$mnsprm = $this->datasis->fprox_numero('num_nd');
+				$mnsprm = $mNUMERO; //$this->datasis->fprox_numero('num_nd');
 				$data=array();
 				$data['cod_prv']    = 'REINT';
 				$data['nombre']     = 'REINTEGROS CLIENTES';

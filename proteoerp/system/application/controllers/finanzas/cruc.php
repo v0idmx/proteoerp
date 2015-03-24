@@ -1645,6 +1645,10 @@ class Cruc extends Controller {
 		$cliente = $do->get('cliente');
 		$proveed = $do->get('proveed');
 
+		$dbcliente = $this->db->escape($cliente);
+		$dbproveed = $this->db->escape($proveed);
+
+
 		if(empty($tipo)){
 			return false;
 		}
@@ -1685,16 +1689,15 @@ class Cruc extends Controller {
 			}
 
 			if($tipo=='C-C' || $tipo=='C-P'){
-
 				if($ittipo=='ADE'){
-					$adech=trim($this->datasis->dameval("SELECT cod_cli FROM smov WHERE tipo_doc=${dbittipo_doc} AND numero=${dbitnumero} AND fecha=${dbitofecha}"));
+					$adech=trim($this->datasis->dameval("SELECT cod_cli FROM smov WHERE tipo_doc=${dbittipo_doc} AND numero=${dbitnumero} AND fecha=${dbitofecha} AND cod_cli=${dbproveed}" ));
 					if( $proveed != $adech ){
-						$do->error_message_ar['pre_ins']='El efecto '.$onumero.' no pertenece al deudor '.$proveed;
+						$do->error_message_ar['pre_ins']='El efecto '.$onumero.' no pertenece al deudor '.$proveed."SELECT cod_cli FROM smov WHERE tipo_doc=${dbittipo_doc} AND numero=${dbitnumero} AND fecha=${dbitofecha} AND cod_cli=${dbproveed}" ;
 						return false;
 					}
 				}
 				if($ittipo=='APA'){
-					$adech=trim($this->datasis->dameval("SELECT cod_prv FROM sprm WHERE tipo_doc=${dbittipo_doc} AND numero=${dbitnumero} AND fecha=${dbitofecha}"));
+					$adech=trim($this->datasis->dameval("SELECT cod_prv FROM sprm WHERE tipo_doc=${dbittipo_doc} AND numero=${dbitnumero} AND fecha=${dbitofecha} AND cod_prv=${dbcliente}"));
 					if($cliente!=$adech){
 						$do->error_message_ar['pre_ins']='El efecto '.$onumero.' no pertenece al acreedor '.$cliente;
 						return false;
@@ -1704,22 +1707,20 @@ class Cruc extends Controller {
 			}elseif($tipo=='P-P' || $tipo=='P-C'){
 
 				if($ittipo=='ADE'){
-					$adech=trim($this->datasis->dameval("SELECT cod_prv FROM sprm WHERE tipo_doc=${dbittipo_doc} AND numero=${dbitnumero} AND fecha=${dbitofecha} "));
+					$adech=trim($this->datasis->dameval("SELECT cod_prv FROM sprm WHERE tipo_doc=${dbittipo_doc} AND numero=${dbitnumero} AND fecha=${dbitofecha} AND cod_prv=${dbproveed} "));
 					if($proveed!=$adech){
 						$do->error_message_ar['pre_ins']='El efecto '.$onumero.' no pertenece al acreedor '.$proveed;
 						return false;
 					}
 				}
-
 				if($ittipo=='APA'){
-					$adech=trim($this->datasis->dameval("SELECT cod_cli FROM smov WHERE tipo_doc=${dbittipo_doc} AND numero=${dbitnumero} AND fecha=${dbitofecha}"));
+					$adech=trim($this->datasis->dameval("SELECT cod_cli FROM smov WHERE tipo_doc=${dbittipo_doc} AND numero=${dbitnumero} AND fecha=${dbitofecha} AND cod_cli=${dbcliente}"));
 					if($cliente!=$adech){
 						$do->error_message_ar['pre_ins']='El efecto '.$onumero.' no pertenece al deudor '.$cliente;
 						return false;
 					}
 				}
 			}
-
 
 			$do->rel_rm_field('itcruc','psaldo',$i);
 			$do->rel_rm_field('itcruc','pmonto',$i);
@@ -1729,16 +1730,14 @@ class Cruc extends Controller {
 			$do->error_message_ar['pre_ins']='No selecciono efectos para cruzar';
 			return false;
 		}
-
 		if($tipo=='C-P' || $tipo=='P-C'){
-			if($apatot!=$adetot){
-				$do->error_message_ar['pre_ins']='El monto adeudado no coincide con el monto acreedor';
+			$dife = round($apatot - $adetot,2);
+			if( $dife <> 0 ){
+				$do->error_message_ar['pre_ins']='El monto adeudado no coincide con el monto acreedor '.$apatot.' != '.$adetot;
 				return false;
 			}
 		}
-
 		$do->set('monto',round($adetot,2));
-
 		return true;
 	}
 
@@ -1784,7 +1783,8 @@ class Cruc extends Controller {
 
 		if($tipo == 'P-C'){
 			// PROVEEDOR ----> CLIENTE
-			$mNUMERO = $this->datasis->fprox_numero('nccli');
+			//$mNUMERO = $this->datasis->fprox_numero('nccli');
+			$mNUMERO = 'C'.substr($do->get('numero'), -7); //  CAMBIO # DE NC
 			$data = array();
 			$data['cod_cli']  = $cliente;
 			$data['nombre']   = $do->get('nomcli');
@@ -1798,6 +1798,7 @@ class Cruc extends Controller {
 			$data['observa2'] = $do->get('concept2');
 			$data['tipo_ref'] = 'CR';
 			$data['num_ref']  = $do->get('numero');
+			$data['codigo']   = 'CRUCE';                    //  CAMBIO # DE NC
 
 			$data['estampa']  = $do->get('estampa');
 			$data['hora']     = $do->get('hora');
@@ -1822,7 +1823,7 @@ class Cruc extends Controller {
 				}
 			}
 
-			$mNUMERO = $this->datasis->fprox_numero('num_nc');
+			//$mNUMERO = $this->datasis->fprox_numero('num_nc');
 
 			$data = array();
 			$data['cod_prv']  = $proveed;
@@ -1864,7 +1865,9 @@ class Cruc extends Controller {
 
 		}elseif($tipo == 'C-P'){
 			// CLIENTE ----> PROVEEDOR
-			$mNUMERO = $this->datasis->fprox_numero('num_nc');
+			//$mNUMERO = $this->datasis->fprox_numero('num_nc');
+			$mNUMERO = 'C'.substr($do->get('numero'), -7); //  CAMBIO # DE NC
+
 			$data['cod_prv']  = $cliente;
 			$data['nombre']   = $do->get('nomcli');
 			$data['tipo_doc'] = 'NC';
@@ -1901,7 +1904,8 @@ class Cruc extends Controller {
 				}
 			}
 
-			$mNUMERO = $this->datasis->fprox_numero('nccli');
+			//$mNUMERO = $this->datasis->fprox_numero('nccli');
+			//$mNUMERO = 'C'.substr($do->get('numero'), -7); //  CAMBIO # DE NC
 			$data = array();
 			$data['cod_cli']  = $proveed;
 			$data['nombre']   = $do->get('nombre');
@@ -1916,6 +1920,7 @@ class Cruc extends Controller {
 			$data['observa2'] = $do->get('concept2');
 			$data['tipo_ref'] = 'CR';
 			$data['num_ref']  = $do->get('numero');
+			$data['codigo']   = 'CRUCE';                    //  CAMBIO # DE NC
 
 			$data['estampa']  = $do->get('estampa');
 			$data['hora']     = $do->get('hora');
@@ -1942,7 +1947,9 @@ class Cruc extends Controller {
 
 		}elseif($tipo == 'C-C'){
 			// CLIENTE ----> CLIENTE
-			$mNUMERO = $this->datasis->fprox_numero('nccli');
+			//$mNUMERO = $this->datasis->fprox_numero('nccli');
+
+			$mNUMERO = 'C'.substr($do->get('numero'), -7); //  CAMBIO # DE NC
 			$data = array();
 			$data['cod_cli']  = $proveed;
 			$data['nombre']   = $do->get('nombre');
@@ -1957,6 +1964,7 @@ class Cruc extends Controller {
 			$data['observa2'] = $do->get('concept2');
 			$data['tipo_ref'] = 'CR';
 			$data['num_ref']  = $do->get('numero');
+			$data['codigo']   = 'CRUCE';                    //  CAMBIO # DE NC
 
 			$data['estampa']  = $do->get('estampa');
 			$data['hora']     = $do->get('hora');
@@ -1982,7 +1990,7 @@ class Cruc extends Controller {
 				}
 			}
 
-			$mNUMERO = $this->datasis->fprox_numero('ndcli');
+			//$mNUMERO = $this->datasis->fprox_numero('ndcli');
 			$data = array();
 
 			$data['cod_cli']  = $cliente;
@@ -1998,6 +2006,7 @@ class Cruc extends Controller {
 			$data['impuesto'] = 0;
 			$data['tipo_ref'] = 'CR';
 			$data['num_ref']  = $do->get('numero');
+			$data['codigo']   = 'CRUCE';                    //  CAMBIO # DE NC
 
 			$data['estampa']  = $do->get('estampa');
 			$data['hora']     = $do->get('hora');
@@ -2008,7 +2017,9 @@ class Cruc extends Controller {
 
 		}elseif($tipo == 'P-P'){
 			// PROVEEDOR ----> PROVEEDOR
-			$mNUMERO = $this->datasis->fprox_numero('num_nc');
+			// $mNUMERO = $this->datasis->fprox_numero('num_nc');
+
+			$mNUMERO = 'C'.substr($do->get('numero'), -7); //  CAMBIO # DE NC
 			$data['cod_prv']  = $proveed;
 			$data['nombre']   = $do->get('nombre');
 			$data['tipo_doc'] = 'NC';
