@@ -81,7 +81,11 @@ class Reglas extends Metodos {
 				return '';
 			}
 			if(!empty($val)){
-				return '<div style="background:green"> - </div>';
+				if(is_numeric($val) && floatval($val)==0){
+					return '';
+				}else{
+					return '<div style="background:green"> - </div>';
+				}
 			}
 			return '';
 		}
