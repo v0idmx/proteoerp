@@ -25,10 +25,12 @@ class Reglas extends Metodos {
 		$form->fecha->append("<input type='hidden' name='modulo' id='modulo'>");
 		$form->build_form();
 
+
+		$sel = array('modulo', 'descripcion', 'COUNT(*) AS cant','debe','haber');
 		$link ="<a href='#' onclick='verregla(\"<#modulo#>\")'>Ver Detalle</a>";
 		$link2="<a href='#' onclick='ejecutar(\"<#modulo#>\")'>Ejecutar</a>";
 		$grid = new DataGrid();
-		$grid->db->select('modulo, descripcion, count(*) as cant');
+		$grid->db->select($sel);
 		$grid->db->from('`reglascont`');
 		$grid->db->groupby('modulo');
 		$grid->db->orderby('modulo,regla');
@@ -74,13 +76,25 @@ class Reglas extends Metodos {
 		$form->submit->in='fecha';
 		$form->build_form();
 
+		function marca($encab,$val){
+			if($encab=='CASI'){
+				return '';
+			}
+			if(!empty($val)){
+				return '<div style="background:green"> - </div>';
+			}
+			return '';
+		}
+
+		$sel = array('modulo', 'descripcion', 'regla', 'tabla', 'debe', 'haber');
 		$link =anchor('/contabilidad/reglas/dataedit/<#modulo#>/show/<#modulo#>/<#regla#>','Ver regla');
 		$link2=anchor('/contabilidad/reglas/duplicar/<#modulo#>/<#regla#>','Duplicar');
 		$action = "javascript:window.location='" . site_url('contabilidad/reglas') . "'";
 		$grid = new DataGrid();
+		$grid->use_function('marca');
 		$grid->add("contabilidad/reglas/dataedit/${modulo}/create",'Agregar Regla');
 		$grid->button('cancelar', RAPYD_BUTTON_BACK, $action);
-		$grid->db->select('modulo, regla, tabla, descripcion');
+		$grid->db->select($sel);
 		$grid->db->from('`reglascont`');
 		$grid->db->where('modulo',$modulo);
 		$grid->db->orderby('modulo,tabla,regla');
@@ -88,6 +102,8 @@ class Reglas extends Metodos {
 		$grid->column('Regla'      , 'regla'      );
 		$grid->column('Tabla'      , 'tabla'      );
 		$grid->column('Descripcion', 'descripcion');
+		$grid->column('Debe'       , '<marca><#tabla#>|<#debe#></marca>' ,'align="center"');
+		$grid->column('Haber'      , '<marca><#tabla#>|<#haber#></marca>','align="center"');
 		$grid->column(''           , $link ,'align="center"');
 		$grid->column(''           , $link2,'align="center"');
 		$grid->build();
@@ -99,18 +115,18 @@ class Reglas extends Metodos {
 	}
 
 	function dataedit(){
-		$this->rapyd->load("dataedit");
+		$this->rapyd->load('dataedit');
 		$modulo=($this->uri->segment(4) ? $this->uri->segment(4) : $this->input->post('modulo'));
-		$uri=$this->rapyd->uri->get("show");
+		$uri=$this->rapyd->uri->get('show');
 
-		$edit = new DataEdit("Reglas Contabilidad",'reglascont');
+		$edit = new DataEdit('Reglas Contabilidad','reglascont');
 
 		$edit->post_process('insert','_post_insert');
 		$edit->post_process('update','_post_update');
 		$edit->post_process('delete','_post_delete');
 
 		$edit->back_url = 'contabilidad/reglas/detalle/'.$modulo;
-		$edit->modulo = new inputField("M&oacute;dulo", "modulo");
+		$edit->modulo = new inputField('M&oacute;dulo', 'modulo');
 		$edit->modulo->value=$modulo;
 		$edit->modulo->rule= 'required|trim';
 		$edit->modulo->mode= 'autohide';
@@ -127,18 +143,18 @@ class Reglas extends Metodos {
 		$edit->descripcion->rule= 'required|trim';
 		$edit->descripcion->maxlength=40;
 
-		$edit->tabla = new dropdownField("Tabla", "tabla");
-		$edit->tabla->option("ITCASI","ITCASI");
-		$edit->tabla->option("CASI","CASI");
+		$edit->tabla = new dropdownField('Tabla', 'tabla');
+		$edit->tabla->option('ITCASI','ITCASI');
+		$edit->tabla->option('CASI'  ,'CASI');
 
 		$edit->control = new dropdownField('Control', 'control');
 		$edit->control->option('transac','transac');
 		$edit->control->option('fecha','fecha');
 
-		$edit->origen = new textareaField("Tabla Or&iacute;gen", 'origen');
+		$edit->origen = new textareaField('Tabla Or&iacute;gen', 'origen');
 		$edit->origen->rule= 'trim';
 
-		$edit->condicion = new textareaField("Condiciones", 'condicion');
+		$edit->condicion = new textareaField('Condiciones', 'condicion');
 		$edit->condicion->rule= 'trim';
 
 		$edit->agrupar = new textareaField('Agrupar', 'agrupar');
@@ -161,7 +177,7 @@ class Reglas extends Metodos {
 		$edit->cuenta->rows = 2;
 		$edit->cuenta->maxlength=255;
 
-		$edit->referen = new textareaField("Referencia", "referen");
+		$edit->referen = new textareaField('Referencia', 'referen');
 		$edit->referen->rule= 'trim';
 		$edit->referen->cols = 90;
 		$edit->referen->rows = 2;
