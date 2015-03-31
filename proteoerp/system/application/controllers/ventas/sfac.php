@@ -2829,7 +2829,7 @@ class Sfac extends Controller {
 
 		$edit->vd = new  dropdownField ('Vendedor', 'vd');
 		$edit->vd->options('SELECT TRIM(vendedor) AS vendedor, CONCAT(vendedor,\' \',nombre) nombre FROM vend ORDER BY vendedor');
-		$edit->vd->style='width:100px;';
+		$edit->vd->style='width:150px;';
 		$edit->vd->insertValue=trim($this->secu->getvendedor());
 
 		$alma = $this->secu->getalmacen();
@@ -2837,7 +2837,7 @@ class Sfac extends Controller {
 			$edit->almacen= new dropdownField ('Almac&eacute;n', 'almacen');
 			$edit->almacen->options('SELECT ubica,ubides FROM caub WHERE gasto="N" ORDER BY ubides');
 			$edit->almacen->rule='required';
-			$edit->almacen->style='width:130px;';
+			$edit->almacen->style='width:200px;';
 			$alma = $this->datasis->traevalor('ALMACEN');
 			$edit->almacen->insertValue=$alma;
 		} else {
@@ -4288,6 +4288,13 @@ class Sfac extends Controller {
 
 		if($tipo_doc=='X'){
 			$do->error_message_ar['pre_del']='El documento ya esta anulada.';
+			return false;
+		}
+
+		$mSQL="SELECT COUNT(*) AS a FROM sfac WHERE tipo_doc='D' AND factura=${dbnumero}";
+		$cana=intval($this->datasis->dameval($mSQL));
+		if($cana>0){
+			$do->error_message_ar['pre_del']='No se puede anular la factura por tener devoluciones.';
 			return false;
 		}
 

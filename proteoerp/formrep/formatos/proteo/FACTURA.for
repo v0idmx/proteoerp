@@ -9,7 +9,7 @@ $mSQL = "
 SELECT If(a.referen='E','Efectivo',IF( a.referen='C','Cr&eacute;dito',IF(a.referen='M','Mixto','Pendiente'))) AS referen,a.nfiscal,
 	a.tipo_doc,a.numero,a.cod_cli,TRIM(c.nomfis) AS nomfis,c.nombre,c.rifci,CONCAT_WS('',TRIM(c.dire11),c.dire12) AS direccion,a.factura,a.fecha,a.vence,a.vd,
 	a.iva,a.totals,a.totalg, a.exento,a.tasa, a.montasa, a.reducida, a.monredu, a.sobretasa,a.monadic, b.nombre AS nomvend,
-	a.peso,c.telefono, a.observa,a.observ1
+	a.peso,c.telefono,a.observa,a.observ1,a.descuento
 FROM sfac AS a
 JOIN scli AS c ON a.cod_cli=c.cliente
 LEFT JOIN vend b ON a.vd=b.vendedor
@@ -19,33 +19,32 @@ $mSQL_1 = $this->db->query($mSQL);
 if($mSQL_1->num_rows()==0) show_error('Registro no encontrado');
 $row = $mSQL_1->row();
 
-$fecha    = dbdate_to_human($row->fecha);
-$vence    = dbdate_to_human($row->vence);
-$numero   = $row->numero;
-$cod_cli  = $this->us_ascii2html($row->cod_cli);
-$rifci    = $this->us_ascii2html(trim($row->rifci));
-$nombre   = (empty($row->nomfis))? $this->us_ascii2html($row->nombre) : $this->us_ascii2html($row->nomfis);
-$stotal   = nformat($row->totals);
-$gtotal   = nformat($row->totalg);
-$exento   = nformat($row->exento);
-$observa  = $this->us_ascii2html(trim($row->observa).trim($row->observ1));
-
+$fecha     = dbdate_to_human($row->fecha);
+$vence     = dbdate_to_human($row->vence);
+$numero    = $row->numero;
+$cod_cli   = $this->us_ascii2html($row->cod_cli);
+$rifci     = $this->us_ascii2html(trim($row->rifci));
+$nombre    = (empty($row->nomfis))? $this->us_ascii2html($row->nombre) : $this->us_ascii2html($row->nomfis);
+$stotal    = nformat($row->totals);
+$gtotal    = nformat($row->totalg);
+$exento    = nformat($row->exento);
+$observa   = $this->us_ascii2html(trim($row->observa).trim($row->observ1));
+$descuento = floatval($row->descuento);
 $tasa      = nformat($row->tasa);
 $montasa   = nformat($row->montasa);
 $reducida  = nformat($row->reducida);
 $monredu   = nformat($row->monredu);
 $sobretasa = nformat($row->sobretasa);
 $monadic   = nformat($row->monadic);
-
-$peso     = nformat($row->peso);
-$impuesto = nformat($row->iva);
-$direc    = $this->us_ascii2html($row->direccion);
-$tipo_doc = trim($row->tipo_doc);
-$referen  = trim($row->referen);
-$nfiscal  = htmlspecialchars(trim($row->nfiscal));
-$telefono = htmlspecialchars(trim($row->telefono));
-$nomvend  = $this->us_ascii2html($row->nomvend);
-$factura  = ($tipo_doc=='D')? $row->factura :'';
+$peso      = nformat($row->peso);
+$impuesto  = nformat($row->iva);
+$direc     = $this->us_ascii2html($row->direccion);
+$tipo_doc  = trim($row->tipo_doc);
+$referen   = trim($row->referen);
+$nfiscal   = htmlspecialchars(trim($row->nfiscal));
+$telefono  = htmlspecialchars(trim($row->telefono));
+$nomvend   = $this->us_ascii2html($row->nomvend);
+$factura   = ($tipo_doc=='D')? $row->factura :'';
 
 $dbtipo_doc = $this->db->escape($tipo_doc);
 $dbnumero   = $this->db->escape($numero);
@@ -82,7 +81,7 @@ $detalle  = $mSQL_2->result();
 <body style="margin-left: 30px; margin-right: 30px;">
 
 <script type="text/php">
-	if (isset($pdf)) {
+	/*if (isset($pdf)) {
 		$font = Font_Metrics::get_font("verdana");
 		$size = 6;
 		$color = array(0,0,0);
@@ -106,7 +105,7 @@ $detalle  = $mSQL_2->result();
 		$width = Font_Metrics::get_text_width('PP 1 de 2', $font, $size);
 		$pdf->page_text($w / 2 - $width / 2, $y, $text, $font, $size, $color);
 
-	}
+	}*/
 </script>
 
 <?php
@@ -242,7 +241,7 @@ $mod     = $clinea = false;
 $npagina = true;
 $i       = 0;
 
-foreach ($detalle AS $items){ $i++;
+foreach ($detalle as $items){ $i++;
 	do {
 		if($npagina){
 			//$this->incluir('X_CINTILLO');

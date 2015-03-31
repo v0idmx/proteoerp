@@ -791,8 +791,8 @@ class Casi extends Controller {
 
 		$edit->pre_process( 'insert','_pre_insert');
 		$edit->pre_process( 'update','_pre_update');
+		$edit->pre_process( 'delete','_pre_delete');
 		$edit->post_process('insert','_post_insert');
-		$edit->post_process('delete','_post_delete');
 		$edit->post_process('update','_post_update');
 		$edit->post_process('delete','_post_delete');
 
@@ -1102,11 +1102,29 @@ class Casi extends Controller {
 			return $rt;
 		}
 
+		function vtransa($comprob){
+				$atts = array(
+				'width'      => '800',
+				'height'     => '600',
+				'scrollbars' => 'yes',
+				'status'     => 'yes',
+				'resizable'  => 'yes',
+				'screenx'    => '0',
+				'screeny'    => '0'
+			);
+
+			if(preg_match('/[0-9]{8,}/',$comprob)){
+				return anchor_popup('contabilidad/casi/localizador/transac/procesar/'.$comprob,$comprob,$atts);
+			}else{
+				return $comprob;
+			}
+		}
+
 		$grid = new DataGrid('Registros cuya cuenta no existe en el plan de cuentas');
-		$grid->use_function('regla');
+		$grid->use_function('regla','vtransa');
 		$grid->order_by('fecha','asc');
 		$grid->per_page = 40;
-		$grid->column_orderby('N&uacute;mero','comprob','comprob');
+		$grid->column_orderby('N&uacute;mero','<vtransa><#comprob#></vtransa>','comprob');
 		$grid->column_orderby('Cuenta','cuenta','cuenta');
 		//$grid->column_orderby('Transac','transac','transac');
 		$grid->column_orderby('Fecha'   ,'<dbdate_to_human><#fecha#></dbdate_to_human>','fecha',"align='center'");
@@ -1999,10 +2017,24 @@ class Casi extends Controller {
 		return true;
 	}
 
+	function _pre_delete($do){
+		$fecha  = $do->get('fecha');
+		$anio   = substr($fecha,0,4);
+
+		$dbcomprob= $this->db->escape("ZIERRE${anio}");
+		$cana     = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM casi WHERE numero=${dbcomprob}"));
+		if($cana==0){
+			return true;
+		}
+
+		$do->error_message_ar['pre_del']='No puede eliminar el asiento porque ya fue realizado el cierre del '.$anio;
+		return false;
+	}
+
 	function _post_update($do){
 		//trafrac ittrafrac
 		$codigo=$do->get('comprob');
-		logusu('casi',"Asiento $codigo MODIFICADO");
+		logusu('casi',"Asiento ${codigo} MODIFICADO");
 	}
 
 	function _post_insert($do){

@@ -2386,7 +2386,7 @@ class Smov extends Controller {
 			$cant= intval($this->datasis->dameval($sql));
 			if($cant>0){
 
-
+				$this->validation->set_message('chnumrep', 'Ya existe un pago en el sistema con el mismo numero, banco y monto.');
 				return false;
 			}
 		}

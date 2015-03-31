@@ -143,7 +143,7 @@ $(function(){
 		},
 		minLength: 2,
 		select: function( event, ui ) {
-			var meco;
+			var tdirec;
 			$('#cod_cli').attr("readonly", "readonly");
 
 			$('#nombre').val(ui.item.nombre);
@@ -162,9 +162,29 @@ $(function(){
 				$('#vd').val(ui.item.vendedor);
 			}
 
-			meco = 'Direccion:'+ui.item.direc+" Telefono: "+ui.item.telefono+" Ciudad: "+ui.item.ciudad;
-			$('#direc').val(meco);
-			$('#direc_val').text(meco);
+			tdirec = 'Direccion: ';
+			if(ui.item.direc != ''){
+				tdirec = tdirec + ui.item.direc;
+			}else{
+				tdirec = tdirec + ' - ';
+			}
+
+			tdirec = tdirec + ' Telefono: ';
+			if(ui.item.telefono != ''){
+				tdirec = tdirec + ui.item.telefono;
+			}else{
+				tdirec = tdirec + ' - ';
+			}
+
+			tdirec = tdirec + ' Ciudad: ';
+			if(ui.item.ciudad != ''){
+				tdirec = tdirec + ui.item.ciudad;
+			}else{
+				tdirec = tdirec + ' - ';
+			}
+
+			$('#direc').val(tdirec);
+			$('#direc_val').text(tdirec);
 
 			var manual = $("#manual").val();
 			if(manual=='S'){
@@ -537,7 +557,7 @@ function totalizar(){
 	var descu2 = Number($("#descu2").val());
 	var descu3 = Number($("#descu3").val());
 
-	var descuento = 0;
+	var descuento = 0; //monto del descuento
 	var arr=$('input[name^="tota_"]');
 	$.each(arr, function() {
 		nom = this.name;
@@ -549,32 +569,33 @@ function totalizar(){
 			itpeso  = Number($("#sinvpeso_"+ind).val());
 			itpreca = Number($("#preca_"+ind).val());
 			importe = Number(this.value);
-			iimporte = roundNumber(cana*itpreca,2)
+			iimporte= roundNumber(cana*itpreca,2)
 			descui  = Number($("#descu_"+ind).val());
 
-			if(descu>0){
-				nimporte  = roundNumber(importe*(1-descu),4);
-				importe   = roundNumber(nimporte,4);
-			}
-			if(descui>0){
-				if(!isNaN(itpreca)){
+			if(!isNaN(itpreca)){
+				if(descu>0){
+					nimporte  = roundNumber(importe*(1-descu),4);
+					descuento = descuento+(importe-nimporte);
+					importe   = roundNumber(nimporte,4);
+				}
+				if(descui>0){
 					nimporte  = roundNumber(itpreca*(100-descui)*cana/100,4);
 					importe   = roundNumber(nimporte,2);
-				}else{
-					importe   = 0;
 				}
-			}
-			if(descu1 > 0){
-				nimporte  = roundNumber(importe*(100-descu1)/100,4);
-				importe   = roundNumber(nimporte,4);
-			}
-			if(descu2 > 0){
-				nimporte  = roundNumber(importe*(100-descu2)/100,4);
-				importe   = roundNumber(nimporte,4);
-			}
-			if(descu3 > 0){
-				nimporte  = roundNumber(importe*(100-descu3)/100,4);
-				importe   = roundNumber(nimporte,4);
+				if(descu1 > 0){
+					nimporte  = roundNumber(importe*(100-descu1)/100,4);
+					importe   = roundNumber(nimporte,4);
+				}
+				if(descu2 > 0){
+					nimporte  = roundNumber(importe*(100-descu2)/100,4);
+					importe   = roundNumber(nimporte,4);
+				}
+				if(descu3 > 0){
+					nimporte  = roundNumber(importe*(100-descu3)/100,4);
+					importe   = roundNumber(nimporte,4);
+				}
+			}else{
+				importe   = 0;
 			}
 			importe = roundNumber(importe,2);
 			peso    = peso+(itpeso*cana);
@@ -649,11 +670,11 @@ function fpaga( fp ){
 	if ( fp == 'M' ){
 		$("#ditems01").hide();
 		$("#fpefectivo").hide();
-		$("#formapago").toggle();
+		$("#formapago").show();
 	} else if ( fp == 'E' ) {
 		$("#ditems01").hide();
 		$("#formapago").hide();
-		$("#fpefectivo").toggle();
+		$("#fpefectivo").show();
 	} else {
 		$("#formapago").hide();
 		$("#fpefectivo").hide();
@@ -901,7 +922,7 @@ function cdescrip(nind){
 		ddeca.setAttribute("id"    , "desca_"+ind);
 		ddeca.setAttribute("name"  , "desca_"+ind);
 		ddeca.setAttribute("class" , "input");
-		ddeca.setAttribute("size"  , 45);
+		ddeca.setAttribute("size"  , 40);
 		ddeca.setAttribute("maxlength", 50);
 		ddeca.setAttribute("readonly" ,"readonly");
 		ddeca.setAttribute("value"    ,desca);
@@ -1294,7 +1315,7 @@ function apldes(){
 					<table style="width:100%;border-collapse:collapse;padding:0px;border-top:3px solid #0B3861;">
 						<tr>
 							<td style='border-right:1px solid #0B3861;' align='center'>
-							<input name="bpagar" value="Cerrar" onclick="fpaga('M')" class="button" type="button"></td>
+							<input name="bpagar" value="Ver art&iacute;culos" onclick="fpaga('-')" class="button" type="button"></td>
 							<td class="littletableheader" valign='top'><?php echo $form->observa->label; ?>&nbsp;&nbsp;</td>
 							<td class='littletablerow'    valign='top'><?php echo $form->observa->output; ?></td>
 						</tr>
@@ -1310,15 +1331,13 @@ function apldes(){
 				<td class="littletableheader" valign='top'><?php echo $form->pagacon->label; ?>&nbsp;</td>
 				<td class='littletablerow'    valign='top'><?php echo $form->pagacon->output; ?></td>
 				<td class='littletablerow'    valign='right'><div id='vuelto' style='font-size:16px;font-weight:bold;'>0.00</div></td>
-			</tr>
-			<tr>
+			</tr><tr>
 				<td class="littletableheader" valign='top'><?php echo $form->observa->label;  ?>&nbsp;&nbsp;</td>
 				<td class='littletablerow'    colspan='2' ><?php echo $form->observa->output; ?></td>
-			</tr>
-			<tr>
+			</tr><tr>
 				<td>&nbsp;</td>
 				<td>&nbsp;</td>
-				<td align='right'></td>
+				<td align='right'><input name="bpagar" value="Ver art&iacute;culos" onclick="fpaga('-')" class="button" type="button"></td>
 			</tr>
 		</table>
 		</div>
@@ -1343,11 +1362,11 @@ function apldes(){
 				<td colspan='2' style='text-align:center;font-size:18px;font-weight:bold;background:#0B3861;color:#FFF;'>FORMA DE PAGO</td>
 			</tr><tr>
 				<?php $referen=$form->referen->value; ?>
-				<td><input name="referen" value="P" type="radio" onchange='chreferen()' <?php echo ($referen=='P' || empty($referen))? 'checked="checked"':''; ?>>Pendiente</td>
-				<td><input name="referen" value="E" type="radio" onchange='chreferen()' <?php echo ($referen=='E')? 'checked="checked"':''; ?>>Efectivo</td>
+				<td><input name="referen" value="P" type="radio" onclick='chreferen()' <?php echo ($referen=='P' || empty($referen))? 'checked="checked"':''; ?>>Pendiente</td>
+				<td><input name="referen" value="E" type="radio" onclick='chreferen()' <?php echo ($referen=='E')? 'checked="checked"':''; ?>>Efectivo</td>
 			</tr><tr>
-				<td><input name="referen" value="M" type="radio" onchange='chreferen()' <?php echo ($referen=='M')? 'checked="checked"':''; ?>>Multiple</td>
-				<td><input name="referen" value="C" type="radio" onchange='chreferen()' <?php echo ($referen=='C')? 'checked="checked"':''; ?>>Credito</td>
+				<td><input name="referen" value="M" type="radio" onclick='chreferen()' <?php echo ($referen=='M')? 'checked="checked"':''; ?>>Multiple</td>
+				<td><input name="referen" value="C" type="radio" onclick='chreferen()' <?php echo ($referen=='C')? 'checked="checked"':''; ?>>Credito</td>
 			</tr>
 		</table>
 		<br>

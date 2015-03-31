@@ -19,15 +19,18 @@ $bsclid =$this->datasis->modbus($mSCLId);
 $filter = new DataFilter('Filtro del Reporte');
 $filter->attributes=array('onsubmit'=>'is_loaded()');
 
-$select=array('a.numero','a.fecha','d.descrip','FORMAT(SUM(c.peso*b.cana)/1000,3) AS peso',
-'e.rifci','e.nombre','SUM(b.cana) AS cana','a.reparto','d.codigo AS sadacod');
+$select=array('a.numero','a.fecha','d.descrip',
+'FORMAT((AVG(c.pesoneto*b.cana)-c.pesoneto*SUM(COALESCE(g.cana,0)))/1000,3) AS peso',
+'e.rifci','e.nombre','AVG(b.cana)-SUM(COALESCE(g.cana,0)) AS cana','a.reparto','d.codigo AS sadacod','a.nfiscal');
 $filter->db->select($select);
 $filter->db->from('sfac    AS a');
 $filter->db->join('sitems  AS b','a.numero=b.numa AND a.tipo_doc=b.tipoa');
 $filter->db->join('sinv    AS c','c.codigo=b.codigoa');
 $filter->db->join('sadacod AS d','d.id=c.sada');
 $filter->db->join('scli    AS e','e.cliente=a.cod_cli');
-$filter->db->where("tipo_doc<>'X' AND  tipo_doc<>'D'");
+$filter->db->join('sfac    AS f','a.numero=f.factura AND f.tipo_doc="D"' ,'left');
+$filter->db->join('sitems  AS g','g.numa=f.numero AND g.tipoa=f.tipo_doc AND g.codigoa=b.codigoa','left');
+$filter->db->where("a.tipo_doc<>'X'");
 $filter->db->groupby('a.numero,c.sada');
 $filter->db->orderby('a.numero');
 
@@ -47,10 +50,10 @@ $filter->build();
 
 if($this->rapyd->uri->is_set('search')  && $filter->is_valid()){
 	$mSQL=$this->rapyd->db->_compile_select();
-	//echo $mSQL;
+	//echo $mSQL; exit();
 	$reparto=$filter->reparto->newValue;
 	$subtitu='';
-	if(!empty($reparto)) $subtitu.="Guia de reparto ${reparto} ".dbdate_to_human($this->datasis->dameval('SELECT fecha FROM reparto WHERE id='.$this->db->escape($reparto)));
+	if(!empty($reparto)) $subtitu.="Guia de reparto ${reparto} de fecha ".dbdate_to_human($this->datasis->dameval('SELECT fecha FROM reparto WHERE id='.$this->db->escape($reparto)));
 
 	$sobretabla='';
 	if (!empty($filter->cliente->newValue)) $sobretabla.='';
@@ -69,7 +72,7 @@ if($this->rapyd->uri->is_set('search')  && $filter->is_valid()){
    	$pdf->AddCol('cana'    ,20,'Cant.'      ,'R',8);
 	$pdf->AddCol('peso'    ,35,'Peso T.'    ,'R',8);
 
-   	$pdf->setGrupoLabel('Factura <#numero#>, Cliente <#rifci#> <#nombre#>, Reparto <#reparto#>');
+   	$pdf->setGrupoLabel('Factura <#nfiscal#> Ref. <#numero#>, Cliente <#rifci#> <#nombre#>, Reparto <#reparto#>');
 	$pdf->setGrupo('numero');
 
 	//$pdf->setTotalizar('monto','cant','uni');
@@ -77,7 +80,7 @@ if($this->rapyd->uri->is_set('search')  && $filter->is_valid()){
 	$pdf->Output();
 
 }else{
-	if (strlen($filter->error_string)) $data['error']=$filter->error_string;
+	if(strlen($filter->error_string)) $data['error']=$filter->error_string;
 	$data['filtro'] = $filter->output;
 	$data['titulo'] = '<h2 class="mainheader">Res&uacute;men de guias SADA</h2>';
 	$data['head']   = $this->rapyd->get_head();
