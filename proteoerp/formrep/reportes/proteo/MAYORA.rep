@@ -1,3 +1,9 @@
+/**
+ * ProteoERP
+ *
+ * @autor    Andres Hocevar
+ * @license  GNU GPL v3
+*/
 $this->rapyd->load('datafilter');
 $this->rapyd->load('datatable');
 $this->load->library('msql');
@@ -39,18 +45,19 @@ $filter = new DataForm(' ');
 $filter->_process_uri  = $this->rapyd->uri->add_clause($base_process_uri, "search");
 $filter->attributes=array('onsubmit'=>'is_loaded() ' );
 
-$filter->fechad = new dateonlyField("Desde", "fechad",'d/m/Y');
-$filter->fechah = new dateonlyField("Hasta", "fechah",'d/m/Y');
-$filter->fechad->clause  =$filter->fechah->clause="where";
-$filter->fechad->db_name =$filter->fechah->db_name="a.fecha";
+$filter->fechad = new dateonlyField('Desde', 'fechad','d/m/Y');
+$filter->fechah = new dateonlyField('Hasta', 'fechah','d/m/Y');
+$filter->fechad->clause  =$filter->fechah->clause='where';
+$filter->fechad->db_name =$filter->fechah->db_name='a.fecha';
 $filter->fechad->insertValue = $inicio;
 $filter->fechah->insertValue = $final;
-$filter->fechad->operator=">=";
-$filter->fechah->operator="<=";
-$filter->fechah->group = "Fecha";
-$filter->fechad->group = "Fecha";
+$filter->fechad->operator='>=';
+$filter->fechah->operator='<=';
+$filter->fechah->group = 'Fecha';
+$filter->fechad->group = 'Fecha';
+$filter->fechad->rule = $filter->fechah->rule = 'chfecha';
 
-$filter->cuentad = new inputField("Desde la  Cuenta", "codigod");
+$filter->cuentad = new inputField('Desde la  Cuenta', 'codigod');
 $filter->cuentad->db_name ='a.cuenta';
 $filter->cuentad->clause  ='where';
 $filter->cuentad->operator='>=';
@@ -64,7 +71,7 @@ $filter->cuentah->operator='<=';
 $filter->cuentah->append($bCPLAH);
 $filter->cuentah->group = 'Cuenta';
 
-$filter->salformat = new radiogroupField("Formato de salida","salformat");
+$filter->salformat = new radiogroupField('Formato de salida','salformat');
 $filter->salformat->options($this->opciones);
 $filter->salformat->insertValue ='PDF';
 $filter->salformat->clause = '';
@@ -72,31 +79,37 @@ $filter->salformat->clause = '';
 $filter->submit('btnsubmit',RAPYD_BUTTON_SEARCH);
 $filter->build_form( );
 
-if($this->rapyd->uri->is_set('search')){
+if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
+
+	$dbcuentad = $this->db->escape($filter->cuentad->newValue);
+	$dbcuentah = $this->db->escape($filter->cuentah->newValue);
+
+	$dbfechad  = $this->db->escape($filter->fechad->newValue);
+	$dbfechah  = $this->db->escape($filter->fechah->newValue);
 
 	$query=array();
 	$db[0]=new msql();
 	$db[0]->select("a.fecha, a.comprob,a.cuenta,a.referen,a.concepto,a.debe,a.haber,a.debe-a.haber as saldo,b.descrip as compdesc, b.status, c.descrip as cpladesc");
-	$db[0]->from("itcasi AS a");
-	$db[0]->join("casi AS b","a.comprob=b.comprob" ,"LEFT");
-	$db[0]->join("cpla as c","a.cuenta=c.codigo"   ,"LEFT");
-	$db[0]->where("a.fecha>= '" .$filter->fechad->newValue."' AND a.fecha<='".$filter->fechah->newValue."'");
+	$db[0]->from('itcasi AS a');
+	$db[0]->join('casi   AS b','a.comprob=b.comprob' ,'LEFT');
+	$db[0]->join('cpla   AS c','a.cuenta=c.codigo'   ,'LEFT');
+	$db[0]->where("a.fecha>= ${dbfechad} AND a.fecha<=${dbfechah}");
 
 	$db[1]=new msql();
- 	$db[1]->select("a.fecha AS fecha, '00000000', a.cuenta, '   ', 'SALDO ANTERIOR', sum(a.debe) AS debe, sum(a.haber) AS haber, sum(a.debe)-sum(a.haber) as saldo,b.descrip AS compdesc, b.status, c.descrip  AS cpladesc ");
-	$db[1]->from("itcasi AS a");
-	$db[1]->join("casi AS b","a.comprob=b.comprob","LEFT");
-	$db[1]->join("cpla as c","a.cuenta=c.codigo"  ,"LEFT");
-	$db[1]->where("a.fecha< '" .$filter->fechad->newValue."'" );
+ 	$db[1]->select("a.fecha AS fecha, '00000000', a.cuenta, '   ', 'SALDO ANTERIOR', SUM(a.debe) AS debe, SUM(a.haber) AS haber, sum(a.debe)-sum(a.haber) as saldo,b.descrip AS compdesc, b.status, c.descrip  AS cpladesc ");
+	$db[1]->from('itcasi AS a');
+	$db[1]->join('casi   AS b','a.comprob=b.comprob','LEFT');
+	$db[1]->join('cpla   AS c','a.cuenta=c.codigo'  ,'LEFT');
+	$db[1]->where("a.fecha< ${dbfechad}");
 	if(!empty($filter->cuentad->newValue)) {
-		$db[0]->where("a.cuenta >= '".$filter->cuentad->newValue."'");
-		$db[1]->where("a.cuenta >= '".$filter->cuentad->newValue."'");
+		$db[0]->where("a.cuenta >= ${dbcuentad}");
+		$db[1]->where("a.cuenta >= ${dbcuentah}");
 	}
 	if (!empty($filter->cuentah->newValue)){
-		$db[0]->where(" a.cuenta <= '".$filter->cuentah->newValue."'" );
-		$db[1]->where(" a.cuenta <= '".$filter->cuentah->newValue."'" );
+		$db[0]->where(" a.cuenta <= ${dbcuentad}" );
+		$db[1]->where(" a.cuenta <= ${dbcuentah}" );
 	}
-	$db[1]->groupby("a.cuenta");
+	$db[1]->groupby('a.cuenta');
  	$db[1]->orderby("cuenta,fecha");
 
 	$query[0]=$db[0]->compile_select();
@@ -129,6 +142,7 @@ if($this->rapyd->uri->is_set('search')){
 	$pdf->Table();
 	$pdf->Output();
 }else{
+	if(strlen($filter->error_string)) $data['error']=$filter->error_string;
 	$data['filtro'] = $filter->output;
 	$data['titulo'] = '<h2 class="mainheader">Mayor General</h2>';
 	$data['head']   = $this->rapyd->get_head();

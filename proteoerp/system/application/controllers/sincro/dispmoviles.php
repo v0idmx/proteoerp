@@ -191,7 +191,7 @@ class Dispmoviles extends Controller {
 		}
 
 		echo json_encode($data);
-		logusu('dispmoviles',"Sincronizo ${vend} ${uuid}");
+		logusu('dispmoviles',"Sincronizo ${vend} ${uuid} ${tabla}");
 	}
 
 	function ping($uuid){

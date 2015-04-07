@@ -1052,11 +1052,14 @@ class Casi extends Controller {
 	function auditcasi(){
 		$this->rapyd->load('datagrid','datafilter');
 
+		$formato= trim($this->datasis->dameval("SELECT formato FROM cemp LIMIT 1"));
+		$flen   = intval(strlen($formato));
+
 		$filter = new DataFilter('Auditoria de Asientos');
 		$filter->db->select(array('a.comprob','a.fecha','a.concepto','a.origen','a.debe','a.haber','a.cuenta'));
 		$filter->db->from('itcasi AS a');
 		//$filter->db->join('casi AS c' ,'a.comprob=c.comprob');
-		$filter->db->join('cpla AS b' ,'a.cuenta=b.codigo','LEFT');
+		$filter->db->join('cpla AS b' ,'a.cuenta=b.codigo AND LENGTH(b.codigo)=${flen}','LEFT');
 		$filter->db->where('b.codigo IS NULL');
 		//$filter->db->where('cuenta NOT REGEXP \'^([0-9]+\.)+[0-9]+\' OR cuenta IS NULL');
 
@@ -1075,6 +1078,7 @@ class Casi extends Controller {
 		$filter->origen = new dropdownField('Or&iacute;gen', 'origen');
 		$filter->origen->option('','Todos');
 		$filter->origen->style = 'width:180px';
+		$filter->origen->clause = 'like';
 		$filter->origen->options('SELECT modulo, modulo valor FROM reglascont GROUP BY modulo');
 
 		$filter->buttons('reset','search');

@@ -111,10 +111,12 @@ class Cierre extends Controller {
 		    WHERE comprob='${comprob}'");
 		if($centinela==false){ memowrite($mSQL,'itcasi'); $error=true; }
 
-		if($error)
+		if($error){
 			echo 'Hubo algunos errores, se generaron centinelas, favor comunicarse con servicio tecnico';
-		else
+		}else{
 			echo "Cierre realizado ${comprob}";
+			logusu('cierre',"Realizo cierre contable ${comprob}");
+		}
 	}
 
 	function instalar(){

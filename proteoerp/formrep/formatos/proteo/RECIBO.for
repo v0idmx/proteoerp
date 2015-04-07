@@ -1,8 +1,8 @@
 <?php
 $maxlin=15; //Maximo de lineas de items.
 
-$cana = $this->datasis->dameval('SELECT COUNT(*) FROM prenom');
-if(empty($cana)) show_error('No existe ninguna prenomina');
+$cana = intval($this->datasis->dameval('SELECT COUNT(*) AS cana FROM prenom'));
+if($cana==0) show_error('No existe ninguna prenomina');
 
 $rif             = htmlspecialchars(trim($this->datasis->traevalor('RIF')));
 $cintillo_titulo1= $this->us_ascii2html(trim($this->datasis->traevalor('TITULO1')));
@@ -99,7 +99,9 @@ foreach ($_query->result() as $_row){
 	if($dias>0){
 		$datetime2->sub(new DateInterval('P'.$dias.'D'));
 		$datetime2->format('d');
-		$periodo   = 'PERIODO '.$datetime2->format('d').' AL '.$hfecha;
+		$periodo   = 'DEL PERIODO '.$datetime2->format('d').' AL '.$hfecha;
+	}else{
+		$periodo   = '';
 	}
 
 	$dbfecha   = $this->db->escape($fecha);
@@ -137,7 +139,6 @@ foreach ($_query->result() as $_row){
 	$totales=array('asigna'=>0,'deduc'=>0,'pres'=>0);
 
 ?>
-
 <div style='font-size:0.6em; font-family: "verdana", "sans-serif";'>
 <?php
 //************************
@@ -148,7 +149,7 @@ $encabezado = "<br>
 	<table style='width:100%; border-collapse: collapse;'>
 		<tr style='font-weight:bold;font-size:2em;'>
 			<td style='text-align:left ;'>${cintillo_titulo1}</td>
-			<td style='text-align:right;'>PAGO DE NOMINA DEL </td>
+			<td style='text-align:right;'>PAGO DE NOMINA</td>
 		</tr>
 		<tr>
 			<td style='text-align:left ;' >${cintillo_titulo2}<br>${cintillo_titulo3}</td>
@@ -229,7 +230,7 @@ $mod     = $clinea = false;
 $npagina = true;
 $i       = 0;
 
-foreach ($detalle AS $items){ $i++;
+foreach ($detalle as $items){ $i++;
 	do {
 		if($npagina){
 			echo $encabezado;
@@ -269,7 +270,7 @@ foreach ($detalle AS $items){ $i++;
 					?>
 				</td>
 				<td style="text-align: right;"><?php echo ($clinea)? '': ($items->asigna==0)? '-': nformat($items->asigna);; $totales['asigna'] += $items->asigna; ?></td>
-				<td style="text-align: right;"><?php echo ($clinea)? '': ($items->deduc ==0)? '-': nformat($items->deduc) ;; $totales['deduc']  += $items->deduc; ?></td>
+				<td style="text-align: right;"><?php echo ($clinea)? '': ($items->deduc ==0)? '-': nformat($items->deduc) ;; $totales['deduc']  += $items->deduc;  ?></td>
 			</tr>
 <?php
 		if($npagina){
@@ -305,7 +306,7 @@ echo $pie_final;
 					<td colspan='3'>Pr&eacute;stamos:</td>
 				</tr>
 				<?php
-				foreach ($detalle3 AS $pres){ $i++;
+				foreach ($detalle3 as $pres){ $i++;
 				?>
 				<tr>
 					<td><?php echo trim($pres->tipo_doc).trim($pres->numero); ?></td>

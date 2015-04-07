@@ -1493,7 +1493,7 @@ function elminacenti(cual){
 	//Para reconstruir sfac a partir de sfpa, sitems,scli y sinv
 	function ressfac(){
 		$mSQL="INSERT INTO sfac
-		SELECTaa.tipoa,aa.numa,aa.fecha,aa.fecha,aa.vendedor,aa.codigoa,aa.rifci,aa.nombre,aa.dire11,aa.dire12,'' AS orden,'' AS referen,SUM(aa.iva),0 AS inicial,SUM(aa.tota) AS totals,SUM(aa.tota+aa.iva) AS totalg,'' AS status, '' AS observa,'' AS observ1,0 AS devolu,aa.cajero,'0001' AS almacen,0 AS peso,'' AS factura,'' AS pedido,aa.usuario,aa.estampa,aa.hora,aa.transac,'' AS nfiscal,'' AS zona,'' AS ciudad,0 AS comision,'N' AS pagada,'N' AS sepago,
+		SELECT aa.tipoa,aa.numa,aa.fecha,aa.fecha,aa.vendedor,aa.codigoa,aa.rifci,aa.nombre,aa.dire11,aa.dire12,'' AS orden,'' AS referen,SUM(aa.iva),0 AS inicial,SUM(aa.tota) AS totals,SUM(aa.tota+aa.iva) AS totalg,'' AS status, '' AS observa,'' AS observ1,0 AS devolu,aa.cajero,'0001' AS almacen,0 AS peso,'' AS factura,'' AS pedido,aa.usuario,aa.estampa,aa.hora,aa.transac,'' AS nfiscal,'' AS zona,'' AS ciudad,0 AS comision,'N' AS pagada,'N' AS sepago,
 		0  AS dias,
 		'' AS fpago,
 		0  AS comical,

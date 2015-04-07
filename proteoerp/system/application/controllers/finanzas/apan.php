@@ -829,7 +829,7 @@ class Apan extends Controller {
 		$edit->reinte = new inputField('Reinte','reinte');
 		$edit->reinte->rule      = '';
 		$edit->reinte->size      = 7;
-		$edit->reinte->maxlength = 5;
+		//$edit->reinte->maxlength = 5;
 
 		$edit->observa1 = new textareaField('Observa1','observa1');
 		$edit->observa1->cols = 70;
