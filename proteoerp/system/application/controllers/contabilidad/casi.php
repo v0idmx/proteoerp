@@ -1059,7 +1059,7 @@ class Casi extends Controller {
 		$filter->db->select(array('a.comprob','a.fecha','a.concepto','a.origen','a.debe','a.haber','a.cuenta'));
 		$filter->db->from('itcasi AS a');
 		//$filter->db->join('casi AS c' ,'a.comprob=c.comprob');
-		$filter->db->join('cpla AS b' ,'a.cuenta=b.codigo AND LENGTH(b.codigo)=${flen}','LEFT');
+		$filter->db->join('cpla AS b' ,'a.cuenta=b.codigo AND LENGTH(b.codigo)='.$flen,'LEFT');
 		$filter->db->where('b.codigo IS NULL');
 		//$filter->db->where('cuenta NOT REGEXP \'^([0-9]+\.)+[0-9]+\' OR cuenta IS NULL');
 
