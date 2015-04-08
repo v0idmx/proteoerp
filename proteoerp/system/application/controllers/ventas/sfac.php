@@ -3607,7 +3607,7 @@ class Sfac extends Controller {
 					return true;
 				}
 				$regalar = $this->datasis->traevalor('REGALAR');
-				if ( $regalar == 'S')
+				if ( $regalar == 'S'){
 					return true;
 				}
 
