@@ -1094,7 +1094,7 @@ class Casi extends Controller {
 
 		function ocuenta($origen,$cuenta){
 			$rt=array();
-			if(preg_match_all('/(?P<alias>[A-Za-z]{1,}?)\.[A-za-z]/',$cuenta , $match)>0){
+			if(preg_match_all('/(?P<alias>[A-Za-z]{1,}?)\.cuenta/',$cuenta , $match)>0){
 				$arr = array_unique($match['alias']);
 				if(count($arr)>0){
 					foreach($arr as $aalias){
