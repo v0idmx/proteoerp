@@ -151,9 +151,13 @@ class MY_Validation extends CI_Validation{
 	function existecpla($cuenta){
 		$cuenta  =trim($cuenta);
 		if(strlen($cuenta)==0) return true;
+
+		$formato= trim($this->CI->datasis->dameval("SELECT formato FROM cemp LIMIT 1"));
+		$flen   = intval(strlen($formato));
+
 		$dbcuenta=$this->CI->db->escape($cuenta);
-		$mSQL = "SELECT COUNT(*) AS cana FROM cpla WHERE codigo=${dbcuenta}";
-		$this->set_message('existecpla', 'La cuenta contable introducida en el campo %s no es v&aacute;lida');
+		$mSQL = "SELECT COUNT(*) AS cana FROM cpla WHERE codigo=${dbcuenta} AND LENGTH(codigo)=${flen}";
+		$this->set_message('existecpla', 'La cuenta contable introducida en el campo %s no es v&aacute;lida o no es de movimiento');
 
 		$query = $this->CI->db->query($mSQL);
 		if ($query->num_rows() > 0){

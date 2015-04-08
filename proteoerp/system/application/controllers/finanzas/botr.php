@@ -1,188 +1,244 @@
-<?php require_once(BASEPATH.'application/controllers/validaciones.php'); 
+<?php
+/**
+* ProteoERP
+*
+* @autor    Andres Hocevar
+* @license  GNU GPL v3
+*/
 class Botr extends Controller {
-	var $mModulo='BOTR';
-	var $titp='Otros Concepto de Contabilidad';
-	var $tits='Otros Concepto de Contabilidad';
-	var $url ='finanzas/botr/';
+	var $mModulo = 'BOTR';
+	var $titp    = 'Otros Concepto de Contabilidad';
+	var $tits    = 'Otros Concepto de Contabilidad';
+	var $url     = 'finanzas/botr/';
 
 	function Botr(){
 		parent::Controller();
 		$this->load->library('rapyd');
 		$this->load->library('jqdatagrid');
-		//$this->datasis->modulo_id('NNN',1);
-		$this->datasis->modulo_nombre( 'BOTR', $ventana=0 );
+		$this->datasis->modulo_nombre( 'BOTR', $ventana=0, $this->titp  );
 	}
 
 	function index(){
-		if ( !$this->datasis->iscampo('botr','id') ) {
-			$this->db->simple_query('ALTER TABLE botr DROP PRIMARY KEY');
-			$this->db->simple_query('ALTER TABLE botr ADD UNIQUE INDEX codigo (codigo)');
-			$this->db->simple_query('ALTER TABLE botr ADD COLUMN id INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
-		};
-		$this->datasis->modintramenu( 750, 470, 'finanzas/botr' );
+		$this->instalar();
+		//$this->datasis->creaintramenu(array('modulo'=>'000','titulo'=>'<#titulo#>','mensaje'=>'<#mensaje#>','panel'=>'<#panal#>','ejecutar'=>'<#ejecuta#>','target'=>'popu','visible'=>'S','pertenece'=>'<#pertenece#>','ancho'=>900,'alto'=>600));
 		redirect($this->url.'jqdatag');
 	}
 
-	//***************************
-	//Layout en la Ventana
+	//******************************************************************
+	// Layout en la Ventana
 	//
-	//***************************
 	function jqdatag(){
 
 		$grid = $this->defgrid();
-		$param['grid'] = $grid->deploy();
+		$param['grids'][] = $grid->deploy();
 
-		$bodyscript = '
-<script type="text/javascript">
-$(function() {
-	$( "input:submit, a, button", ".otros" ).button();
-});
+		//Funciones que ejecutan los botones
+		$bodyscript = $this->bodyscript( $param['grids'][0]['gridname']);
 
-jQuery("#a1").click( function(){
-	var id = jQuery("#newapi'. $param['grid']['gridname'].'").jqGrid(\'getGridParam\',\'selrow\');
-	if (id)	{
-		var ret = jQuery("#newapi'. $param['grid']['gridname'].'").jqGrid(\'getRowData\',id);
-		window.open(\''.site_url('formatos/ver/BOTR/').'/\'+id, \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
-	} else { $.prompt("<h1>Por favor Seleccione un Movimiento</h1>");}
-});
-</script>
-';
+		//Botones Panel Izq
+		//$grid->wbotonadd(array("id"=>"funcion",   "img"=>"images/engrana.png",  "alt" => "Formato PDF", "label"=>"Ejemplo"));
+		$WestPanel = $grid->deploywestp();
 
-		#Set url
-		$grid->setUrlput(site_url($this->url.'setdata/'));
+		$adic = array(
+			array('id'=>'fedita',  'title'=>'Agregar/Editar Registro'),
+			array('id'=>'fshow' ,  'title'=>'Mostrar Registro'),
+			array('id'=>'fborra',  'title'=>'Eliminar Registro')
+		);
+		$SouthPanel = $grid->SouthPanel($this->datasis->traevalor('TITULO1'), $adic);
 
-		$WestPanel = '
-<div id="LeftPane" class="ui-layout-west ui-widget ui-widget-content">
-<div class="anexos">
-
-<table id="west-grid" align="center">
-	<tr>
-		<td><div class="tema1"><table id="listados"></table></div></td>
-	</tr>
-	<tr>
-		<td><div class="tema1"><table id="otros"></table></div></td>
-	</tr>
-</table>
-
-<table id="west-grid" align="center">
-	<tr>
-		<td></td>
-	</tr>
-</table>
-</div>
-'.
-//		<td><a style="width:190px" href="#" id="a1">Imprimir Copia</a></td>
-'</div> <!-- #LeftPane -->
-';
-
-		$SouthPanel = '
-<div id="BottomPane" class="ui-layout-south ui-widget ui-widget-content">
-<p>'.$this->datasis->traevalor('TITULO1').'</p>
-</div> <!-- #BottomPanel -->
-';
-		$param['WestPanel']  = $WestPanel;
-		//$param['EastPanel']  = $EastPanel;
-		$param['SouthPanel'] = $SouthPanel;
-		$param['listados'] = $this->datasis->listados('BOTR', 'JQ');
-		$param['otros']    = $this->datasis->otros('BOTR', 'JQ');
-		$param['tema1']     = 'darkness';
-		$param['anexos']    = 'anexos1';
-		$param['bodyscript'] = $bodyscript;
-		$param['tabs'] = false;
-		$param['encabeza'] = $this->titp;
-		$this->load->view('jqgrid/crud',$param);
+		$param['WestPanel']   = $WestPanel;
+		//$param['EastPanel'] = $EastPanel;
+		$param['SouthPanel']  = $SouthPanel;
+		$param['listados']    = $this->datasis->listados('BOTR', 'JQ');
+		$param['otros']       = $this->datasis->otros('BOTR', 'JQ');
+		$param['temas']       = array('proteo','darkness','anexos1');
+		$param['bodyscript']  = $bodyscript;
+		$param['tabs']        = false;
+		$param['encabeza']    = $this->titp;
+		$param['tamano']      = $this->datasis->getintramenu( substr($this->url,0,-1) );
+		$this->load->view('jqgrid/crud2',$param);
 	}
 
-	//***************************
-	//Definicion del Grid y la Forma
-	//***************************
+	//******************************************************************
+	// Funciones de los Botones
+	//
+	function bodyscript( $grid0 ){
+		$bodyscript = '<script type="text/javascript">';
+		$ngrid = '#newapi'.$grid0;
+
+		$bodyscript .= $this->jqdatagrid->bsshow('botr', $ngrid, $this->url );
+		$bodyscript .= $this->jqdatagrid->bsadd( 'botr', $this->url );
+		$bodyscript .= $this->jqdatagrid->bsdel( 'botr', $ngrid, $this->url );
+		$bodyscript .= $this->jqdatagrid->bsedit('botr', $ngrid, $this->url );
+
+		//Wraper de javascript
+		$bodyscript .= $this->jqdatagrid->bswrapper($ngrid);
+
+		$bodyscript .= $this->jqdatagrid->bsfedita( $ngrid, '300', '400' );
+		$bodyscript .= $this->jqdatagrid->bsfshow( '300', '400' );
+		$bodyscript .= $this->jqdatagrid->bsfborra( $ngrid, '300', '400' );
+
+		$bodyscript .= '});';
+
+		$bodyscript .= '</script>';
+
+		return $bodyscript;
+	}
+
+	//******************************************************************
+	// Definicion del Grid o Tabla
+	//
 	function defgrid( $deployed = false ){
 		$i      = 1;
-		$editar = "true";
-		$link  = site_url('ajax/buscacpla');
+		$editar = "false";
 
 		$grid  = new $this->jqdatagrid;
 
-		$grid->addField('id');
-		$grid->label('Id');
+		$grid->addField('codigo');
+		$grid->label('C&oacute;digo');
 		$grid->params(array(
-				'hidden'   => 'true',
-				'align'    => "'center'",
-				'frozen'   => 'true',
-				'width'    => 60,
-				'editable' => 'false',
-				'search'   => 'false'
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 50,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:5, maxlength: 5 }',
 		));
 
-		$grid->addField('codigo');
-		$grid->label('Codigo');
-		$grid->params(array(
-				'search'      => 'true',
-				'editable'    => $editar,
-				'width'       => 50,
-				'edittype'    => "'text'",
-				'editoptions' => '{ size:5, maxlength: 5 }'
-		));
 
 		$grid->addField('nombre');
 		$grid->label('Nombre');
 		$grid->params(array(
-				'search'        => 'true',
-				'editable'      => $editar,
-				'width'         => 250,
-				'edittype'      => "'text'",
-				'editoptions' => '{ size:30, maxlength: 30 }'
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 200,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:30, maxlength: 30 }',
 		));
 
-		$grid->addField('tipo');
-		$grid->label('Tipo');
-		$grid->params(array(
-				'editable'    => 'true',
-				'edittype'    => "'select'",
-				'search'      => 'false',
-				'width'         => 50,
-				'editoptions' => '{value: {"C":"Cliente", "P":"Proveedor", "O":"Otro"} }'
-		));
-
-		$grid->addField('clase');
-		$grid->label('Clase');
-		$grid->params(array(
-				'editable'    => 'true',
-				'edittype'    => "'select'",
-				'width'         => 50,
-				'search'      => 'false',
-				'editoptions' => '{value: {"E":"Entrada", "S":"Salida", "N":"Ninguno"} }'
-		));
 
 		$grid->addField('cuenta');
 		$grid->label('Cuenta');
 		$grid->params(array(
-				'frozen'      => 'true',
-				'editable'    => 'true',
-				'edittype'    => "'text'",
-				'width'         => 80,
-				'editoptions' => '{'.$grid->autocomplete($link, 'cuenta','cucucu','<div id=\"cucucu\"><b>"+ui.item.descrip+"</b></div>').'}',
-				'search'      => 'false'
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 150,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:15, maxlength: 15 }',
 		));
+
+
+		/*$grid->addField('precio');
+		$grid->label('Precio');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'align'         => "'right'",
+			'edittype'      => "'text'",
+			'width'         => 100,
+			'editrules'     => '{ required:true }',
+			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
+			'formatter'     => "'number'",
+			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }'
+		));
+
+
+		$grid->addField('iva');
+		$grid->label('Iva');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'align'         => "'right'",
+			'edittype'      => "'text'",
+			'width'         => 100,
+			'editrules'     => '{ required:true }',
+			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
+			'formatter'     => "'number'",
+			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }'
+		));*/
+
+
+		$grid->addField('tipo');
+		$grid->label('Tipo');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 40,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:1, maxlength: 1 }',
+		));
+
+
+		/*$grid->addField('intocable');
+		$grid->label('Intocable');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 40,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:1, maxlength: 1 }',
+		));*/
+
+
+		$grid->addField('clase');
+		$grid->label('Clase');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 40,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:1, maxlength: 1 }',
+		));
+
+
+		/*$grid->addField('usacant');
+		$grid->label('Usacant');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 40,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:1, maxlength: 1 }',
+		));*/
+
+
+		$grid->addField('id');
+		$grid->label('Id');
+		$grid->params(array(
+			'align'         => "'center'",
+			'frozen'        => 'true',
+			'width'         => 40,
+			'editable'      => 'false',
+			'search'        => 'false'
+		));
+
 
 		$grid->showpager(true);
 		$grid->setWidth('');
-		$grid->setHeight('250');
+		$grid->setHeight('290');
 		$grid->setTitle($this->titp);
 		$grid->setfilterToolbar(true);
 		$grid->setToolbar('false', '"top"');
 
-		$grid->setFormOptionsE('closeAfterEdit:true, mtype: "POST", width: 450, height:250, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];} ');
-		$grid->setFormOptionsA('closeAfterAdd:true,  mtype: "POST", width: 450, height:250, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];} ');
-		$grid->setAfterSubmit("$.prompt('Respuesta:'+a.responseText); return [true, a ];");
+		$grid->setFormOptionsE('closeAfterEdit:true, mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
+		$grid->setFormOptionsA('closeAfterAdd:true,  mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
+		$grid->setAfterSubmit("$('#respuesta').html('<span style=\'font-weight:bold; color:red;\'>'+a.responseText+'</span>'); return [true, a ];");
 
-		#show/hide navigations buttons
-		$grid->setAdd(true);
-		$grid->setEdit(true);
-		$grid->setDelete(true);
-		$grid->setSearch(true);
+		$grid->setOndblClickRow('');		#show/hide navigations buttons
+		$grid->setAdd(    $this->datasis->sidapuede('BOTR','INCLUIR%' ));
+		$grid->setEdit(   $this->datasis->sidapuede('BOTR','MODIFICA%'));
+		$grid->setDelete( $this->datasis->sidapuede('BOTR','BORR_REG%'));
+		$grid->setSearch( $this->datasis->sidapuede('BOTR','BUSQUEDA%'));
 		$grid->setRowNum(30);
 		$grid->setShrinkToFit('false');
+
+		$grid->setBarOptions('addfunc: botradd, editfunc: botredit, delfunc: botrdel, viewfunc: botrshow');
 
 		#Set url
 		$grid->setUrlput(site_url($this->url.'setdata/'));
@@ -197,30 +253,29 @@ jQuery("#a1").click( function(){
 		}
 	}
 
-	/**
-	* Busca la data en el Servidor por json
-	*/
-	function getdata()
-	{
+	//******************************************************************
+	// Busca la data en el Servidor por json
+	//
+	function getdata(){
 		$grid       = $this->jqdatagrid;
 
 		// CREA EL WHERE PARA LA BUSQUEDA EN EL ENCABEZADO
 		$mWHERE = $grid->geneTopWhere('botr');
-		$response   = $grid->getData('botr', array(array()), array(), false, $mWHERE, 'codigo', 'asc' );
+
+		$response   = $grid->getData('botr', array(array()), array(), false, $mWHERE );
 		$rs = $grid->jsonresult( $response);
 		echo $rs;
 	}
 
-	/**
-	* Guarda la Informacion
-	*/
-	function setData()
-	{
+	//******************************************************************
+	// Guarda la Informacion del Grid o Tabla
+	//
+	function setData(){
 		$this->load->library('jqdatagrid');
 
 		$oper   = $this->input->post('oper');
 		$id     = $this->input->post('id');
-		
+
 		$data   = $_POST;
 		$check  = 0;
 
@@ -228,40 +283,42 @@ jQuery("#a1").click( function(){
 		unset($data['id']);
 		if($oper == 'add'){
 			// Busca si esta Repetido
-			if ($this->datasis->dameval("SELECT COUNT(*) FROM botr WHERE codigo=".$this->db->escape($data['codigo'])) > 0){
+			if($this->datasis->dameval("SELECT COUNT(*) FROM botr WHERE codigo=".$this->db->escape($data['codigo'])) > 0){
 				echo " Codigo Repetido!!!";
-			} else {
-				if( false == empty($data) ) {
+			}else{
+				if(false == empty($data)){
 					$this->db->insert('botr', $data);
 					echo " Registro Agregado";
 				}
 			}
 
-		} elseif($oper == 'edit') {
-			$codigo = $this->datasis->dameval("SELECT codigo FROM botr WHERE id=$id");
+		}elseif($oper == 'edit'){
+			$codigo = $this->datasis->dameval("SELECT codigo FROM botr WHERE id=${id}");
 			unset($data['codigo']);   // No cambia el Codigo
 			$this->db->where('id', $id);
 			$this->db->update('botr', $data);
 			echo " Registro Modificado";
 
-		} elseif($oper == 'del') {
-			$codigo = $this->datasis->dameval("SELECT codigo FROM botr WHERE id=$id");
-			$check  =  $this->datasis->dameval("SELECT count(*) FROM bmov   WHERE clipro='O' AND codcp=".$this->db->escape($codigo));
-			$check +=  $this->datasis->dameval("SELECT count(*) FROM itotin WHERE codigo=".$this->db->escape($codigo));
-			$check +=  $this->datasis->dameval("SELECT count(*) FROM smov   WHERE codigo=".$this->db->escape($codigo));
-			$check +=  $this->datasis->dameval("SELECT count(*) FROM sprm   WHERE codigo=".$this->db->escape($codigo));
-			if ($check > 0){
+		}elseif($oper == 'del'){
+			$codigo   = $this->datasis->dameval("SELECT codigo FROM botr WHERE id=${id}");
+			$dbcodigo = $this->db->escape($codigo);
+
+			$check  = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM bmov   WHERE clipro='O' AND codcp=${dbcodigo}"));
+			$check += intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM itotin WHERE codigo=${dbcodigo}"));
+			$check += intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM smov   WHERE codigo=${dbcodigo}"));
+			$check += intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sprm   WHERE codigo=${dbcodigo}"));
+			if($check > 0){
 				echo " El registro no puede ser eliminado; tiene movimiento $codigo";
-			} else {
-				$this->db->simple_query("DELETE FROM botr WHERE id=$id ");
-				logusu('botr',"Registro $codigo ELIMINADO");
+			}else{
+				$this->db->simple_query("DELETE FROM botr WHERE id=${id}");
+				logusu('botr',"Registro ${codigo} ELIMINADO");
 				echo " Registro Eliminado";
 			}
-		};
+		}
 	}
 
 	//******************************************************************
-	// Edicion 
+	// Edicion
 
 	function dataedit(){
 		$this->rapyd->load('dataedit');
@@ -269,8 +326,7 @@ jQuery("#a1").click( function(){
 		$(function() {
 			$("#fecha").datepicker({dateFormat:"dd/mm/yy"});
 			$(".inputnum").numeric(".");
-		});
-		';
+		});';
 
 		$qformato=$this->qformato=$this->datasis->formato_cpla();
 
@@ -282,11 +338,10 @@ jQuery("#a1").click( function(){
 			'filtro'  =>array('codigo'=>'C&oacute;digo','descrip'=>'Descripci&oacute;n'),
 			'retornar'=>array('codigo'=>'cuenta'),
 			'titulo'  =>'Buscar Cuenta',
-			'where'=>"codigo LIKE \"$qformato\"",
+			'where'=>"codigo LIKE \"${qformato}\"",
 			);
 
 		$bcpla = $this->datasis->modbus($mCPLA);
-
 
 		$edit = new DataEdit('', 'botr');
 
@@ -299,14 +354,15 @@ jQuery("#a1").click( function(){
 		$edit->post_process('insert','_post_insert');
 		$edit->post_process('update','_post_update');
 		$edit->post_process('delete','_post_delete');
-		$edit->pre_process('insert', '_pre_insert' );
-		$edit->pre_process('update', '_pre_update' );
-		$edit->pre_process('delete', '_pre_delete' );
+		$edit->pre_process( 'insert','_pre_insert' );
+		$edit->pre_process( 'update','_pre_update' );
+		$edit->pre_process( 'delete','_pre_delete' );
 
-		$edit->codigo = new inputField('Codigo','codigo');
+		$edit->codigo = new inputField('C&oacute;digo','codigo');
 		$edit->codigo->rule='';
 		$edit->codigo->size =7;
 		$edit->codigo->maxlength =5;
+		$edit->codigo->mode = 'autohide';
 
 		$edit->nombre = new inputField('Nombre','nombre');
 		$edit->nombre->rule='';
@@ -314,17 +370,16 @@ jQuery("#a1").click( function(){
 		$edit->nombre->maxlength =30;
 
 		$edit->tipo = new dropdownField('Tipo','tipo');
-		$edit->tipo->options(array("C"=>"Cliente", "P"=>"Proveedor", "O"=>"Otro" ));
+		$edit->tipo->options(array('C'=>'Cliente', 'P'=>'Proveedor', 'O'=>'Otro' ));
 
 		$edit->clase = new dropdownField('Clase','clase');
-		$edit->clase->options(array("E"=>"Entrada", "S"=>"Salida", "N"=>"Ninguno" ));
+		$edit->clase->options(array('E'=>'Entrada', 'S'=>'Salida', 'N'=>'Ninguno' ));
 
 		$edit->cuenta = new inputField('Cuenta','cuenta');
 		$edit->cuenta->rule='trim|existecpla';
 		$edit->cuenta->size =15;
 		$edit->cuenta->maxlength =15;
 		$edit->cuenta->append($bcpla);
-
 
 		$edit->build();
 
@@ -351,27 +406,40 @@ jQuery("#a1").click( function(){
 	}
 
 	function _pre_delete($do){
-		$do->error_message_ar['pre_del']='';
-		return false;
+		$codigo   = $do->get('codigo');
+		$dbcodigo = $this->db->escape($codigo);
+
+		$check  = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM bmov   WHERE clipro='O' AND codcp=${dbcodigo}"));
+		$check += intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM itotin WHERE codigo=${dbcodigo}"));
+		$check += intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM smov   WHERE codigo=${dbcodigo}"));
+		$check += intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sprm   WHERE codigo=${dbcodigo}"));
+		if($check>0){
+			$do->error_message_ar['pre_del']='No se puede eliminar el registro porque esta relacionado con movimientos';
+			return false;
+		}
+
+		return true;
 	}
 
 	function _post_insert($do){
+		$codigo   = $do->get('codigo');
 		$primary =implode(',',$do->pk);
-		logusu($do->table,"Creo $this->tits $primary ");
+		logusu($do->table,"Creo $this->tits ${primary} ${codigo}");
 	}
 
 	function _post_update($do){
+		$codigo   = $do->get('codigo');
 		$primary =implode(',',$do->pk);
-		logusu($do->table,"Modifico $this->tits $primary ");
+		logusu($do->table,"Modifico $this->tits  ${primary} ${codigo}");
 	}
 
 	function _post_delete($do){
 		$primary =implode(',',$do->pk);
-		logusu($do->table,"Elimino $this->tits $primary ");
+		logusu($do->table,"Elimino $this->tits  ${primary} ${codigo}");
 	}
 
 	function instalar(){
-		if (!$this->db->table_exists('botr')) {
+		if(!$this->db->table_exists('botr')){
 			$mSQL="CREATE TABLE `botr` (
 			  `codigo` varchar(5) NOT NULL DEFAULT '',
 			  `nombre` varchar(30) DEFAULT NULL,
@@ -385,9 +453,17 @@ jQuery("#a1").click( function(){
 			  `id` int(11) NOT NULL AUTO_INCREMENT,
 			  PRIMARY KEY (`id`),
 			  UNIQUE KEY `codigo` (`codigo`)
-			) ENGINE=MyISAM AUTO_INCREMENT=51 DEFAULT CHARSET=latin1";
+			) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1";
 			$this->db->query($mSQL);
 		}
+
+		$campos=$this->db->list_fields('botr');
+		if(!in_array('id',$campos)){
+			$this->db->simple_query('ALTER TABLE botr DROP PRIMARY KEY');
+			$this->db->simple_query('ALTER TABLE botr ADD UNIQUE INDEX codigo (codigo)');
+			$this->db->simple_query('ALTER TABLE botr ADD COLUMN id INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
+		};
+		$this->datasis->modintramenu( 750, 470, 'finanzas/botr' );
+		//$this->datasis->creaintramenu(array('modulo'=>'000','titulo'=>'<#titulo#>','mensaje'=>'<#mensaje#>','panel'=>'<#panal#>','ejecutar'=>'<#ejecuta#>','target'=>'popu','visible'=>'S','pertenece'=>'<#pertenece#>','ancho'=>900,'alto'=>600));
 	}
 }
-?>
