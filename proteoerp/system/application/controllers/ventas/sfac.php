@@ -3602,9 +3602,15 @@ class Sfac extends Controller {
 				}
 				$this->validation->set_message('chpreca', 'El art&iacute;culo '.$codigo.' debe contener un precio de al menos '.nformat($precio4));
 				if(empty($precio4)) $precio4=0; else $precio4=round($precio4,2);
-				if($val>=$precio4){
+
+				if($val >= $precio4){
 					return true;
 				}
+				$regalar = $this->datasis->traevalor('REGALAR');
+				if ( $regalar == 'S')
+					return true;
+				}
+
 			}
 		}
 		return false;

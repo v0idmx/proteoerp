@@ -1692,7 +1692,9 @@ class Prmo extends Controller {
 			if($ban==false){ memowrite($mSQL,'bmov');}
 
 			// Crea smov el pasivo
-			$mNUMERO   = $this->datasis->fprox_numero('ndcli');
+			//$mNUMERO   = $this->datasis->fprox_numero('ndcli');
+			$mNUMERO = 'P'.str_pad($do->get('numero'), 7, "0", STR_PAD_LEFT);
+
 			$dbmNUMERO = $this->db->escape($mNUMERO);
 			$mSQL = "SELECT COUNT(*) AS val FROM smov WHERE tipo_doc='ND' AND numero=${dbmNUMERO}";
 
@@ -1849,7 +1851,9 @@ class Prmo extends Controller {
 
 
 			// Crea smov CxC
-			$mNUMERO  = $this->datasis->fprox_numero('ndcli');
+			//$mNUMERO  = $this->datasis->fprox_numero('ndcli');
+			$mNUMERO = 'P'.str_pad($do->get('numero'), 7, "0", STR_PAD_LEFT);
+
 			$mSQL = "SELECT COUNT(*) FROM smov WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
 
 			while ( $this->datasis->dameval($mSQL) > 0 ) {
@@ -2081,9 +2085,10 @@ class Prmo extends Controller {
 			$ban  = $this->db->simple_query($mSQL);
 			if( $ban == false ){ memowrite($mSQL,'bmov');}
 
-			$mNUMERO  = $this->datasis->fprox_numero('ndcli');
-			$mSQL = "SELECT COUNT(*) FROM smov WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
+			//$mNUMERO  = $this->datasis->fprox_numero('ndcli');
+			$mNUMERO = 'P'.str_pad($do->get('numero'), 7, "0", STR_PAD_LEFT);
 
+			$mSQL = "SELECT COUNT(*) FROM smov WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
 			while ( $this->datasis->dameval($mSQL) > 0 ) {
 				$mNUMERO  = $this->datasis->fprox_numero('ndcli');
 				$mSQL = "SELECT COUNT(*) FROM smov WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
