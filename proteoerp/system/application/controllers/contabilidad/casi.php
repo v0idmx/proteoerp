@@ -1056,10 +1056,18 @@ class Casi extends Controller {
 		$flen   = intval(strlen($formato));
 
 		$filter = new DataFilter('Auditoria de Asientos');
-		$filter->db->select(array('a.comprob','a.fecha','a.concepto','a.origen','a.debe','a.haber','a.cuenta'));
+		$sel=array(
+			'a.comprob','a.fecha',
+			'a.concepto','a.origen','a.debe','a.haber',
+			'a.cuenta',
+			'c.origen AS rorigen',
+			'c.cuenta AS rcuenta'
+		);
+		$filter->db->select($sel);
 		$filter->db->from('itcasi AS a');
 		//$filter->db->join('casi AS c' ,'a.comprob=c.comprob');
 		$filter->db->join('cpla AS b' ,'a.cuenta=b.codigo AND LENGTH(b.codigo)='.$flen,'LEFT');
+		$filter->db->join('reglascont AS c' ,'a.origen=CONCAT(c.modulo,c.regla)','LEFT');
 		$filter->db->where('b.codigo IS NULL');
 		//$filter->db->where('cuenta NOT REGEXP \'^([0-9]+\.)+[0-9]+\' OR cuenta IS NULL');
 
@@ -1083,6 +1091,31 @@ class Casi extends Controller {
 
 		$filter->buttons('reset','search');
 		$filter->build();
+
+		function ocuenta($origen,$cuenta){
+			$rt=array();
+			if(preg_match_all('/(?P<alias>[A-Za-z]{1,}?)\.[A-za-z]/',$cuenta , $match)>0){
+				$arr = array_unique($match['alias']);
+				if(count($arr)>0){
+					foreach($arr as $aalias){
+						if(preg_match_all('/(?P<tabla>[A-Za-z]+) +(AS|as)? *(?P<alias>[A-Za-z]{1}) +/', $origen, $match)>0){
+							foreach($match['alias'] as $id=>$alias){
+								if( $aalias==$alias){
+									if(isset($match['tabla'][$id])){
+										$rt[] = $match['tabla'][$id];
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			if(count($rt)>0){
+				return implode(', ',array_unique($rt));
+			}else{
+				return '--';
+			}
+		}
 
 		function regla($origen){
 			if(preg_match('/(?P<regla>[A-Za-z]+)(?P<numero>\d+)/', $origen, $match)>0){
@@ -1125,15 +1158,16 @@ class Casi extends Controller {
 		}
 
 		$grid = new DataGrid('Registros cuya cuenta no existe en el plan de cuentas');
-		$grid->use_function('regla','vtransa');
+		$grid->use_function('regla','vtransa','ocuenta');
 		$grid->order_by('fecha','asc');
 		$grid->per_page = 40;
 		$grid->column_orderby('N&uacute;mero','<vtransa><#comprob#></vtransa>','comprob');
 		$grid->column_orderby('Cuenta','cuenta','cuenta');
+		$grid->column('Or&iacute;genC.','<ocuenta><#rorigen#>|<#rcuenta#></ocuenta>',"align='center'");
 		//$grid->column_orderby('Transac','transac','transac');
 		$grid->column_orderby('Fecha'   ,'<dbdate_to_human><#fecha#></dbdate_to_human>','fecha',"align='center'");
 		$grid->column_orderby('Concepto','concepto','concepto');
-		$grid->column_orderby('Or&iacute;gen','<regla><#origen#></regla>','origen',"align='center'");
+		$grid->column_orderby('Regla'   ,'<regla><#origen#></regla>','origen',"align='center'");
 		$grid->column_orderby('Debe'    ,'<nformat><#debe#></nformat>'   ,'debe'  ,"align='right'" );
 		$grid->column_orderby('Haber'   ,'<nformat><#haber#></nformat>'  ,'haber' ,"align='right'" );
 		$action = "javascript:window.location='".site_url('contabilidad/casi/auditoria')."'";
@@ -1158,7 +1192,7 @@ class Casi extends Controller {
 			'filtro'  =>array('codigo'=>'C&oacute;digo','descrip'=>'Descripci&oacute;n'),
 			'retornar'=>array('codigo'=>'cuenta'),
 			'titulo'  =>'Buscar Cuenta',
-			'where'=>"codigo LIKE \"$qformato\"",
+			'where'=>"codigo LIKE \"${qformato}\"",
 		);
 		$bcpla =$this->datasis->modbus($mCPLA);
 

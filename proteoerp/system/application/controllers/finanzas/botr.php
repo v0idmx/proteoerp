@@ -418,6 +418,13 @@ class Botr extends Controller {
 			return false;
 		}
 
+		$ldbcodigo = $this->db->escape('%'.$codigo.'%');
+		$check  = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM reglascont WHERE origen LIKE ${ldbcodigo}"));
+		if($check>0){
+			$do->error_message_ar['pre_del']='El concepto esta asociado a una regla contable, no se puede eliminar';
+			return false;
+		}
+
 		return true;
 	}
 
