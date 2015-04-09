@@ -1157,7 +1157,7 @@ class Casi extends Controller {
 			}
 		}
 
-		$grid = new DataGrid('Registros cuya cuenta no existe en el plan de cuentas');
+		$grid = new DataGrid('Registros cuya cuenta no existe en el plan de cuentas o no son cuentas de movimiento');
 		$grid->use_function('regla','vtransa','ocuenta');
 		$grid->order_by('fecha','asc');
 		$grid->per_page = 40;
@@ -1174,9 +1174,9 @@ class Casi extends Controller {
 		$grid->button('btn_regresa', 'Regresar', $action, 'TR');
 		$grid->build();
 
-		$data['content'] =$filter->output.$grid->output;
+		$data['content'] = $filter->output.$grid->output.'<span style="font-size:0.7em">Registros '.$grid->recordCount.'</span>';
 		$data['head']    = $this->rapyd->get_head();
-		$data['title']   =heading('Auditoria de Asientos');
+		$data['title']   = heading('Auditoria de Asientos');
 		$this->load->view('view_ventanas', $data);
 	}
 
