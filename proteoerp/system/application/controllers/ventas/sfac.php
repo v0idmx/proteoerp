@@ -3784,6 +3784,27 @@ class Sfac extends Controller {
 			$do->set('cajero',$cajero);
 		}
 
+		//Chequea si el cliente tiene cheques devueltos (Opcional por valores)
+		$vchdev=$this->datasis->traevalor('SFACCHDEV','Solo factura si el cliente no tiene cheques devueltos (S/N)');
+		if($vchdev=='S' && $referen!='P'){
+			$this->db->select_sum('a.monto','saldo');
+			$this->db->from('smov AS a');
+			$this->db->join('prmo AS c','a.transac=c.transac');
+			$this->db->where('a.cod_cli',$cliente);
+			$this->db->where('a.abonos < a.monto');
+			$this->db->where('a.tipo_doc','ND');
+			$this->db->where('c.tipop','3');
+
+			$q=$this->db->get();
+			$row = $q->row_array();
+			$chdevsal=floatval($row['saldo']);
+			if($chdevsal>0){
+				$do->error_message_ar['pre_ins']=$do->error_message_ar['pre_upd']='No se le puede facturar por tener cheques devueltos por '.nformat($chdevsal);
+				return false;
+			}
+		}
+		//Fin del chequeo de cheques devueltos
+
 		//Totaliza la factura
 		$totalg = 0;
 		$cana   = $do->count_rel('sitems');
