@@ -1798,7 +1798,7 @@ class Stra extends Controller {
 		foreach ($qquery->result() as $itrow){
 			$_POST["codigo_${i}"]   = rtrim($itrow->codigoa);
 			$_POST["descrip_${i}"]  = rtrim($itrow->descrip);
-			$_POST["cantidad_${i}"] = $itrow->cana + $itrow->existen ;
+			$_POST["cantidad_${i}"] = $itrow->cana;
 			$i++;
 		}
 		$this->dataedit();
