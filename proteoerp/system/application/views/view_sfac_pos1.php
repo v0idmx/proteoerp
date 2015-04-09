@@ -767,7 +767,7 @@ function saldoven(){
 				if(data.saldo > 0 || data.chedev > 0){
 					var sch = ''
 					if(data.chedev>0){
-						sch= " y <b style='color: orange; animation: blink 1s steps(2, start) infinite;font-size:1.2em'>"+nformat(data.chedev,2)+"</b> en <span style='color: orange; animation: blink 1s steps(2, start) infinite;'>cheques devueltos</span>,";
+						sch= " y <b style='color: black; animation: blink 1s steps(2, start) infinite;font-size:1.2em'>"+nformat(data.chedev,2)+"</b> en <span style='color: black; animation: blink 1s steps(2, start) infinite;'>cheques devueltos</span>,";
 					}
 
 					var str ="<style>@keyframes blink { to { color: red;} }</style>Cliente presenta saldo vencido de <b>"+nformat(data.saldo,2)+" Bs.</b> "+sch+" debe ponerse al d&iacute;a.";
