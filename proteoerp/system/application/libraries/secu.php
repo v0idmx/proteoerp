@@ -99,11 +99,11 @@ class secu{
 			if ($query->num_rows() > 0){
 				$row = $query->row_array();
 
-				$this->cajero  = $row['cajero']  ;
-				$this->vendedor= $row['vendedor'];
-				$this->almacen = $row['almacen'] ;
-				$this->sucursal= $row['sucursal'];
-				$this->nombre  = $row['us_nombre'];
+				$this->cajero  = trim($row['cajero'])  ;
+				$this->vendedor= trim($row['vendedor']);
+				$this->almacen = trim($row['almacen']) ;
+				$this->sucursal= trim($row['sucursal']);
+				$this->nombre  = trim($row['us_nombre']);
 			}
 			$this->_datac=true;
 		}

@@ -4132,6 +4132,7 @@ class Sfac extends Controller {
 		//Fin de la marca
 
 		//Determina el numero de factura
+		$prefijo='';
 		if($referen=='P'){
 			if($action=='U'){
 				$numero  = $do->get('numero');
@@ -4139,20 +4140,38 @@ class Sfac extends Controller {
 				$numero = '_'.$this->datasis->fprox_numero('nsfacp',7);
 			}
 		}else{
+			//Toma si hay un prefijo por la sucursal
+			$sucursal=$this->secu->getsucursal();
+			if(!empty($sucursal)){
+				$dbsucu =$this->db->escape($sucursal);
+				$prefijo=trim($this->datasis->dameval("SELECT prefijo FROM sucu WHERE codigo=${dbsucu}"));
+				if((preg_match('/^[a-zA-Z0-9]+$/',$prefijo)==0) || (preg_match('/^0+$/',$prefijo)>0)){
+					$prefijo='';
+				}
+			}
+			//Fin de la toma de prefijo
+
 			if($tipoa=='F'){
 				if($manual!='S'){
-					$numero = $this->datasis->fprox_numero('nsfac');
+					$numero = $this->datasis->fprox_numero('nsfac'.$prefijo);
 				}else{
 					$numero = 'M'.$this->datasis->fprox_numero('nsfacman',7);
 				}
 			}else{
 				if($manual!='S'){
-					$numero = $this->datasis->fprox_numero('nccli');
+					$numero = $this->datasis->fprox_numero('nccli'.$prefijo);
 				}else{
 					$numero = 'M'.$this->datasis->fprox_numero('nccliman',7);
 				}
 			}
 		}
+		if($manual!='S' && strlen($prefijo)>0){
+			$len=strlen($prefijo);
+			for($jj=0;$jj<$len;$jj++){
+				$numero[$jj]=$prefijo[$jj];
+			}
+		}
+
 		$do->set('numero' ,$numero);
 		//Fin del numero de factura
 

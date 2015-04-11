@@ -35,7 +35,7 @@ $filter->zona->db_name = 'zona';
 $filter->zona->clause='where';
 $filter->zona->operator='=';
 $filter->zona->option('','Todas');
-$filter->zona->options('SELECT codigo, nombre FROM zona ORDER BY codigo');
+$filter->zona->options('SELECT codigo, CONCAT_WS("-",codigo,nombre) AS valor FROM zona ORDER BY codigo');
 
 $filter->ciudad = new dropdownField('Ciudad', 'ciudad');
 $filter->ciudad->db_name ='ciudad1';
@@ -49,7 +49,7 @@ $filter->vendedor->db_name = 'vendedor';
 $filter->vendedor->clause='where';
 $filter->vendedor->operator='=';
 $filter->vendedor->option('','Todos');
-$filter->vendedor->options('SELECT vendedor, nombre FROM vend ORDER BY vendedor');
+$filter->vendedor->options('SELECT vendedor, CONCAT_WS("-",vendedor,nombre) AS valor FROM vend ORDER BY vendedor');
 
 $filter->tipo = new dropdownField('Tipo', 'tipo');
 $filter->tipo->db_name = 'tipo';
