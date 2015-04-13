@@ -3017,18 +3017,17 @@ function chrif(rif){
 		$data   = $_POST;
 		$mcodp  = 'ruta';
 		$check  = 0;
-		if($id<=0){ return false; }
 
 		unset($data['oper']);
 		unset($data['id']);
 		if($oper == 'add'){
 			if(false == empty($data)){
-				$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sclirut WHERE `${mcodp}`=".$this->db->escape($data[$mcodp])));
+				$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sclirut WHERE ruta=".$this->db->escape($data['ruta'])));
 				if($check == 0){
 					$this->db->insert('sclirut', $data);
 					echo 'Registro Agregado';
 
-					logusu('sclirut','Registro '.$data[$mcodp].' INCLUIDO');
+					logusu('sclirut','Registro '.$data['ruta'].' INCLUIDO');
 				}else{
 					echo "Ya existe un registro con esa ${mcodp}";
 				}
@@ -3036,6 +3035,10 @@ function chrif(rif){
 				echo 'Fallo Agregado!!!';
 			}
 		}elseif($oper == 'edit'){
+			if($id<=0){ 
+				return false; 
+			}
+
 			$nuevo  = $data[$mcodp];
 			unset($data[$mcodp]);
 			$this->db->where('id', $id);
@@ -3058,6 +3061,9 @@ function chrif(rif){
 			echo "${mcodp} Modificada";
 
 		}elseif($oper == 'del'){
+			if($id<=0){ 
+				return false; 
+			}
 			$ruta  = $this->datasis->dameval("SELECT ${mcodp} FROM sclirut WHERE id=${id}");
 			$dbruta= $this->db->escape($ruta);
 			$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sclitrut a JOIN scli b ON a.cliente=b.cliente WHERE a.ruta=${dbruta}"));
