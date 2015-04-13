@@ -3059,8 +3059,8 @@ function chrif(rif){
 
 		}elseif($oper == 'del'){
 			$ruta  = $this->datasis->dameval("SELECT ${mcodp} FROM sclirut WHERE id=${id}");
-			$dbruta= $this->db->dameval($ruta);
-			$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sclitrut WHERE ruta=${dbruta}"));
+			$dbruta= $this->db->escape($ruta);
+			$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sclitrut a JOIN scli b ON a.cliente=b.cliente WHERE a.ruta=${dbruta}"));
 			if($check > 0){
 				echo 'El registro no puede ser eliminado; elimine primero los clientes asociados';
 			}else{

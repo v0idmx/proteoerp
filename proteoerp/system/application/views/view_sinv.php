@@ -300,8 +300,14 @@ $(function(){
 		var val=$(this).val();
 		if(val=='S'){
 			$("#lindia").show();
+			$("#lincan").show();
+			$("#linnombred").show();
+			$("#linnombrec").show();
 		}else{
 			$("#lindia").hide();
+			$("#lincan").hide();
+			$("#linnombred").hide();
+			$("#linnombrec").hide();
 		}
 	});
 
@@ -1296,6 +1302,10 @@ if(isset($form->error_string))echo '<div class="alert">'.$form->error_string.'</
 					<td class='littletableheaderc'><?php echo $form->clave->label ?></td>
 					<td class="littletablerow"><?php echo $form->clave->output   ?></td>
 				</tr>
+				<tr>
+					<td class='littletableheaderc'><?php echo $form->comision->label; ?></td>
+					<td class="littletablerow"    ><?php echo $form->comision->output; ?></td>
+				</tr>
 			</table>
 		</td>
 		<td valign='top' align='center'>
@@ -1322,13 +1332,11 @@ if(isset($form->error_string))echo '<div class="alert">'.$form->error_string.'</
 					<td width='50' class='littletableheaderc'><?php echo $form->alto->label ?></td>
 					<td class="littletablerow"><?php echo $form->alto->output?></td>
 					<td class="littletablerow" align='left'><?php echo $this->datasis->traevalor('SINVDIMENCIONES','cm.') ?></td>
-				</tr>
-				<tr>
+				</tr><tr>
 					<td class='littletableheaderc'><?php echo $form->ancho->label ?></td>
 					<td class="littletablerow"><?php echo $form->ancho->output   ?></td>
 					<td class="littletablerow"><?php echo $this->datasis->traevalor('SINVDIMENCIONES','cm.') ?></td>
-				</tr>
-				<tr>
+				</tr><tr>
 					<td class='littletableheaderc'><?php echo $form->largo->label; ?></td>
 					<td class="littletablerow"><?php echo $form->largo->output;   ?></td>
 					<td class="littletablerow"><?php echo $this->datasis->traevalor('SINVDIMENCIONES','cm.') ?></td>
@@ -1374,11 +1382,13 @@ if(isset($form->error_string))echo '<div class="alert">'.$form->error_string.'</
 			<table border='0' width="100%" cellpadding='0' cellspacing='0'>
 				<tr>
 					<td class='littletableheaderc'><?php echo $form->linfe->label ?></td>
-					<td class='littletablerow' style='width:90px'> <?php echo $form->linfe->output.$form->lindia->output   ?></td>
-				</tr>
-				<tr>
-					<td class='littletableheaderc'><?php echo $form->comision->label ?></td>
-					<td class="littletablerow"><?php echo $form->comision->output   ?></td>
+					<td class='littletablerow'    ><?php echo $form->linfe->output ?></td>
+				</tr><tr id='linnombred'>
+					<td class='littletableheaderc'><?php echo $form->lindia->label;  ?></td>
+					<td class='littletablerow'    ><?php echo $form->lindia->output; ?></td>
+				</tr><tr id='linnombrec'>
+					<td class='littletableheaderc'><?php echo $form->lincan->label;  ?></td>
+					<td class='littletablerow'    ><?php echo $form->lincan->output; ?></td>
 				</tr>
 			</table>
 		</td>

@@ -550,9 +550,9 @@ class Ordp extends Controller {
 		};
 	}
 
-	//***************************
-	//Definicion del Grid y la Forma
-	//***************************
+	//******************************************************************
+	// Definicion del Grid y la Forma
+	//
 	function defgridit( $deployed = false ){
 		$i      = 1;
 		$editar = "false";
@@ -768,8 +768,7 @@ class Ordp extends Controller {
 
 	//***********************************
 	// DataEdit  
-	//***********************************
-
+	//
 	function dataedit(){
 		$this->rapyd->load('dataobject','datadetails');
 		$script= '
@@ -862,7 +861,8 @@ class Ordp extends Controller {
 
 
 		//******************************************************************
-		// Detalle 
+		// Detalle
+		//
 		$edit->numero = new inputField('Numero','numero_<#i#>');
 		$edit->numero->rule='';
 		$edit->numero->size =10;

@@ -2848,7 +2848,7 @@ class Sinv extends Controller {
 		$AddDepto='<a href="javascript:add_depto();" title="Haz clic para Agregar un nuevo Departamento">'.image('list_plus.png','Agregar',array("border"=>"0")).'</a>';
 		$edit->depto = new dropdownField('Departamento', 'depto');
 		$edit->depto->rule ='required';
-		$edit->depto->style='width:250px;white-space:nowrap;';
+		$edit->depto->style='width:230px;white-space:nowrap;';
 		$edit->depto->option('','Seleccione un Departamento');
 		$edit->depto->options('SELECT depto, CONCAT(depto,\'-\',descrip) descrip FROM dpto WHERE tipo=\'I\' ORDER BY depto');
 		$edit->depto->db_name='dptodepto';
@@ -2857,7 +2857,7 @@ class Sinv extends Controller {
 		$AddLinea='<a href="javascript:add_linea();" title="Haz clic para Agregar una nueva Linea;">'.image('list_plus.png','Agregar',array("border"=>"0")).'</a>';
 		$edit->linea = new dropdownField('L&iacute;nea','linea');
 		$edit->linea->rule    = 'required';
-		$edit->linea->style   = 'width:250px;';
+		$edit->linea->style   = 'width:230px;';
 		$edit->linea->db_name = 'linelinea';
 		$edit->linea->pointer = true;
 		$depto=$edit->getval('depto');
@@ -2871,7 +2871,7 @@ class Sinv extends Controller {
 		$AddGrupo='<a href="javascript:add_grupo();" title="Haz clic para Agregar un nuevo Grupo;">'.image('list_plus.png','Agregar',array("border"=>"0")).'</a>';
 		$edit->grupo = new dropdownField('Grupo', 'grupo');
 		$edit->grupo->rule ='required';
-		$edit->grupo->style='width:250px;';
+		$edit->grupo->style='width:230px;';
 
 		$linea=$edit->getval('linea');
 		if($linea!==false){
@@ -3094,7 +3094,7 @@ class Sinv extends Controller {
 		$edit->redecen->rule='enum[N,M,F,D,C]';
 		$edit->redecen->onchange='calculos(\'S\');';
 
-		$edit->linfe = new dropdownField('Limitar ventas seguidas', 'linfe');
+		$edit->linfe = new dropdownField('Limitar ventas', 'linfe');
 		$edit->linfe->style='width:45px;';
 		$edit->linfe->option('N' ,'No');
 		$edit->linfe->option('S' ,'Si');
@@ -3102,13 +3102,21 @@ class Sinv extends Controller {
 		$edit->linfe->rule='enum[N,S]|callback_chlinfe';
 		$edit->linfe->title='Activar si desea evitar que este producto no sea vendido a la misma persona en un per&iacute;odo de d&iacute;as';
 
-		$edit->lindia = new inputField('D&iacute;as de limitaci&oacute;n', 'lindia');
+		$edit->lindia = new inputField('D&iacute;as limite', 'lindia');
 		$edit->lindia->css_class='inputnum';
 		$edit->lindia->size=3;
 		$edit->lindia->maxlength=5;
 		$edit->lindia->rule='numeric';
 		$edit->lindia->insertValue='0';
 		$edit->lindia->autocomplete = false;
+
+		$edit->lincan = new inputField('Cantidad Limite', 'lincan');
+		$edit->lincan->css_class='inputnum';
+		$edit->lincan->size=3;
+		$edit->lincan->maxlength=5;
+		$edit->lincan->rule='numeric';
+		$edit->lincan->insertValue='0';
+		$edit->lincan->autocomplete = false;
 
 		$maxiss=4;
 		for($i=1;$i<=$maxiss;$i++){
@@ -6249,6 +6257,7 @@ class Sinv extends Controller {
 
 		if (!in_array('linfe'      ,$campos)) $this->db->simple_query("ALTER TABLE `sinv` ADD COLUMN `linfe`       CHAR(1)       NULL DEFAULT 'N' ");
 		if (!in_array('lindia'     ,$campos)) $this->db->simple_query("ALTER TABLE `sinv` ADD COLUMN `lindia`      INT(5)        NULL DEFAULT '0'");
+		if (!in_array('lincan'     ,$campos)) $this->db->simple_query("ALTER TABLE `sinv` ADD COLUMN `lincan`      INT(5)        NULL DEFAULT '0' AFTER lindia");
 		if (!in_array('margenu'    ,$campos)) $this->db->simple_query("ALTER TABLE `sinv` ADD COLUMN `margenu`     DECIMAL(10,2) NULL DEFAULT '0'");
 		if (!in_array('sada'       ,$campos)) $this->db->simple_query("ALTER TABLE `sinv` ADD COLUMN `sada`        INT(11)       NULL DEFAULT NULL");
 		if (!in_array('color'      ,$campos)) $this->db->simple_query("ALTER TABLE `sinv` ADD COLUMN `color`       VARCHAR(10)   NULL DEFAULT ''");

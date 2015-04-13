@@ -580,23 +580,42 @@ function autocod(id){
 	</tr>
 	<tr>
 		<td>
-		<fieldset style='border: 2px outset #9AC8DA;background: #FFFDE9;'>
-			<table width='100%'>
-				<tr>
-					<td class="littletableheader" align='center'><?php echo $form->observa->label; ?></td>
-					<td class="littletableheader"               ><?php echo $form->totals->label;  ?></td>
-					<td class="littletablerow" align='right'><b id='totals_val'><?php echo nformat($form->totals->value); ?></b><?php echo $form->totals->output; ?></td>
-				<tr></tr>
-					<td class="littletablerow"   ><?php echo $form->observa->output; ?></td>
-					<td class="littletableheader"><?php echo $form->ivat->label;     ?></td>
-					<td class="littletablerow" align='right'><b id='ivat_val'><?php echo nformat($form->ivat->value); ?></b><?php echo $form->ivat->output; ?></td>
-				<tr></tr>
-					<td class="littletablerow"   ><?php echo $form->observ1->output; ?></td>
-					<td class="littletableheader"><?php echo $form->totalg->label;   ?></td>
-					<td class="littletablerow" align='right' style='font-size:18px;font-weight: bold'><b id='totalg_val'><?php echo nformat($form->totalg->value); ?></b><?php echo $form->totalg->output; ?></td>
-				</tr>
-			</table>
-		</fieldset>
+		<table width='100%'>
+			<tr>
+				<td style='width:622px;'>
+					<fieldset style='border: 1px outset #9AC8DA;background: #FFFDE9;'>
+					<table width='100%'>
+					<tr>
+						<td class="littletableheader" align='center'><?php echo $form->observa->label; ?></td>
+						<td class="littletableheader"               ><?php echo $form->totals->label;  ?></td>
+						<td class="littletablerow" align='right'><b id='totals_val'><?php echo nformat($form->totals->value); ?></b><?php echo $form->totals->output; ?></td>
+					<tr></tr>
+						<td class="littletablerow"   ><?php echo $form->observa->output; ?></td>
+						<td class="littletableheader"><?php echo $form->ivat->label;     ?></td>
+						<td class="littletablerow" align='right'><b id='ivat_val'><?php echo nformat($form->ivat->value); ?></b><?php echo $form->ivat->output; ?></td>
+					<tr></tr>
+						<td class="littletablerow"   ><?php echo $form->observ1->output; ?></td>
+						<td class="littletableheader"><?php echo $form->totalg->label;   ?></td>
+						<td class="littletablerow" align='right' style='font-size:18px;font-weight: bold'><b id='totalg_val'><?php echo nformat($form->totalg->value); ?></b><?php echo $form->totalg->output; ?></td>
+					</tr>
+					</table>
+					</fieldset>
+				</td>
+				<td>
+					<fieldset style='border: 1px outset #9AC8DA;background: #FFFDE9;'>
+					<table width='100%'>
+					<tr>
+						<td class="littletableheader" align='center'><?php echo $form->producir->label;  ?></td>
+					</tr><tr>
+						<td class="littletablerow"  align='center'><?php echo $form->producir->output; ?></td>
+					</tr><tr>
+						<td class="littletablerow"   >&nbsp;</td>
+					</tr>
+					</table>
+					</fieldset>
+				</td>
+			</tr>
+		</table>
 		<?php echo $form->mmargen->output;  ?>
 		<?php echo $form_end; ?>
 		</td>

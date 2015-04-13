@@ -1004,7 +1004,6 @@ class Pfac extends Controller {
 		$autoriza = strtoupper($this->input->post('autoriza'));
 		$bultos   = $this->input->post('bultos');
 
-
 		$data   = $_POST;
 		$mcodp  = 'numero';
 		$check  = 0;
@@ -1018,21 +1017,7 @@ class Pfac extends Controller {
 			$this->db->update('pfac', $data);
 			logusu('INVRESU',"Pedido Autorizado  ".$id." MODIFICADO");
 			echo "Pedido Modificado";
-
 		}
-
-
-/*
-		unset($data['oper']);
-		unset($data['id']);
-		if($oper == 'add'){
-			echo 'Deshabilitado';
-		}elseif($oper == 'edit'){
-			echo 'Deshabilitado';
-		} elseif($oper == 'del') {
-			echo 'Deshabilitado';
-		}
-*/
 	}
 
 
@@ -1448,7 +1433,6 @@ class Pfac extends Controller {
 		$edit->cana->rule = 'required|positive';
 		$edit->cana->autocomplete = false;
 		$edit->cana->onkeyup = 'importe(<#i#>)';
-		//$edit->cana->insertValue=1;
 
 		$edit->preca = new inputField('Precio <#o#>', 'preca_<#i#>');
 		$edit->preca->db_name = 'preca';
@@ -1464,6 +1448,14 @@ class Pfac extends Controller {
 		$edit->tota->css_class = 'inputnum';
 		$edit->tota->rel_id = 'itpfac';
 		$edit->tota->type='inputhidden';
+
+		$edit->producir = new dropdownField('Enviar a Producion','producir');
+		$edit->producir->rule = 'required|enum[S,N]';
+		$edit->producir->option('S','Si');
+		$edit->producir->option('N','No');
+		$edit->producir->title = 'Producir este pedido';
+		$edit->producir->style = 'width: 115px;';
+		
 
 		for($i = 1;$i <= 4;$i++){
 			$obj = 'precio' . $i;
@@ -1546,26 +1538,6 @@ class Pfac extends Controller {
 		$edit->hora    = new autoUpdateField('hora'   , date('H:i:s'), date('H:i:s'));
 
 		$control=$this->rapyd->uri->get_edited_id();
-
-		//if($fenvia < $hoy){
-		//	$edit->buttons( 'delete', 'back','add_rel');
-		//	$accion="javascript:window.location='".site_url('ventas/pfaclite/enviar/'.$control)."'";
-		//	$edit->button_status('btn_envia'  ,'Enviar Pedido'         ,$accion,'TR','show');
-		//}elseif($faplica < $fenvia){
-		//	$hide=array('vd','peso','cliente','nombre','rifci','direc','observa','observ1','codigoa','desca','cana');
-		//	foreach($hide as $value)
-		//	$edit->$value->type="inputhidden";
-        //
-		//	$accion="javascript:window.location='".site_url('ventas/pfac/dataedit/modify/'.$control)."'";
-		//	$edit->button_status('btn_envia'  ,'Aplicar Descuentos'         ,$accion,'TR','show');
-        //
-		//	$edit->buttons( 'delete', 'back');
-        //
-		//}else{
-		//	$edit->buttons( 'delete', 'back', 'add_rel');
-        //
-		//}
-		//$edit->buttons('add_rel');
 		$edit->build();
 
 		if($edit->on_success()){
@@ -1914,10 +1886,12 @@ class Pfac extends Controller {
 		if(!in_array('reserva', $campos)) $this->db->query("ALTER TABLE pfac ADD COLUMN reserva  CHAR(1) NOT NULL DEFAULT 'N'");
 		if(!in_array('bultos',  $campos)) $this->db->query("ALTER TABLE pfac ADD COLUMN bultos   INT(10) NULL DEFAULT '0' ");
 		if(!in_array('autoriza',$campos)) $this->db->query("ALTER TABLE pfac ADD COLUMN autoriza CHAR(1) NOT NULL DEFAULT 'N'   COMMENT 'Autoriza facturar'");
+		if(!in_array('producir',$campos)) $this->db->query("ALTER TABLE pfac ADD COLUMN producir CHAR(1) NOT NULL DEFAULT 'N'   COMMENT 'Enviar a Produccion'");
+		if(!in_array('ordprod', $campos)) $this->db->query("ALTER TABLE pfac ADD COLUMN ordprod  VARCHAR(8) NOT NULL DEFAULT '' COMMENT 'Nro de orden de Produccion'");
 
 		$itcampos=$this->db->list_fields('itpfac');
-		if(!in_array('dxapli',$itcampos)){
-			$this->db->query("ALTER TABLE `itpfac`  ADD COLUMN `dxapli` VARCHAR(20) NOT NULL COMMENT 'descuento por aplicar'");
-		}
+		if(!in_array('dxapli',$itcampos))    $this->db->query("ALTER TABLE itpfac ADD COLUMN dxapli    VARCHAR(20)   NOT NULL COMMENT 'descuento por aplicar'");
+		if(!in_array('producido',$itcampos)) $this->db->query("ALTER TABLE itpfac ADD COLUMN producido DECIMAL(12,3) NOT NULL COMMENT 'Cantidad producida'");
+
 	}
 }
