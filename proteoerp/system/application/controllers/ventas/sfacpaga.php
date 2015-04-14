@@ -56,7 +56,7 @@ class sfacpaga extends Controller {
 		if(!$this->rapyd->uri->is_set('search')) $filter->db->where('fecha','CURDATE()');
 
 		function descheck($numero,$tipo_doc,$sepago){
-		$a=$tipo_doc.'AA'.$numero;
+			$a=$tipo_doc.'AA'.$numero;
 			$data = array(
 			  'name'    => 'sepago[]',
 			  'id'      => $a,
@@ -66,12 +66,32 @@ class sfacpaga extends Controller {
 			return form_checkbox($data);
 		}
 
+		function color($fec1,$fec2,$fpag){
+			$datetime1 = new DateTime($fec1);
+			$datetime2 = new DateTime($fec2);
+			$datetimep = new DateTime($fpag);
+
+			$int1 = $datetime1->diff($datetimep);
+			$int2 = $datetime2->diff($datetimep);
+
+			$des = intval($int1->format('%R%a'));
+			$has = intval($int2->format('%R%a'));
+
+			if(($des>=0 && $has<=0)){
+				return 'black';
+			}
+
+			return 'red';
+		}
+
 		$seltodos='Seleccionar <a id="todos" href=# >Todos</a> <a id="nada" href=# >Ninguno</a> <a id="alter" href=# >Invertir</a>';
 
 		$grid = new DataGrid($seltodos);//"$seltodos"
+		$grid->table_id = 'kardextabla';
 		$grid->use_function('descheck');
 		$grid->use_function('colum');
 		$grid->use_function('parcial');
+		$grid->use_function('color');
 
 		function colum($tipo_doc){
 			if($tipo_doc=='Anulada'){
@@ -88,13 +108,17 @@ class sfacpaga extends Controller {
 				return '';
 		}
 
+		$fechad = $filter->fechad->newValue;
+		$fechah = $filter->fechah->newValue;
+
 		$link=anchor($this->url.'parcial/<#numero#>','<#numero#>');
 		$grid->column('Vendedor' ,'<#vd#>');
 		$grid->column('Tipo'     ,'<colum><#tipo_doc#></colum>');
 		$grid->column('N&uacute;mero','<#numero#>');
 		$grid->column('Fecha'    ,'<dbdate_to_human><#fecha#></dbdate_to_human>');
 		$grid->column('Vence'    ,'<dbdate_to_human><#vence#></dbdate_to_human>');
-		$grid->column('Pagada'   ,'<dbdate_to_human><#pagada#></dbdate_to_human>');
+		$grid->column('Pagada'   ,"<span style='font-weight:bold;color:<color>$fechad|$fechah|<#pagada#></color>'><dbdate_to_human><#pagada#></dbdate_to_human></span>");
+
 		$grid->column('Dias'     ,'<nformat><#dias#>|0|,|.</nformat>'        ,"align='right'");
 		$grid->column('Comisi&oacute;n','<nformat><#comision#>|2|,|.</nformat>',"align='right'");
 		$grid->column('Comisi&oacute;n Calculada','<nformat><#comical#>|2|,|.</nformat>'  ,"align='right'");
@@ -126,6 +150,7 @@ class sfacpaga extends Controller {
 		$data['title']    ='<h1>Marcar Facturas Pagadas</h1>';
 		$data['head']     =script('jquery-1.2.6.pack.js');
 		$data['head']    .=script('plugins/jquery.checkboxes.pack.js').$this->rapyd->get_head();
+		$data['head']    .='<style type="text/css">#kardextabla tr:hover { background-color: #ffff99; }</style>';
 		$this->load->view('view_ventanas', $data);
 	}
 
