@@ -43,6 +43,7 @@ class Edrec extends Controller {
 		$grid->wbotonadd(array("id"=>"edtraegas", "img"=>"images/engrana.png",  "alt" => "Traer Gastos", "label"=>"Traer Gastos"));
 		$grid->wbotonadd(array("id"=>"generec",   "img"=>"images/engrana.png",  "alt" => 'Generar Recibos', "label"=>"Generar Recibos"));
 		$grid->wbotonadd(array("id"=>"genecobro", "img"=>"images/engrana.png",  "alt" => 'Enviar Recibos al cobro', "label"=>"Recibos al cobro"));
+		$grid->wbotonadd(array("id"=>"elirec",     "img"=>"images/delete.png",  "alt" => 'Enviar Recibos al cobro', "label"=>"Eliminar ultimo"));
 
 		$WestPanel = $grid->deploywestp();
 
@@ -239,6 +240,53 @@ class Edrec extends Controller {
 			};
 			$.prompt(mgene);
 		});';
+
+		$bodyscript .= '
+		$("#elirec").click(function(){
+			var mgene = {
+			state0: {
+				html:"<h1>Reversar ultima Generacion de Recibos?</h1>",
+				buttons: { Cancelar: false, Aceptar: true },
+				focus: 1,
+				submit:function(e,v,m,f){
+					if(v){
+						e.preventDefault();
+						$.ajax({
+							url: \''.site_url('construccion/edrec/elirec').'\',
+							global: false,
+							type: "POST",
+//							data: ({  }),
+//							dataType: "text",
+							async: false,
+							success: function(sino) {
+								if (sino.substring(0,1)=="S"){
+									$.prompt.goToState("state1");
+								} else {
+									$.prompt.close();
+								}
+							},
+							error: function(h,t,e) { alert("Error.. ",e) }
+						});
+						return false;
+					}
+				}
+			},
+			state1: {
+				html:"Was that awesome or what!?",
+				buttons: { Back: -1, Exit: 0 },
+				focus: 1,
+				submit:function(e,v,m,f){
+					e.preventDefault();
+					if(v==0)
+						$.prompt.close();
+					else if(v==-1)
+						$.prompt.goToState("state0");
+				}
+			}
+			};
+			$.prompt(mgene);
+		});';
+
 
 
 		$bodyscript .= '
@@ -1135,7 +1183,8 @@ class Edrec extends Controller {
 			SELECT a.aplicacion,
 				(SELECT bb.alicuota FROM edalicuota bb WHERE a.id=bb.inmueble AND EXTRACT(YEAR_MONTH FROM bb.fecha)<=${dbanomes} ORDER BY bb.fecha DESC LIMIT 1 ) alicuota
 			FROM edinmue a ) aa
-		WHERE aa.aplicacion IS NOT NULL AND aa.aplicacion NOT IN ('CO','')";
+		WHERE aa.aplicacion IS NOT NULL AND aa.aplicacion NOT IN ('CO','')
+		";
 		$query = $this->db->query($mSQL);
 
 		$malit = array();
@@ -1214,6 +1263,7 @@ class Edrec extends Controller {
 						FROM edinmue aa) mm ON d.id = mm.id
 					WHERE EXTRACT(YEAR_MONTH FROM a.causado)=${anomes} AND d.codigo = ${inmueble} AND (a.aplicacion='CO' OR a.aplicacion=d.aplicacion)
 				GROUP BY a.aplicacion, d.codigo, a.partida ) aa
+				HAVING codigo<>'COMADM'
 				";
 
 				// Reinicia Contadores
@@ -1291,6 +1341,28 @@ class Edrec extends Controller {
 
 			echo "Si se Guardaron";
 		}
+	}
+
+	//******************************************************************
+	// Genera Recibos de Cobro
+	//
+	function elirec(){
+		// Busca la fecha ultima factura
+		$fecha   = $this->datasis->dameval('SELECT max(fecha) FROM edrec');
+		$transac = $this->datasis->dameval('SELECT transac FROM edrec WHERE fecha="'.$fecha.'"');
+		if ( $transac > 0 ) {
+			echo "No hay recibos reversables";
+		} else {
+			$mSQL = 'DELETE FROM edrec WHERE fecha="'.$fecha.'"';
+			$this->db->query($mSQL);
+			$mSQL = 'DELETE editrec FROM editrec LEFT JOIN edrec ON editrec.numero=edrec.numero WHERE edrec.id IS NULL';
+			$this->db->query($mSQL);
+			$numero = $this->datasis->dameval('SELECT MAX(numero) FROM edrec');
+			$this->db->query('TRUNCATE TABLE nedrec');
+			$this->db->query('INSERT INTO nedrec (numero, usuario) VALUES ('.$numero.', "'.$this->secu->usuario().'" )');
+			echo "Ultimos recibos reversados";
+		}
+
 	}
 
 	//******************************************************************
