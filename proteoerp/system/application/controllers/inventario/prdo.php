@@ -487,43 +487,11 @@ class Prdo extends Controller {
 	#tablas li { margin: 1px; padding: 0em; font-size: 0.8em; height: 14px; }
 
 table.tabla_cualitativa_a td.header {padding-right: 1px;padding-left: 1px;font-weight: bold;font-size: 8pt;color: navy;background-color: #f4edd5;text-align:center;}
-table.tabla_cualitativa_a td.title
-{
-	padding-right: 1px;
-	padding-left: 1px;
-	font-weight: bold;
-	font-size: 8pt;
-	color:navy;
-	text-align:center;
-	background-color: #fdffdf;
-}
-
-Table.tabla_cualitativa_a td.resalte{border-left:solid 1px #daac00;border-top:solid 1px #daac00;text-align:center;font-weight: bold;}
-Table.tabla_cualitativa_a td{ border-left:solid 1px #DAAC00;border-TOP:solid  1px #DAAC00;}
-
-Table.tabla_cualitativa_a
-{
-    border-right: #daac00 1px solid;
-    padding-right: 0px;
-    border-top: medium none;
-    padding-left: 0px;
-    padding-bottom: 0px;
-    border-left: medium none;
-    border-bottom:  #daac00 1px solid;
-    font-family: verdana;
-    font-size:8pt;
-    cellspacing: 0px
-}
-
-Table.tabla_cualitativa_a td.sin_borde
-{
-	border-left:solid 1px #DAAC00;
-	border-TOP:solid 1px #DAAC00;
-	text-align:center;
-	border-right:solid 5px #f6f6f6;
-	border-bottom:solid 5px #f6f6f6;
-}
-
+table.tabla_cualitativa_a td.title{padding-right: 1px;padding-left: 1px;font-weight: bold;font-size: 8pt;color:navy;text-align:center;background-color: #fdffdf;}
+table.tabla_cualitativa_a td.resalte{border-left:solid 1px #daac00;border-top:solid 1px #daac00;text-align:center;font-weight: bold;}
+table.tabla_cualitativa_a td{ border-left:solid 1px #DAAC00;border-TOP:solid  1px #DAAC00;}
+table.tabla_cualitativa_a{border-right: #daac00 1px solid;padding-right: 0px;border-top: medium none;padding-left: 0px;padding-bottom: 0px;border-left: medium none;border-bottom:  #daac00 1px solid;font-family: verdana;font-size:8pt;cellspacing: 0px}
+table.tabla_cualitativa_a td.sin_borde{border-left:solid 1px #DAAC00;border-TOP:solid 1px #DAAC00;text-align:center;border-right:solid 5px #f6f6f6;border-bottom:solid 5px #f6f6f6;}
 </style>
 ';
 
@@ -671,28 +639,6 @@ $tabla .= '
 		if ( substr($field['Name'],0,4) != 'b2b_'
 			&& $field['Name'] != 'ModBusqueda' 
 			&& $field['Name'] != 'accdirecto' 
-			&& $field['Name'] != 'bitacora' 
-			&& substr($field['Name'],0,4) != 'crm_' 
-			&& substr($field['Name'],0,4) != 'gpt_' 
-			&& $field['Name'] != 'data_sesion' 
-			&& $field['Name'] != 'chat' 
-			&& $field['Name'] != 'costos' 
-			&& $field['Name'] != 'cerberus' 
-			&& $field['Name'] != 'contadores'
-			&& $field['Name'] != 'ejecutasql'
-			&& $field['Name'] != 'formatos'
-			&& $field['Name'] != 'reportes'
-			&& $field['Name'] != 'graficos'
-			&& $field['Name'] != 'impor_data'
-			&& $field['Name'] != 'pantallas'   
-			&& $field['Name'] != 'i18n' 
-			&& $field['Name'] != 'logusu' 
-			&& $field['Name'] != 'intramenu' 
-			&& $field['Name'] != 'internet' 
-			&& $field['Name'] != 'intrarepo' 
-			&& $field['Name'] != 'intermenu' 
-			&& $field['Name'] != 'intrasida' 
-			&& $field['Name'] != 'tmenus' 
 			&& $field['Name'] != 'usuario' 
 			&& $field['Name'] != 'sida' 
 			&& ctype_lower($field['Name'])
@@ -774,14 +720,14 @@ $i = 0;
 if ($query->num_rows() > 0){
 	foreach ($query->result() as $row){
 		if ( $numero != $row->numero ){
-			if ( $i > 0 ) $tabla .= '</table>';
-			$tabla .= '<table class="tabla_cualitativa_a">';
-			$tabla .= '<theader><tr>';
+			if ( $i > 0 ) $tabla .= '</tbody></table>';
+			$tabla .= '<table class="tabla_cualitativa_a" width="100%">';
+			$tabla .= '<thead><tr style="background:#2067B5;color:#FFFFFF;">';
 			$tabla .= "<th> Numero: ".$row->numero."</th>";
-			$tabla .= "<th>Cliente: ".$row->cod_cli." ";
-			$tabla .= $row->nombre."</th>";
-			$tabla .= "<th>Fecha:".$row->fecha."</th>";
-			$tabla .= '</tr></theader>';
+			$tabla .= "<th colspan='2'>Cliente: ".$row->cod_cli."";
+			$tabla .= "".$row->nombre."</th>";
+			$tabla .= "<th>Fecha:</th><th>".$row->fecha."</th>";
+			$tabla .= '</tr></thead><tbody>';
 			$tabla .= '<tr>';
 			$tabla .= "<td>Codigo</td>";
 			$tabla .= "<td>Descripcion</td>";
@@ -789,7 +735,6 @@ if ($query->num_rows() > 0){
 			$tabla .= "<td>Producido</td>";
 			$tabla .= "<td>Ordenado</td>";
 			$tabla .= '</tr>';
-
 			$numero = $row->numero;
 		}
 		$tabla .= '<tr>';
