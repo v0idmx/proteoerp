@@ -1542,10 +1542,10 @@ class Bcaj extends Controller {
 		$numero  = $drow['numero'];
 
 		$dbtransac = $this->db->escape($transac);
-		$cana      = $this->datasis->dameval('SELECT COUNT(*) FROM bmov WHERE transac='.$dbtransac);
+		$cana      = intval($this->datasis->dameval('SELECT COUNT(*) AS cana FROM bmov WHERE transac='.$dbtransac));
 
 		if($cana > 0){
-			$mSQL = 'SELECT codbanc, fecha, monto*if(tipo_op IN (\'CH\',\'ND\'),1,-1) monto FROM bmov WHERE transac='.$dbtransac;
+			$mSQL = 'SELECT codbanc, fecha, monto*IF(tipo_op IN (\'CH\',\'ND\'),1,-1) monto FROM bmov WHERE transac='.$dbtransac;
 			$query = $this->db->query($mSQL);
 			if ( $query->num_rows() > 0 ) {
 				foreach( $query->result() as $row ) {
@@ -1557,7 +1557,7 @@ class Bcaj extends Controller {
 		$fla=false;
 		$query = $this->db->query('SELECT concilia FROM bmov WHERE transac='.$dbtransac);
 		foreach ($query->result() as $row){
-			if($row->concilia!='0000-00-00'){
+			if($row->concilia!='0000-00-00' || !empty($row->concilia)){
 				$fla=true;
 			}
 		}
@@ -1572,7 +1572,7 @@ class Bcaj extends Controller {
 			return true;
 		}
 
-		$cana = $this->datasis->dameval('SELECT COUNT(*) FROM smov WHERE abonos>0 AND transac='.$dbtransac);
+		$cana = intval($this->datasis->dameval('SELECT COUNT(*) FROM smov WHERE abonos>0 AND transac='.$dbtransac));
 		if($cana>0){
 			$rt=array(
 				'status' =>'B',
@@ -1592,7 +1592,7 @@ class Bcaj extends Controller {
 
 		// LIBERA LOS CHEQUES SI ES DEPOSITO
 		$this->db->query('UPDATE sfpa SET status=\'\' AND deposito=\'\' WHERE deposito=?"', array($numero));
-		logusu('BCAJ',"MOVIMIENTO DE CAJA $numero Transaccion $transac ELIMINADO");
+		logusu('BCAJ',"MOVIMIENTO DE CAJA ${numero} Transaccion ${transac} ELIMINADO");
 
 		$rt=array(
 			'status' =>'A',
