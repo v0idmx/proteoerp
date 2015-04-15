@@ -36,7 +36,10 @@ class Prdo extends Controller {
 		$bodyscript = $this->bodyscript( $param['grids'][0]['gridname']);
 
 		//Botones Panel Izq
-		//$grid->wbotonadd(array("id"=>"funcion",   "img"=>"images/engrana.png",  "alt" => "Formato PDF", "label"=>"Ejemplo"));
+		$grid->wbotonadd(array("id"=>"ordene",   "img"=>"images/engrana.png",  "alt" => "Orden Estimada", "label"=>"Orden Estimada"));
+		$grid->wbotonadd(array("id"=>"ordenr",   "img"=>"images/engrana.png",  "alt" => "Orden Real",     "label"=>"Orden Real"));
+		//$grid->wbotonadd(array("id"=>"ordenr",   "img"=>"images/engrana.png",  "alt" => "Orden Real",     "label"=>"Orden Real"));
+
 		$WestPanel = $grid->deploywestp();
 
 		$adic = array(
@@ -79,6 +82,14 @@ class Prdo extends Controller {
 		$bodyscript .= $this->jqdatagrid->bsfborra( $ngrid, '300', '400' );
 
 		$bodyscript .= '});';
+
+		$bodyscript .= '
+		$("#ordene").click(
+			function(){
+				window.open(\''.site_url('inventario/prdo/creaped/').'/\', \'_blank\', \'width=800, height=600, scrollbars=yes, status=yes, resizable=yes,screenx=((screen.availHeight/2)-300), screeny=((screen.availWidth/2)-400)\');
+			}
+		);
+		';
 
 		$bodyscript .= '</script>';
 
@@ -710,55 +721,79 @@ $tabla .= '
 ';
 
 $mSQL = '
-SELECT b.numero, b.fecha, b.cod_cli, b.nombre, a.codigoa, a.desca, a.cana, a.producido 
-FROM itpfac a JOIN pfac b ON a.numa = b.numero 
-WHERE b.producir="S" AND ( b.ordprod="" OR b.ordprod IS NULL )';
+SELECT a.id,
+b.numero, b.fecha, b.cod_cli, b.nombre, a.codigoa, a.desca, a.cana, a.producido, d.ruta, d.descrip 
+FROM itpfac a 
+JOIN pfac b ON a.numa = b.numero 
+LEFT JOIN sclitrut c ON b.cod_cli=c.cliente
+LEFT JOIN sclirut  d ON c.ruta=d.ruta
+WHERE b.producir="S" AND ( b.ordprod="" OR b.ordprod IS NULL )
+ORDER BY d.ruta, a.codigoa, a.numa
+';
 
 $query  = $this->db->query($mSQL);
-$numero = 'XX0000XX';
+$ruta = 'XX0XX';
+$codigo = 'XXZZWWXXWWXXZZZZ';
 $i = 0;
+$c = 0;
 if ($query->num_rows() > 0){
 	foreach ($query->result() as $row){
-		if ( $numero != $row->numero ){
+		if ( $ruta != $row->ruta ){
 			if ( $i > 0 ) $tabla .= '</tbody></table>';
 			$tabla .= '<table class="tabla_cualitativa_a" width="100%">';
-			$tabla .= '<thead><tr style="background:#2067B5;color:#FFFFFF;">';
-			$tabla .= "<th> Numero: ".$row->numero."</th>";
-			$tabla .= "<th colspan='2'>Cliente: ".$row->cod_cli."";
-			$tabla .= "".$row->nombre."</th>";
-			$tabla .= "<th>Fecha:</th><th>".$row->fecha."</th>";
-			$tabla .= '</tr></thead><tbody>';
-			$tabla .= '<tr>';
-			$tabla .= "<td>Codigo</td>";
-			$tabla .= "<td>Descripcion</td>";
-			$tabla .= "<td>Cantidad</td>";
-			$tabla .= "<td>Producido</td>";
-			$tabla .= "<td>Ordenado</td>";
-			$tabla .= '</tr>';
-			$numero = $row->numero;
+
+			$tabla .= "<thead><tr style='background:#2067B5;color:#FFFFFF;'>\n";
+			$tabla .= "<th colspan='8'>Ruta: ".$row->ruta." ".$row->descrip."</th>\n";
+			$tabla .= "</tr></thead><tbody>\n";
+
+			$tabla .= "<tr bgcolor='#BEDCFD'>\n";
+			$tabla .= "<td >Numero</td>\n";
+			$tabla .= "<td >Fecha</td>\n";
+			$tabla .= "<td >Cliente</td>\n";
+			$tabla .= "<td >Codigo</td>\n";
+			$tabla .= "<td >Descripcion</td>\n";
+			$tabla .= "<td >Cantidad</td>\n";
+			$tabla .= "<td >Producido</td>\n";
+			$tabla .= "<td >Ordenado</td>\n";
+			$tabla .= "</tr>\n";
+
+			$ruta = $row->ruta;
 		}
-		$tabla .= '<tr>';
-		$tabla .= "<td>".$row->codigoa."</td>";
-		$tabla .= "<td>".$row->desca."</td>";
-		$tabla .= "<td>".$row->cana."</td>";
-		$tabla .= "<td>".$row->producido."</td>";
+		if ( $codigo != $row->codigoa ){
+			if ( $i > 0 ){
+				$tabla .= "<tr style='background:#2067B5;color:#FFFFFF;'>\n";
+				$tabla .= "	<td colspan='8'>Codigo: ".$row->codigoa." ".$row->desca."</td>\n";
+				$tabla .= "</tr>\n";
+				
+				$codigo = $row->codigoa;
+			}
+		}
 
-		$tabla .= "<td><input name='can[$i]' id='can[$numero,$i]' size='2'></td>";
+		$tabla .= "<tr>\n";
+		$tabla .= "<td>".$row->numero."</td>\n";
+		$tabla .= "<td>".$row->fecha."</td>\n";
+		$tabla .= "<td>".$row->cod_cli."</td>\n";
+		$tabla .= "<td>".$row->codigoa."</td>\n";
+		$tabla .= "<td>".$row->desca."</td>\n";
+		$tabla .= "<td>".$row->cana."</td>\n";
+		$tabla .= "<td>".$row->producido."</td>\n";
 
-		$tabla .= '</tr>';
+		$tabla .= "<td>\n";
+		$tabla .= "<input name='can[$i]'    id='can[$i]'    size='6'>\n";
+		//$tabla .= "<input name='numero[$i]' id='numero[$i]' type='hidden' size='2'>\n";
+		$tabla .= "<input name='codigo[$c]' id='codigo[$c]' type='hidden' size='2'>\n";
+		$tabla .= "</td>\n";
+
+		$tabla .= "</tr>\n";
 		$i++;
 	}
-	$tabla .= '</table>';
+	$tabla .= "</table>\n";
 
 }
-
-
-
 
 $tabla .= '
 </div>
 ';
-
 		$data['content'] = $tabla;
 		$data['title']   = $title;
 		$data['head']    = $styles;
