@@ -2324,8 +2324,19 @@ class gser extends Controller {
 		$tipo_doc = $this->input->post('tipo_doc');
 		if($tipo_doc<>'ND' && empty($val)){
 			$this->validation->set_message('chnumero', 'El campo %s es obligatorio.');
+
+			$proveed = trim($this->input->post('proveed'));
+			if(!empty($proveed)){
+				$dbproveed = $this->db->escape($proveed);
+				$tipo      = intval($this->datasis->dameval("SELECT tipo FROM sprv WHERE proveed=${dbproveed}"));
+				if($tipo_doc=='FC' && $tipo==5){
+					return true;
+				}
+			}
+
 			return false;
 		}
+
 		return true;
 	}
 
@@ -3468,6 +3479,11 @@ class gser extends Controller {
 
 		if(empty($serie) && $tipo_doc='ND'){
 			$serie = $this->datasis->fprox_numero('num_nd');
+			$do->set('serie',$serie);
+		}
+
+		if(empty($serie) && $tipo_doc='FC'){
+			$serie = $this->datasis->fprox_numero('ngser');
 			$do->set('serie',$serie);
 		}
 
