@@ -30,10 +30,10 @@ $bsclih =$this->datasis->modbus($mSCLIh,'sclih');
 if (!empty($_POST['socio'])) $_POST['cod_clid']='';
 if (!empty($_POST['socio'])) $_POST['cod_clih']='';
 
-$filter = new DataFilter2("Filtro del Reporte");
+$filter = new DataFilter2('Filtro del Reporte');
 $filter->attributes=array('onsubmit'=>'is_loaded()');
 
-$select=array("a.tipo_doc", "a.numero", "a.fecha", "a.vence","a.monto", "a.abonos","a.cod_cli","b.vendedor", "a.nombre", "c.clase",
+$select=array('a.tipo_doc', 'a.numero', 'a.fecha', 'a.vence','a.monto', 'a.abonos','a.cod_cli','b.vendedor', 'a.nombre', 'c.clase',
 "DATEDIFF(NOW(),a.vence) as dv",
 "(monto)*IF(tipo_doc='AN',-1,1) as importe",
 "(monto-abonos)*IF(tipo_doc='AN',-1,1) as saldo");
@@ -97,6 +97,15 @@ $filter->vendedor->operator='=';
 $filter->vendedor->option('','Todos');
 $filter->vendedor->options("SELECT vendedor, nombre FROM vend ORDER BY nombre ");
 $filter->vendedor->group="Cliente";
+
+$filter->clase = new dropdownField('Clase', 'clase');
+$filter->clase->db_name='c.clase';
+$filter->clase->clause='where';
+$filter->clase->operator='=';
+$filter->clase->option('','Todos');
+$filter->clase->options(array('C'=> 'Cliente','O'=>'Otros','I'=>'Internos'));
+$filter->clase->group="Cliente";
+
 
 $filter->salformat = new radiogroupField("Formato de salida","salformat");
 $filter->salformat->options($this->opciones);

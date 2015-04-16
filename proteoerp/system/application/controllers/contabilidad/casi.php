@@ -2060,7 +2060,7 @@ class Casi extends Controller {
 		$anio   = substr($fecha,0,4);
 
 		$dbcomprob= $this->db->escape("ZIERRE${anio}");
-		$cana     = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM casi WHERE numero=${dbcomprob}"));
+		$cana     = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM casi WHERE comprob=${dbcomprob}"));
 		if($cana==0){
 			return true;
 		}
