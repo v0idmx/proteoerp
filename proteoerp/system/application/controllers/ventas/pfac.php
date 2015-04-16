@@ -1375,7 +1375,6 @@ class Pfac extends Controller {
 		$edit->cliente = new inputField('Cliente', 'cod_cli');
 		$edit->cliente->size = 6;
 		$edit->cliente->rule = 'required';
-		$edit->cliente->maxlength = 25;
 		if(!($faplica < $fenvia)) $edit->cliente->append($boton);
 		$edit->cliente->autocomplete=false;
 

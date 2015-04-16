@@ -1282,7 +1282,6 @@ class Ordc extends Controller {
 
 		$edit->proveed = new inputField('Proveedor', 'proveed');
 		$edit->proveed->size     = 7;
-		$edit->proveed->maxlength= 5;
 		$edit->proveed->autocomplete=false;
 		$edit->proveed->rule     = 'required';
 		$edit->proveed->append($this->datasis->modbus($sprvbus));
@@ -1477,9 +1476,21 @@ class Ordc extends Controller {
 	}
 
 	function bussug(){
-		$this->rapyd->load('datagrid','datafilter','fields');
+		$this->rapyd->load('datagrid','datafilter2','fields');
 		//$uri   = anchor('compras/ordc/dataedit/show/<#codigo#>','<#codigo#>');
 		$uri = '<a href="javascript:void(0);" class="articulo" onclick="oselect(<jse><#codigo#></jse>,<jse><#descrip#></jse>,<jse><#iva#></jse>,<jse><#peso#></jse>,<jse><#ultimo#></jse>,<jse><#sug#></jse>,<#id#>)"><#codigo#></a>';
+
+		$mSPRV=array(
+			'tabla'   =>'sprv',
+			'columnas'=>array(
+				'proveed' =>'Código',
+				'nombre'  =>'Nombre',
+				'contacto'=>'Contacto'),
+			'filtro'  =>array('proveed'=>'Código','nombre'=>'Nombre'),
+			'retornar'=>array('proveed'=>'proveed'),
+			'titulo'  =>'Buscar Proveedor'
+		);
+		$bSPRV  = $this->datasis->modbus($mSPRV);
 
 		$script = '
 		var vals = new Array();
@@ -1559,16 +1570,16 @@ class Ordc extends Controller {
 			}
 		}
 
-		$filter = new DataFilter('');
+		$filter = new DataFilter2('');
 		$filter->script($script);
 
-		$filter->db->select(array('a.id','SUM(b.cana) AS venta',
+		$filter->db->select(array('a.id',//'SUM(b.cana) AS venta',
 			'TRIM(a.codigo) AS codigo','a.descrip','a.exmax','a.exmin','a.existen','a.ultimo',
 			'IF(a.exmax>a.existen,CEIL(a.exmax-IF(a.existen>0,a.existen,0)),0) AS sug',
 			'a.pfecha1','a.prov1','a.peso','a.iva')
 		);
 		$filter->db->from('sinv AS a');
-		$filter->db->join('sitems AS b','a.codigo=b.codigoa AND b.tipoa="F" AND b.fecha >= DATE_SUB(CURDATE(),INTERVAL 30 DAY)','left');
+		//$filter->db->join('sitems AS b','a.codigo=b.codigoa AND b.tipoa="F" AND b.fecha >= DATE_SUB(CURDATE(),INTERVAL 30 DAY)','left');
 		//$filter->db->where('a.existen <= a.exmin');
 		$filter->db->where('a.activo','S');
 		$filter->db->where('a.tipo','Articulo');
@@ -1576,7 +1587,6 @@ class Ordc extends Controller {
 
 		$filter->codigo = new inputField('C&oacute;digo','codigo');
 		$filter->codigo->db_name   ='a.codigo';
-		$filter->codigo->rule      ='max_length[15]';
 		$filter->codigo->size      =10;
 		$filter->codigo->maxlength =15;
 
@@ -1586,6 +1596,12 @@ class Ordc extends Controller {
 		$filter->descrip->size      =47;
 		$filter->descrip->maxlength =45;
 		$filter->descrip->in = 'codigo';
+
+		$filter->sprv = new inputField('Proveedor','proveed');
+		$filter->sprv->size      =10;
+		$filter->sprv->maxlength =15;
+		$filter->sprv->db_name='a.prov1';
+		$filter->sprv->append($bSPRV);
 
 		$filter->buttons('reset', 'search');
 		$filter->build();
@@ -1612,9 +1628,9 @@ class Ordc extends Controller {
 		$grid->column('Sugerido'            ,$campo , "align='right'");
 		$grid->column('&Uacute;ltimo costo' ,'<nformat><#ultimo#></nformat>', "align='right'");
 		$grid->column('&Uacute;ltima compra','<dbdate_to_human><#pfecha1#></dbdate_to_human> <#prov1#>');
-		$grid->column('Ventas S.','<nformat><divi><#venta#>|4</divi>|0</nformat>', "align='right'");
-		$grid->column('Ventas Q.','<nformat><divi><#venta#>|2</divi>|0</nformat>', "align='right'");
-		$grid->column('Ventas M.','<nformat><#venta#>|0</nformat>', "align='right'");
+		//$grid->column('Ventas S.','<nformat><divi><#venta#>|4</divi>|0</nformat>', "align='right'");
+		//$grid->column('Ventas Q.','<nformat><divi><#venta#>|2</divi>|0</nformat>', "align='right'");
+		//$grid->column('Ventas M.','<nformat><#venta#>|0</nformat>', "align='right'");
 		$grid->build();
 
 		$data['content'] = $filter->output.$grid->output;

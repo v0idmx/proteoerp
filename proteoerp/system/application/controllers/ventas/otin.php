@@ -108,17 +108,7 @@ class Otin extends Controller {
 
 		$bodyscript .= '
 		function otinedit(){
-			var id     = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
-			if(id){
-				var ret    = $("#newapi'.$grid0.'").getRowData(id);
-				mId = id;
-				$.post("'.site_url($this->url.'dataedit/modify').'/"+id, function(data){
-					$("#fedita").html(data);
-					$("#fedita").dialog( "open" );
-				});
-			} else {
-				$.prompt("<h1>Por favor Seleccione un Registro</h1>");
-			}
+			alert("No se puede editar este ingreso, debe eliminarlo y volver a crearlo");
 		};';
 
 		$bodyscript .= '
@@ -201,7 +191,7 @@ class Otin extends Controller {
 
 		$bodyscript .= '
 		$("#fedita").dialog({
-			autoOpen: false, height: 500, width: 780, modal: true,
+			autoOpen: false, height: 590, width: 780, modal: true,
 			buttons: {
 				"Guardar": function() {
 					var bValid = true;
@@ -743,7 +733,7 @@ class Otin extends Controller {
 		$grid->setRowNum(30);
 		$grid->setShrinkToFit('false');
 
-		$grid->setBarOptions("addfunc: otinadd, editfunc: otinedit, delfunc: otindel, viewfunc: otinshow");
+		$grid->setBarOptions('addfunc: otinadd, editfunc: otinedit, delfunc: otindel, viewfunc: otinshow');
 
 		#Set url
 		$grid->setUrlput(site_url($this->url.'setdata/'));

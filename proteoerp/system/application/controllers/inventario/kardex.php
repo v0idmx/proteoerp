@@ -328,7 +328,7 @@ class Kardex extends Controller {
 		if($tipo=='3I' || $tipo=='3M'){  //ventas de caja
 			$fields = $this->db->field_data('sfac');
 			$ppk=array();
-			$select=array('a.numa','a.tipoa','a.numa','CONCAT("(",b.cod_cli,") ",b.nombre) cliente','a.cana*IF(a.tipoa="D",-1,1) AS cana','a.fecha','a.vendedor','a.preca','a.tota','b.tipo_doc');
+			$select=array('a.numa','a.tipoa','a.numa','CONCAT("(",b.cod_cli,") ",b.nombre) cliente','a.cana*IF(a.tipoa="D",-1,1) AS cana','a.fecha','a.vendedor','a.preca','a.tota','b.tipo_doc','a.hora');
 			foreach ($fields as $field){
 				if($field->primary_key==1){
 					$ppk[]='<#'.$field->name.'#>';
@@ -349,6 +349,7 @@ class Kardex extends Controller {
 			$grid->column('Cantidad'     ,'<nformat><#cana#></nformat>','align=right');
 			$grid->column('Fecha'        ,'<dbdate_to_human><#fecha#></dbdate_to_human>'   ,'align=center');
 			$grid->column('Vendedor'     ,'vendedor','align=center');
+			$grid->column('Hora'         ,'hora','align=center');
 			$grid->column('Precio'       ,'<nformat><#preca#></nformat>','align=\'right\'');
 			$grid->column('Total'        ,'<nformat><#tota#></nformat>' ,'align=\'right\'');
 			$grid->db->select($select);

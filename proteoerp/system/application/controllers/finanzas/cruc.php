@@ -204,7 +204,7 @@ class Cruc extends Controller {
 		$("#fpc").click( function() {
 			$.post("'.site_url($this->url.'deprocli/create').'",
 			function(data){
-				$("#fedita").dialog( {height: 500, width: 620, title: "Cruce Proveedor Cliente"} );
+				$("#fedita").dialog( {height: 590, width: 620, title: "Cruce Proveedor Cliente"} );
 				$("#fedita").html(data);
 				$("#fedita").dialog( "open" );
 			})
@@ -212,7 +212,7 @@ class Cruc extends Controller {
 
 		$bodyscript .= '
 		$("#fedita").dialog({
-			autoOpen: false, height: 400, width: 600, modal: true,
+			autoOpen: false, height: 590, width: 600, modal: true,
 			buttons: {
 				"Guardar": function() {
 					var bValid = true;
@@ -1673,7 +1673,7 @@ class Cruc extends Controller {
 
 			$ittipo_doc=substr($onumero,0,2);
 			$itnumero  =substr($onumero,2);
-			
+
 			$dbittipo_doc= $this->db->escape($ittipo_doc);
 			$dbitnumero  = $this->db->escape($itnumero  );
 			$dbitofecha  = $this->db->escape($itofecha);

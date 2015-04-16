@@ -1387,7 +1387,7 @@ class Sinv extends Controller {
 		$grid->addField('prov1');
 		$grid->label('Prov.1');
 		$grid->params(array(
-			'hidden'        => 'true',
+			'hidden'        => 'false',
 			'search'        => 'true',
 			'searchoptions' => '{ searchhidden: true}',
 			'editable'      => $editar,

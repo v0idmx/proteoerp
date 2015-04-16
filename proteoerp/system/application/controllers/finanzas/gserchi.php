@@ -1177,7 +1177,7 @@ class Gserchi extends Controller {
 		$dbcodban=$this->db->escape($codbanc);
 		$form->cargo = new dropdownField('Reponer desde','cargo');
 		$form->cargo->option('','Seleccionar');
-		$form->cargo->options("SELECT codbanc, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE activo='S' AND tipocta<>'Q' AND codbanc<>$dbcodban ORDER BY codbanc");
+		$form->cargo->options("SELECT codbanc, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE activo='S' AND codbanc<>${dbcodban} ORDER BY codbanc");
 		$form->cargo->option($this->mcred,'CREDITO');
 		$form->cargo->onchange='desactivacampo(this.value)';
 		$form->cargo->rule='max_length[5]|required';
@@ -1359,7 +1359,7 @@ class Gserchi extends Controller {
 			//tapagar = roundNumber(total - reten,2);
 			//$('#apagar').val(tapagar);
 			//$('#apagar_val').text(nformat(tapagar,2));
-			
+
 		}
 
 		$(function(){
@@ -1503,7 +1503,7 @@ class Gserchi extends Controller {
 			'sobretasa'=>'IVA A. '.htmlnformat($ivas['sobretasa']).'%|Monto del IVA',
 			'importe'  =>'Importe total',
 			'apagar'   =>'Total a Pagar'
-			
+
 			);
 
 		foreach($arr AS $obj=>$label){
@@ -1528,7 +1528,7 @@ class Gserchi extends Controller {
 		$edit->tasa->rule      = 'condi_required|max_length[17]|callback_chtasa';
 		$edit->reducida->rule  = 'condi_required|max_length[17]|callback_chreducida';
 		$edit->sobretasa->rule = 'condi_required|max_length[17]|callback_chsobretasa';
-		
+
 		$edit->importe->rule       = 'max_length[17]|numeric|positive';
 		$edit->importe->type       = 'inputhidden';
 		$edit->importe->label      = '<b style="font-size:1.5em">Total Factura</b>';
@@ -1698,7 +1698,7 @@ class Gserchi extends Controller {
 		if($reten>0){
 			$mnsprm  = $this->datasis->fprox_numero('num_nd');
 			$control = $this->datasis->fprox_numero('nsprm');
-			
+
 			$data=array();
 			$data['cod_prv']    = 'RETEN';
 			$data['nombre']     = 'RETENCIONES POR ENTERAR';

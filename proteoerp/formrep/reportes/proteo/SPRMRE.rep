@@ -5,16 +5,7 @@
  * @license  GNU GPL v3
 */
 
-/*
-SELECT a.fecha,  a.abonos, a.monto,a.transac,a.numero,a.num_ref,b.transac ,a.observa1 ,a.observa2 ,  b.creten
-	FROM sprm AS a
-	LEFT JOIN gser AS b ON a.transac=b.transac
-WHERE
-	a.fecha<=20150101 AND
-	a.fecha>=20150131 AND
-	a.tipo_doc='ND' AND a.cod_prv='RETEN' AND a.abonos<a.monto
-ORDER BY  b.creten
-*/
+$sprv_nomi='RETNO'; //RETEN codigo del proveedor al que se le carga el ISLR
 
 $base_process_uri= $this->rapyd->uri->implode_uri('base_uri','gfid','orderby');
 $filter = new DataForm($this->rapyd->uri->add_clause($base_process_uri, "search"));
@@ -38,8 +29,9 @@ $filter->submit('btnsubmit','Busca');
 $filter->build_form();
 
 if($this->rapyd->uri->is_set('search') && $filter->on_success()){
-	$dbfdesde = $this->db->escape($filter->fechad->newValue);
-	$dbfhasta = $this->db->escape($filter->fechah->newValue);
+	$dbfdesde   = $this->db->escape($filter->fechad->newValue);
+	$dbfhasta   = $this->db->escape($filter->fechah->newValue);
+	$dbsprv_nomi= $this->db->escape($sprv_nomi);
 
 	$subtitu='';
 	if(isset($_POST['fechad'])) $subtitu.=' Desde la fecha '.$_POST['fechad'];
@@ -51,16 +43,18 @@ if($this->rapyd->uri->is_set('search') && $filter->on_success()){
 	$sql[]="SELECT
 			COALESCE(d.rif,e.rif) AS rif,
 			COALESCE(b.serie,c.serie) AS serie,
+			COALESCE(b.nfiscal,c.nfiscal) AS nfiscal,
 			COALESCE(b.fecha,c.fecha) AS fecha,
 			f.concepto AS creten,
 			a.monto,
-			a.porcen AS prete,
+			a.base,
+			FORMAT(a.porcen,2) AS prete,
 			a.codigorete AS viejo
 		FROM gereten AS a
 		JOIN rete AS f ON a.codigorete=f.codigo
 		JOIN sprm AS g ON a.transac=g.transac
 		LEFT JOIN gser AS b ON a.origen='GSER' AND a.idd=b.id
-		LEFT JOIN scst AS c ON a.origen='SCST' AND a.idd-c.id
+		LEFT JOIN scst AS c ON a.origen='SCST' AND a.idd=c.id
 		LEFT JOIN sprv AS d ON b.proveed=d.proveed
 		LEFT JOIN sprv AS e ON c.proveed=e.proveed
 		WHERE g.monto>g.abonos AND g.fecha BETWEEN ${dbfdesde} AND ${dbfhasta}";
@@ -69,25 +63,32 @@ if($this->rapyd->uri->is_set('search') && $filter->on_success()){
 	$sql[]="SELECT
 			IF(LENGTH(TRIM(c.rif))>0,c.rif,c.cedula) AS rif,
 			'00000' AS serie,
+			'' AS nfiscal,
 			b.fecha,
 			'001' AS creten,
-			ABS(a.valor) AS monto,
-			'' AS prete,
+			SUM(ABS(a.valor)*(a.concepto='650')) AS monto,
+			SUM(ABS(a.valor)*(a.tipo='A' AND MID(a.concepto,1,1)<9)) AS base,
+			FORMAT(SUM(ABS(a.valor)*(a.concepto='650'))/SUM(ABS(a.valor)*(a.tipo='A' AND MID(a.concepto,1,1)<9))*100,2) AS prete,
 			'' AS viejo
 		FROM nomina AS a
-		JOIN sprm   AS b ON a.transac=b.transac AND b.cod_prv='RETEN'
+		JOIN sprm   AS b ON a.transac=b.transac  AND b.cod_prv=${dbsprv_nomi}
 		JOIN pers   AS c ON a.codigo=c.codigo
-		WHERE a.concepto='650' AND b.monto>b.abonos AND
-			b.fecha BETWEEN ${dbfdesde} AND ${dbfhasta}";
+		WHERE
+			b.monto>b.abonos AND
+			b.fecha BETWEEN ${dbfdesde} AND ${dbfhasta}
+		GROUP BY a.codigo";
+
 
 	//Retenciones gasto legado
 	$sql[]="SELECT
 			c.rif,
 			b.serie,
+			b.nfiscal,
 			a.fecha,
 			d.concepto AS creten,
 			a.monto,
-			d.tari1 AS prete,
+			b.breten AS base,
+			FORMAT(d.tari1,2) AS prete,
 			b.creten AS viejo
 		FROM sprm    AS a
 		JOIN gser    AS b ON a.transac=b.transac
@@ -104,10 +105,12 @@ if($this->rapyd->uri->is_set('search') && $filter->on_success()){
 	$sql[]="SELECT
 			c.rif,
 			b.serie,
+			b.nfiscal,
 			a.fecha,
 			${dbconce} AS creten,
 			a.monto,
-			'3' AS prete,
+			a.flete AS base,
+			3.00 AS prete,
 			'115' AS viejo
 		FROM sprm    AS a
 		JOIN scst    AS b ON a.transac=b.transac
@@ -118,6 +121,7 @@ if($this->rapyd->uri->is_set('search') && $filter->on_success()){
 			a.fecha BETWEEN ${dbfdesde} AND ${dbfhasta}";
 
 	$mSQL = implode(' UNION ALL ',$sql).' ORDER BY creten';
+	//echos $mSQL; exit();
 
 	$pdf = new PDFReporte($mSQL,'L');
 	$pdf->setHeadValores('TITULO1');
@@ -131,7 +135,8 @@ if($this->rapyd->uri->is_set('search') && $filter->on_success()){
 	$pdf->AddCol('serie'   , 30, 'Numero Factura' ,'L',9);
 	$pdf->AddCol('nfiscal' , 25, 'Control'        ,'L',9);
 	$pdf->AddCol('fecha'   , 20, 'Fecha'          ,'L',9);
-	$pdf->AddCol('creten'  , 30, 'Código Concepto','L',9);
+	$pdf->AddCol('creten'  , 30, 'Codigo Concepto','C',9);
+	$pdf->AddCol('base'    , 20, 'Base'           ,'R',9);
 	$pdf->AddCol('monto'   , 20, 'Monto'          ,'R',9);
 	$pdf->AddCol('prete'   , 15, '% Ret.'         ,'R',9);
 	//$pdf->AddCol('viejo' , 30, 'Código Viejo'   ,'L',9);

@@ -1555,7 +1555,7 @@ class Bcaj extends Controller {
 		}
 
 		$fla=false;
-		$query = $this->db->query('SELECT concilia FROM bmov WHERE transac='.$dbtransac);
+		$query = $this->db->query('SELECT concilia FROM bmov WHERE liable="S" AND transac='.$dbtransac);
 		foreach ($query->result() as $row){
 			if($row->concilia!='0000-00-00' || !empty($row->concilia)){
 				$fla=true;
