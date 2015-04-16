@@ -43,7 +43,14 @@
 					<td style="font-size:14pt;"><b>Referencia:</b> <?php echo $referen ?></td>
 				</tr>
 				<tr>
-					<td style="font-size:18pt;" align='left'><!--b>Existencia:</b> <?php echo $existen ?>--></td>
+					<td style="font-size:18pt;" align='left'>
+						<?php
+							$chexisten=$this->datasis->traevalor('CONSULTAEXIST','Muestra la existencia en el modulo de consultas');
+							if($chexisten=='S'){
+						?>
+							<b>Existencia:</b> <?php echo $existen; ?>
+						<?php } ?>
+						</td>
 					<td style="font-size:14pt;" align='left'><b>Fecha:</b> <?php echo substr(dbdate_to_human($fecha),3,8); ?></td>
 				</tr>
 			</table>
