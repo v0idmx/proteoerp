@@ -1449,7 +1449,7 @@ class Pfac extends Controller {
 		$edit->tota->type='inputhidden';
 
 		$edit->producir = new dropdownField('Enviar a Producion','producir');
-		$edit->producir->rule = 'required|enum[S,N]';
+		$edit->producir->rule = 'enum[S,N]';
 		$edit->producir->option('S','Si');
 		$edit->producir->option('N','No');
 		$edit->producir->title = 'Producir este pedido';
