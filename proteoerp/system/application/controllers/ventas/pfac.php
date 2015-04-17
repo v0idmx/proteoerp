@@ -114,14 +114,14 @@ class Pfac extends Controller {
 			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if(id){
 				var ret = $("#newapi'.$grid0.'").getRowData(id);
-				if(ret.status == "P"){
+				if(ret.status == "P" || ret.status == "A"){
 					mId = id;
 					$.post("'.site_url('ventas/pfac/dataedit/modify').'/"+id, function(data){
 						$("#fedita").html(data);
 						$("#fedita").dialog( "open" );
 					});
 				}else{
-					$.prompt("<h1>Por favor Seleccione un Registro con status P</h1>");
+					$.prompt("<h1>Por favor Seleccione un Registro con status P o A</h1>");
 				}
 			}
 		}';
@@ -1454,7 +1454,7 @@ class Pfac extends Controller {
 		$edit->producir->option('N','No');
 		$edit->producir->title = 'Producir este pedido';
 		$edit->producir->style = 'width: 115px;';
-		
+
 
 		for($i = 1;$i <= 4;$i++){
 			$obj = 'precio' . $i;
@@ -1653,6 +1653,12 @@ class Pfac extends Controller {
 
 	function _pre_update($do){
 		$error='';
+		$status  = $do->get('status');
+		if($status!='P' && $status!='A'){
+			$do->error_message_ar['pre_upd']='El pedido debe estar tener estatus P o A para ser modificado ('.$status.')';
+			return false;
+		}
+
 		$codigo = $do->get('numero');
 		$fecha  = $do->get('fecha');
 		$vd     = $do->get('vd');

@@ -324,7 +324,7 @@ function del_itordc(id){
 					<?php echo $container_bl.$container_br; ?>
 					<p>
 					<?php if($form->_status!='show'){ ?>
-						<a href="javascript:void(0);" style='font-size:1.2em;text-decoration:none;font-weight:bold;color:#166D05' onclick="bus_sug=window.open('/proteoerp/compras/ordc/bussug', 'bussug', 'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=0,screeny=0');">Sugerencias</a>
+						<a href="javascript:void(0);" style='font-size:1.2em;text-decoration:none;font-weight:bold;color:#166D05' onclick="bus_sug=window.open('/proteoerp/compras/ordc/bussug', 'bussug', 'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=0,screeny=">Sugerencias</a>
 					<?php } ?>
 					</p>
 				</td>
@@ -342,7 +342,7 @@ function del_itordc(id){
 			</tr>
 		</table>
 		</div>
-		
+
 				</td><td>
 					<div id='idcodesta'></div>
 				</td>
