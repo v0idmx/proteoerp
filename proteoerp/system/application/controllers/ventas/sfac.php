@@ -3784,7 +3784,7 @@ class Sfac extends Controller {
 
 		//Chequea si el cliente tiene cheques devueltos (Opcional por valores)
 		$vchdev=$this->datasis->traevalor('SFACCHDEV','Solo factura si el cliente no tiene cheques devueltos (S/N)');
-		if($vchdev=='S' && $referen!='P'){
+		if($vchdev=='S' && $referen!='P' && $tipo_doc=='F'){
 			$this->db->select_sum('a.monto','saldo');
 			$this->db->from('smov AS a');
 			$this->db->join('prmo AS c','a.transac=c.transac');
