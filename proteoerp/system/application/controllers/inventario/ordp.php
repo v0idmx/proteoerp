@@ -15,6 +15,7 @@ class Ordp extends Controller {
 		parent::Controller();
 		$this->load->library('rapyd');
 		$this->load->library('jqdatagrid');
+		$this->instalar();
 		//$this->datasis->modulo_nombre( 'ORDP', $ventana=0, $this->titp  );
 	}
 

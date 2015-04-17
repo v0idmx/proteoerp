@@ -15,6 +15,7 @@ class Prdo extends Controller {
 		parent::Controller();
 		$this->load->library('rapyd');
 		$this->load->library('jqdatagrid');
+		$this->instalar();
 		$this->datasis->modulo_nombre( 'PRDO', $ventana=0, $this->titp  );
 	}
 
@@ -30,17 +31,28 @@ class Prdo extends Controller {
 	function jqdatag(){
 
 		$grid = $this->defgrid();
+		$grid->setHeight('185');
 		$param['grids'][] = $grid->deploy();
 
+		$grid1   = $this->defgridit();
+		$grid1->setHeight('190');
+		$param['grids'][] = $grid1->deploy();
+
+		// Configura los Paneles
+		$readyLayout = $grid->readyLayout2( 212, 220, $param['grids'][0]['gridname'],$param['grids'][1]['gridname']);
+
 		//Funciones que ejecutan los botones
-		$bodyscript = $this->bodyscript( $param['grids'][0]['gridname']);
+		$bodyscript = $this->bodyscript( $param['grids'][0]['gridname'], $param['grids'][1]['gridname'] );
 
 		//Botones Panel Izq
 		$grid->wbotonadd(array("id"=>"ordene",   "img"=>"images/engrana.png",  "alt" => "Orden Estimada", "label"=>"Orden Estimada"));
-		$grid->wbotonadd(array("id"=>"ordenr",   "img"=>"images/engrana.png",  "alt" => "Orden Real",     "label"=>"Orden Real"));
+		//$grid->wbotonadd(array("id"=>"ordenr",   "img"=>"images/engrana.png",  "alt" => "Orden Real",     "label"=>"Orden Real"));
 		//$grid->wbotonadd(array("id"=>"ordenr",   "img"=>"images/engrana.png",  "alt" => "Orden Real",     "label"=>"Orden Real"));
 
 		$WestPanel = $grid->deploywestp();
+
+		//Panel Central
+		$centerpanel = $grid->centerpanel( $id = "radicional", $param['grids'][0]['gridname'], $param['grids'][1]['gridname'] );
 
 		$adic = array(
 			array('id'=>'fedita',  'title'=>'Agregar/Editar Registro'),
@@ -59,13 +71,188 @@ class Prdo extends Controller {
 		$param['tabs']        = false;
 		$param['encabeza']    = $this->titp;
 		$param['tamano']      = $this->datasis->getintramenu( substr($this->url,0,-1) );
+
+		$param['script']       = script('plugins/jquery.ui.autocomplete.autoSelectOne.js');
+		$param['readyLayout']  = $readyLayout;
+		$param['centerpanel']  = $centerpanel;
+
 		$this->load->view('jqgrid/crud2',$param);
+
 	}
 
 	//******************************************************************
 	// Funciones de los Botones
 	//
-	function bodyscript( $grid0 ){
+	function bodyscript( $grid0, $grid1 ){
+		$bodyscript = '		<script type="text/javascript">';
+
+		$bodyscript .= '
+		function prdoadd(){
+			$.post("'.site_url($this->url.'dataedit/create').'",
+			function(data){
+				$("#fedita").html(data);
+				$("#fedita").dialog( "open" );
+			})
+		};';
+
+		$bodyscript .= '
+		function prdoedit(){
+			var id     = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			if(id){
+				var ret    = $("#newapi'.$grid0.'").getRowData(id);
+				mId = id;
+				$.post("'.site_url($this->url.'dataedit/modify').'/"+id, function(data){
+					$("#fedita").html(data);
+					$("#fedita").dialog( "open" );
+				});
+			} else {
+				$.prompt("<h1>Por favor Seleccione un Registro</h1>");
+			}
+		};';
+
+		$bodyscript .= '
+		function prdoshow(){
+			var id     = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			if(id){
+				var ret    = $("#newapi'.$grid0.'").getRowData(id);
+				mId = id;
+				$.post("'.site_url($this->url.'dataedit/show').'/"+id, function(data){
+					$("#fshow").html(data);
+					$("#fshow").dialog( "open" );
+				});
+			} else {
+				$.prompt("<h1>Por favor Seleccione un Registro</h1>");
+			}
+		};';
+
+		$bodyscript .= '
+		function prdodel() {
+			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			if(id){
+				if(confirm(" Seguro desea eliminar el registro?")){
+					var ret    = $("#newapi'.$grid0.'").getRowData(id);
+					mId = id;
+					$.post("'.site_url($this->url.'dataedit/do_delete').'/"+id, function(data){
+						try{
+							var json = JSON.parse(data);
+							if (json.status == "A"){
+								apprise("Registro eliminado");
+								jQuery("#newapi'.$grid0.'").trigger("reloadGrid");
+							}else{
+								apprise("Registro no se puede eliminado");
+							}
+						}catch(e){
+							$("#fborra").html(data);
+							$("#fborra").dialog( "open" );
+						}
+					});
+				}
+			}else{
+				$.prompt("<h1>Por favor Seleccione un Registro</h1>");
+			}
+		};';
+		//Wraper de javascript
+		$bodyscript .= '
+		$(function() {
+			$("#dialog:ui-dialog").dialog( "destroy" );
+			var mId = 0;
+			var montotal = 0;
+			var ffecha = $("#ffecha");
+			var grid = jQuery("#newapi'.$grid0.'");
+			var s;
+			var allFields = $( [] ).add( ffecha );
+			var tips = $( ".validateTips" );
+			s = grid.getGridParam(\'selarrrow\');
+			';
+
+		$bodyscript .= '
+		$("#fedita").dialog({
+			autoOpen: false, height: 500, width: 700, modal: true,
+			buttons: {
+				"Guardar": function() {
+					var bValid = true;
+					var murl = $("#df1").attr("action");
+					allFields.removeClass( "ui-state-error" );
+					$.ajax({
+						type: "POST", dataType: "html", async: false,
+						url: murl,
+						data: $("#df1").serialize(),
+						success: function(r,s,x){
+							try{
+								var json = JSON.parse(r);
+								if (json.status == "A"){
+									apprise("Registro Guardado");
+									$( "#fedita" ).dialog( "close" );
+									grid.trigger("reloadGrid");
+									'.$this->datasis->jwinopen(site_url('formatos/ver/PRDO').'/\'+json.pk.id+\'/id\'').';
+									return true;
+								} else {
+									apprise(json.mensaje);
+								}
+							}catch(e){
+								$("#fedita").html(r);
+							}
+						}
+					})
+				},
+				"Cancelar": function() {
+					$("#fedita").html("");
+					$( this ).dialog( "close" );
+				}
+			},
+			close: function() {
+				$("#fedita").html("");
+				allFields.val( "" ).removeClass( "ui-state-error" );
+			}
+		});';
+
+		$bodyscript .= '
+		$("#fshow").dialog({
+			autoOpen: false, height: 500, width: 700, modal: true,
+			buttons: {
+				"Aceptar": function() {
+					$("#fshow").html("");
+					$( this ).dialog( "close" );
+				},
+			},
+			close: function() {
+				$("#fshow").html("");
+			}
+		});';
+
+		$bodyscript .= '
+		$("#fborra").dialog({
+			autoOpen: false, height: 300, width: 400, modal: true,
+			buttons: {
+				"Aceptar": function() {
+					$("#fborra").html("");
+					jQuery("#newapi'.$grid0.'").trigger("reloadGrid");
+					$( this ).dialog( "close" );
+				},
+			},
+			close: function() {
+				jQuery("#newapi'.$grid0.'").trigger("reloadGrid");
+				$("#fborra").html("");
+			}
+		});';
+
+		$bodyscript .= '});'."\n";
+
+		$bodyscript .= '
+		$("#ordene").click(
+			function(){
+				window.open(\''.site_url('inventario/prdo/creaped/').'/\', \'_blank\', \'width=900, height=600, scrollbars=yes, status=yes, resizable=yes,screenx=((screen.availHeight/2)-300), screeny=((screen.availWidth/2)-400)\');
+			}
+		);
+		';
+
+		$bodyscript .= "\n</script>\n";
+		$bodyscript .= "";
+		return $bodyscript;
+	}
+
+
+	function bodyscript1( $grid0 ){
 		$bodyscript = '<script type="text/javascript">';
 		$ngrid = '#newapi'.$grid0;
 
@@ -83,18 +270,12 @@ class Prdo extends Controller {
 
 		$bodyscript .= '});';
 
-		$bodyscript .= '
-		$("#ordene").click(
-			function(){
-				window.open(\''.site_url('inventario/prdo/creaped/').'/\', \'_blank\', \'width=800, height=600, scrollbars=yes, status=yes, resizable=yes,screenx=((screen.availHeight/2)-300), screeny=((screen.availWidth/2)-400)\');
-			}
-		);
-		';
 
 		$bodyscript .= '</script>';
 
 		return $bodyscript;
 	}
+
 
 	//******************************************************************
 	// Definicion del Grid o Tabla 
@@ -116,7 +297,6 @@ class Prdo extends Controller {
 			'editoptions'   => '{ size:8, maxlength: 8 }',
 		));
 
-
 		$grid->addField('fecha');
 		$grid->label('Fecha');
 		$grid->params(array(
@@ -129,7 +309,6 @@ class Prdo extends Controller {
 			'formoptions'   => '{ label:"Fecha" }'
 		));
 
-
 		$grid->addField('almacen');
 		$grid->label('Almacen');
 		$grid->params(array(
@@ -140,7 +319,6 @@ class Prdo extends Controller {
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:4, maxlength: 4 }',
 		));
-
 
 		$grid->addField('status');
 		$grid->label('Status');
@@ -153,7 +331,6 @@ class Prdo extends Controller {
 			'editoptions'   => '{ size:2, maxlength: 2 }',
 		));
 
-
 		$grid->addField('instrucciones');
 		$grid->label('Instrucciones');
 		$grid->params(array(
@@ -163,7 +340,6 @@ class Prdo extends Controller {
 			'edittype'      => "'textarea'",
 			'editoptions'   => "'{rows:2, cols:60}'",
 		));
-
 
 		$grid->addField('estampa');
 		$grid->label('Estampa');
@@ -177,7 +353,6 @@ class Prdo extends Controller {
 			'formoptions'   => '{ label:"Fecha" }'
 		));
 
-
 		$grid->addField('usuario');
 		$grid->label('Usuario');
 		$grid->params(array(
@@ -189,7 +364,7 @@ class Prdo extends Controller {
 			'editoptions'   => '{ size:12, maxlength: 12 }',
 		));
 
-
+/*
 		$grid->addField('hora');
 		$grid->label('Hora');
 		$grid->params(array(
@@ -200,7 +375,6 @@ class Prdo extends Controller {
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:8, maxlength: 8 }',
 		));
-
 
 		$grid->addField('modificado');
 		$grid->label('Modificado');
@@ -213,18 +387,17 @@ class Prdo extends Controller {
 			'editrules'     => '{ required:true,date:true}',
 			'formoptions'   => '{ label:"Fecha" }'
 		));
-
+*/
 
 		$grid->addField('id');
 		$grid->label('Id');
 		$grid->params(array(
 			'align'         => "'center'",
-			'frozen'        => 'true',
+			'hidden'        => 'true',
 			'width'         => 40,
 			'editable'      => 'false',
 			'search'        => 'false'
 		));
-
 
 		$grid->showpager(true);
 		$grid->setWidth('');
@@ -232,6 +405,15 @@ class Prdo extends Controller {
 		$grid->setTitle($this->titp);
 		$grid->setfilterToolbar(true);
 		$grid->setToolbar('false', '"top"');
+
+		$grid->setOnSelectRow('
+			function(id){
+				if (id){
+					jQuery(gridId2).jqGrid("setGridParam",{url:"'.site_url($this->url.'getdatait/').'/"+id+"/", page:1});
+					jQuery(gridId2).trigger("reloadGrid");
+				}
+			}'
+		);
 
 		$grid->setFormOptionsE('closeAfterEdit:true, mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
 		$grid->setFormOptionsA('closeAfterAdd:true,  mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
@@ -269,7 +451,7 @@ class Prdo extends Controller {
 		// CREA EL WHERE PARA LA BUSQUEDA EN EL ENCABEZADO
 		$mWHERE = $grid->geneTopWhere('prdo');
 
-		$response   = $grid->getData('prdo', array(array()), array(), false, $mWHERE );
+		$response   = $grid->getData('prdo', array(array()), array(), false, $mWHERE, 'id', 'Desc' );
 		$rs = $grid->jsonresult( $response);
 		echo $rs;
 	}
@@ -331,6 +513,158 @@ class Prdo extends Controller {
 			}
 		};
 	}
+
+
+	//******************************************************************
+	// Definicion del Grid y la Forma
+	//
+	function defgridit( $deployed = false ){
+		$i      = 1;
+		$editar = "false";
+
+		$grid  = new $this->jqdatagrid;
+
+/*
+		$grid->addField('numero');
+		$grid->label('Numero');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 80,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:8, maxlength: 8 }',
+		));
+*/
+
+		$grid->addField('pedido');
+		$grid->label('Pedido');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 60,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:8, maxlength: 8 }',
+		));
+
+		$grid->addField('codigo');
+		$grid->label('Codigo');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 100,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:15, maxlength: 15 }',
+		));
+
+		$grid->addField('descrip');
+		$grid->label('Descrip');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 200,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:40, maxlength: 40 }',
+		));
+
+
+		$grid->addField('cana');
+		$grid->label('Pedido');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'align'         => "'right'",
+			'edittype'      => "'text'",
+			'width'         => 80,
+			'editrules'     => '{ required:true }',
+			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
+			'formatter'     => "'number'",
+			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }'
+		));
+
+
+		$grid->addField('ordenado');
+		$grid->label('Ordenado');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'align'         => "'right'",
+			'edittype'      => "'text'",
+			'width'         => 80,
+			'editrules'     => '{ required:true }',
+			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
+			'formatter'     => "'number'",
+			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }'
+		));
+
+/*
+		$grid->addField('idpfac');
+		$grid->label('Idpfac');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'align'         => "'right'",
+			'edittype'      => "'text'",
+			'width'         => 100,
+			'editrules'     => '{ required:true }',
+			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
+			'formatter'     => "'number'",
+			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 0 }'
+		));
+*/
+
+		$grid->addField('id');
+		$grid->label('Id');
+		$grid->params(array(
+			'align'         => "'center'",
+			'hidden'        => 'true',
+			'width'         => 40,
+			'editable'      => 'false',
+			'search'        => 'false'
+		));
+
+
+		$grid->setShrinkToFit('false');
+		#Set url
+		$grid->setUrlput(site_url($this->url.'setdatait/'));
+
+		#GET url
+		$grid->setUrlget(site_url($this->url.'getdatait/'));
+
+		if ($deployed) {
+			return $grid->deploy();
+		} else {
+			return $grid;
+		}
+	}
+
+	/**
+	* Busca la data en el Servidor por json
+	*/
+	function getdatait( $id = 0 )
+	{
+		if ($id === 0 ){
+			$id = $this->datasis->dameval("SELECT MAX(id) FROM prdo");
+		}
+		if(empty($id)) return "";
+		$numero   = $this->datasis->dameval("SELECT numero FROM prdo WHERE id=$id");
+		$grid    = $this->jqdatagrid;
+		$mSQL    = "SELECT * FROM itprdo WHERE numero='$numero' ";
+		$response   = $grid->getDataSimple($mSQL);
+		$rs = $grid->jsonresult( $response);
+		echo $rs;
+	}
+
+	/**
+	* Guarda la Informacion
+	*/
+	function setDatait()
+	{
+	}
+
 
 	//******************************************************************
 	// Edicion 
@@ -461,6 +795,25 @@ class Prdo extends Controller {
 		}
 		//$campos=$this->db->list_fields('prdo');
 		//if(!in_array('<#campo#>',$campos)){ }
+
+
+		if (!$this->db->table_exists('itprdo')) {
+			$mSQL="CREATE TABLE itprdo (
+				numero   VARCHAR(8) NOT NULL DEFAULT '',
+				pedido   CHAR(8)        NULL DEFAULT NULL,
+				codigo   CHAR(15)       NULL DEFAULT NULL,
+				descrip  CHAR(40)       NULL DEFAULT NULL,
+				cana     DECIMAL(12,3)  NULL DEFAULT '0.000',
+				ordenado DECIMAL(12,3)  NULL DEFAULT '0.000',
+				idpfac   INT(11)        NULL DEFAULT '0',
+				id       INT(1) NOT NULL AUTO_INCREMENT,
+				PRIMARY  KEY (`id`),
+				INDEX numero (numero),
+				INDEX pedido (pedido)
+			) ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC COMMENT='Detalle de Ordenes de Produccion'";
+			$this->db->query($mSQL);
+		}
+
 	}
 
 
@@ -476,6 +829,8 @@ class Prdo extends Controller {
 		$styles .= style("themes/ui.jqgrid.css");
 		$styles .= style("themes/ui.multiselect.css");
 		$styles .= style('layout1.css');
+		$styles .= '<link rel="stylesheet" href="'.base_url().'system/application/rapyd/elements/proteo/css/rapyd_components.css" type="text/css" />'."\n";
+
 
 		$styles .= '
 <style type="text/css">
@@ -497,12 +852,12 @@ class Prdo extends Controller {
 	#tablas { list-style-type: none; margin: 0; padding: 0; width: 90%; }
 	#tablas li { margin: 1px; padding: 0em; font-size: 0.8em; height: 14px; }
 
-table.tabla_cualitativa_a td.header {padding-right: 1px;padding-left: 1px;font-weight: bold;font-size: 8pt;color: navy;background-color: #f4edd5;text-align:center;}
-table.tabla_cualitativa_a td.title{padding-right: 1px;padding-left: 1px;font-weight: bold;font-size: 8pt;color:navy;text-align:center;background-color: #fdffdf;}
-table.tabla_cualitativa_a td.resalte{border-left:solid 1px #daac00;border-top:solid 1px #daac00;text-align:center;font-weight: bold;}
-table.tabla_cualitativa_a td{ border-left:solid 1px #DAAC00;border-TOP:solid  1px #DAAC00;}
-table.tabla_cualitativa_a{border-right: #daac00 1px solid;padding-right: 0px;border-top: medium none;padding-left: 0px;padding-bottom: 0px;border-left: medium none;border-bottom:  #daac00 1px solid;font-family: verdana;font-size:8pt;cellspacing: 0px}
-table.tabla_cualitativa_a td.sin_borde{border-left:solid 1px #DAAC00;border-TOP:solid 1px #DAAC00;text-align:center;border-right:solid 5px #f6f6f6;border-bottom:solid 5px #f6f6f6;}
+table.tc td.header {padding-right: 1px;padding-left: 1px;font-weight: bold;font-size: 8pt;color: navy;background-color: #f4edd5;text-align:center;}
+table.tc td.title{padding-right: 1px;padding-left: 1px;font-weight: bold;font-size: 8pt;color:navy;text-align:center;background-color: #fdffdf;}
+table.tc td.resalte{border-left:solid 1px #daac00;border-top:solid 1px #daac00;text-align:center;font-weight: bold;}
+table.tc td{ border-left:solid 1px #DAAC00;border-TOP:solid  1px #DAAC00;}
+table.tc {border-right: #daac00 1px solid;padding-right: 0px;border-top: medium none;padding-left: 0px;padding-bottom: 0px;border-left: medium none;border-bottom:  #daac00 1px solid;font-family: verdana;font-size:8pt;cellspacing: 0px}
+table.tc td.sin_borde{border-left:solid 1px #DAAC00;border-TOP:solid 1px #DAAC00;text-align:center;border-right:solid 5px #f6f6f6;border-bottom:solid 5px #f6f6f6;}
 </style>
 ';
 
@@ -516,8 +871,6 @@ table.tabla_cualitativa_a td.sin_borde{border-left:solid 1px #DAAC00;border-TOP:
 </table>
 </div>
 ";
-
-
 		$script  = "\n<!-- JQUERY -->\n";
 		$script .= script('jquery-min.js');
 		$script .= script('jquery-migrate-min.js');
@@ -531,8 +884,19 @@ table.tabla_cualitativa_a td.sin_borde{border-left:solid 1px #DAAC00;border-TOP:
 		$script .= script("jquery.tablednd.js");
 		$script .= script("jquery.contextmenu.js");
 
+		$script .= script('plugins/jquery.numeric.pack.js');
+		$script .= script('plugins/jquery.floatnumber.js');
+		$script .= script('plugins/jquery.maskedinput.min.js');
+
 		$script .= '
 <script type="text/javascript">
+	$(function(){
+		$(".inputnum").numeric(".");
+	});
+	$(function() {
+		$( "input:submit, a, button", ".botones",".otros" ).button();
+	});
+
 ';
 
 		$script .= '
@@ -579,50 +943,41 @@ table.tabla_cualitativa_a td.sin_borde{border-left:solid 1px #DAAC00;border-TOP:
 		});
  	});
 
-	$(function() {
-		$("#tablas").selectable({
-			selected: function( event, ui ) {
-				if ( $("#tabla1").val() == "" ) 
-					$("#tabla1").val(ui.selected.id);
-				else 
-					$("#tabla2").val(ui.selected.id);
-			}
-		});
-	});
+	function sumar(j){
+		var nn = \'[name="codigo_\'+j+\'"]\';
+		var k = 0;
+		var t;
+		var totalc = 0;
+		var maximo = 0;
 
-	function camposdb() { 
-		$.post("'.site_url('desarrollo/camposdb')."/".'"+$("#tabla1").val(),
-		function(data){
-			$("#resultado").html("");
-			$("#resultado").html(data);
-		});
-	};
+		// Valida el maximo
+		$("#resultados").html("Maximo "+maximo);
 	
-	function lcamposdb () { 
-		$.post("'.site_url('desarrollo/lcamposdb')."/".'"+$("#tabla1").val(),
-		function(data){
-			$("#resultado").html("");
-			$("#resultado").html(data);
+		$(nn).each( function() {
+			k = $(this).val();
+			t = Number($("#cana_"+k).val());
+			maximo = Number($("#falta_"+k).val());
+			if ( t > maximo ){
+				t = maximo;
+				$("#cana_"+k).val(maximo);
+			}
+			totalc += t;
 		});
-	};
+		$(\'#totalc_\'+j).val(totalc);
+	}
 
-	function ccamposdb () { 
-		$.post("'.site_url('desarrollo/ccamposdb')."/".'"+$("#tabla1").val(),
-		function(data){
-			
-			$("#resultado").html(data);
-		});
-	};
+	function guardar(){
+		alert("Guardar");
+		//$("#guardar").submit();
 
-	function jqgrid () { 
-		window.open(\''.site_url('desarrollo/jqgrid').'/\'+$("#tabla1").val()+"/"+$("#modulo").val(), \'_blank\', \'width=900, height=700, scrollbars=yes, status=yes, resizable=yes,screenx=((screen.availHeight/2)-350), screeny=((screen.availWidth/2)-450)\');
-	};
+		$.post( "'.base_url().'inventario/prdo/guardaoe", $("form#guardar").serialize(), 
+			function(data) {
+				alert("Listo");
+			},"json" 
+		);
 
-	function jqgridmd () { 
-		window.open(\''.site_url('desarrollo/jqgridmd').'/\'+$("#tabla1").val()+"/"+$("#tabla2").val()+"/"+$("#modulo").val(), \'_blank\', \'width=900, height=700, scrollbars=yes, status=yes, resizable=yes,screenx=((screen.availHeight/2)-350), screeny=((screen.availWidth/2)-450)\');
-	};
-
-
+	}
+		
 </script>
 ';
 
@@ -638,29 +993,9 @@ $tabla = '
 ';
 
 // IZQUIERDO
-$tabla .= '
-<div class="ui-layout-west">
-	Tablas Disponibles:
-	<ol id="tablas">
-';
-	//Trae las tablas
-/*
-	$query = $this->db->query("SHOW TABLE STATUS");
-	foreach ($query->result_array() as $field){
-		if ( substr($field['Name'],0,4) != 'b2b_'
-			&& $field['Name'] != 'ModBusqueda' 
-			&& $field['Name'] != 'accdirecto' 
-			&& $field['Name'] != 'usuario' 
-			&& $field['Name'] != 'sida' 
-			&& ctype_lower($field['Name'])
-		)
-		$tabla .= "\t<li class='ui-widget-content' id='".$field['Name']."' > ".$field['Name'].'</li>';
-	}
-*/
-$tabla .= '
-	</ol>
-</div>
-';
+$tabla .= '<div class="ui-layout-west">';
+
+$tabla .= '</div>';
 
 // INFERIOR
 $tabla .= '
@@ -676,60 +1011,58 @@ $tabla .= '
 // DERECHA
 $tabla .= '
 <div class="ui-layout-east">
+	<button type="button" onclick="guardar()">Guardar Orden</button>
+	<div id="resultados"></div>
 </div>
 ';
 
 // CENTRO
-/*
-$tabla .= '
-<div class="ui-layout-center">
-	<table width="100%" bgcolor="#58ACFA">
-		<tr>
-			<td>Tabla Maestra</td>
-			<td><input id="tabla1" type="text" value="" ></td>
-			<td><button id="camposdb"  onclick="camposdb()" >Arreglo de Campos</button></td>
-			<td><button id="lcamposdb" onclick="lcamposdb()">Lista de Campos</button></td>
-		</tr><tr>
-			<td>Tabla Detalle </td>
-			<td><input id="tabla2" type="text" value="" ></td>
-			<td><button id="ccamposdb" onclick="ccamposdb()">Lista con comillas</button></td>
-		</tr><tr>
-			<td>Modulo</td>
-			<td><button id="jqgrid"   onclick="jqgrid()"  >Generar Maestro</button></td>
-			<td><button id="jqgridmd" onclick="jqgridmd()">Maestro Detalle</button></td>
-		</tr>
-	</table>
-	<br>
-	<div style="background:#EAEAEA" id="resultado"></div>
-</div>
-';
-*/
-
 $norden = $this->datasis->dameval('SELECT MAX(id) maxi FROM prdo');
 if ($norden == '') $norden = 0;
 
 $tabla .= '
 <div class="ui-layout-center">
+<form id="guardar" >';
+$tabla .= "\nAlmacen: ";
+
+$tabla .= $this->datasis->llenaopciones("SELECT ubica, ubides FROM caub WHERE gasto='N' ORDER BY ubica", false, $id='almacen' );
+
+/*
 	<table width="100%" bgcolor="#58ACFA">
 		<tr>
 			<td>Ultima Orden</td>
 			<td>Nro. '.$norden.'</td>
 		</tr>
 	</table>
-	<br>
-	<div style="background:#EAEAEA" id="resultado"></div>
-';
+
+*/
 
 $mSQL = '
 SELECT a.id,
-b.numero, b.fecha, b.cod_cli, b.nombre, a.codigoa, a.desca, a.cana, a.producido, d.ruta, d.descrip 
+b.numero, b.fecha, b.cod_cli, b.nombre, a.codigoa, a.desca, a.cana, a.producido, a.cana-a.producido falta, d.ruta, d.descrip 
 FROM itpfac a 
 JOIN pfac b ON a.numa = b.numero 
 LEFT JOIN sclitrut c ON b.cod_cli=c.cliente
 LEFT JOIN sclirut  d ON c.ruta=d.ruta
 WHERE b.producir="S" AND ( b.ordprod="" OR b.ordprod IS NULL )
-ORDER BY d.ruta, a.codigoa, a.numa
+ORDER BY a.codigoa, d.ruta, a.numa
 ';
+
+
+$mSQL = '
+SELECT a.id, b.numero, b.fecha, b.cod_cli, b.nombre, a.codigoa, a.desca, a.cana, COALESCE(sum(e.ordenado),0) producido, a.cana-COALESCE(sum(e.ordenado),0) falta, COALESCE(sum(e.ordenado),0) ordenado, d.ruta, d.descrip 
+FROM itpfac a 
+JOIN pfac b ON a.numa = b.numero 
+LEFT JOIN sclitrut c ON b.cod_cli=c.cliente
+LEFT JOIN sclirut  d ON c.ruta=d.ruta
+LEFT JOIN itprdo   e ON a.id = e.idpfac
+WHERE b.producir="S" AND ( b.ordprod="" OR b.ordprod IS NULL )
+GROUP BY a.id
+HAVING falta>0
+ORDER BY a.codigoa, d.ruta, a.numa
+';
+
+
 
 $query  = $this->db->query($mSQL);
 $ruta = 'XX0XX';
@@ -739,72 +1072,121 @@ $c = 0;
 if ($query->num_rows() > 0){
 	foreach ($query->result() as $row){
 		if ( $ruta != $row->ruta ){
-			if ( $i > 0 ) $tabla .= '</tbody></table>';
-			$tabla .= '<table class="tabla_cualitativa_a" width="100%">';
+/*
+			if ( $i > 0 ) $tabla .= "</tbody></table>\n";
+			$tabla .= '<table class="tc">';
+			//$tabla .= "<thead>";
+			//$tabla .= "<tr style='background:#2067B5;color:#FFFFFF;'>\n";
+			//$tabla .= "	<th colspan='7'>Ruta: ".$row->ruta." ".$row->descrip."</th>\n";
+			$tabla .= "</tr></thead>";
+			$tabla .= "<tbody>\n";
+			$ruta = $row->ruta;
+*/ 
+		}
 
-			$tabla .= "<thead><tr style='background:#2067B5;color:#FFFFFF;'>\n";
-			$tabla .= "<th colspan='8'>Ruta: ".$row->ruta." ".$row->descrip."</th>\n";
-			$tabla .= "</tr></thead><tbody>\n";
+		if ( $codigo != $row->codigoa ){
+			if ( $i > 0 ) $tabla .= "</tbody></table><br>\n";
+			$tabla .= '<table class="tc" width="100%">';
+			$tabla .= "<tbody>\n";
 
-			$tabla .= "<tr bgcolor='#BEDCFD'>\n";
-			$tabla .= "<td >Numero</td>\n";
-			$tabla .= "<td >Fecha</td>\n";
-			$tabla .= "<td >Cliente</td>\n";
-			$tabla .= "<td >Codigo</td>\n";
-			$tabla .= "<td >Descripcion</td>\n";
-			$tabla .= "<td >Cantidad</td>\n";
-			$tabla .= "<td >Producido</td>\n";
-			$tabla .= "<td >Ordenado</td>\n";
+			if ( $i > 0 ) $c++;
+
+			$tabla .= "<tr style='background:#2067B5;color:#FFFFFF;'>\n";
+			$tabla .= "	<td colspan='5'>Cod: ".$row->codigoa." Desc: ".$row->desca."</td>\n";
+			$tabla .= "	<td>&nbsp;</td>\n";
+			$tabla .= "	<td><input class='inputnum' name='totalc_$c' id='totalc_$c' size='4' type='text' readonly></td>\n";
 			$tabla .= "</tr>\n";
 
-			$ruta = $row->ruta;
-		}
-		if ( $codigo != $row->codigoa ){
-			if ( $i > 0 ){
-				$tabla .= "<tr style='background:#2067B5;color:#FFFFFF;'>\n";
-				$tabla .= "	<td colspan='8'>Codigo: ".$row->codigoa." ".$row->desca."</td>\n";
-				$tabla .= "</tr>\n";
-				
-				$codigo = $row->codigoa;
-			}
+			$tabla .= "<tr bgcolor='#BEDCFD'>\n";
+			$tabla .= "	<td >Ruta</td>\n";
+			$tabla .= "	<td >Pedido</td>\n";
+			$tabla .= "	<td >Fecha</td>\n";
+			$tabla .= "	<td >Cliente</td>\n";
+			$tabla .= "	<td >Cantidad</td>\n";
+			$tabla .= "	<td >Producido</td>\n";
+			$tabla .= "	<td >Ordenado</td>\n";
+			$tabla .= "</tr>\n";
+
+			$codigo = $row->codigoa;
 		}
 
 		$tabla .= "<tr>\n";
-		$tabla .= "<td>".$row->numero."</td>\n";
-		$tabla .= "<td>".$row->fecha."</td>\n";
-		$tabla .= "<td>".$row->cod_cli."</td>\n";
-		$tabla .= "<td>".$row->codigoa."</td>\n";
-		$tabla .= "<td>".$row->desca."</td>\n";
-		$tabla .= "<td>".$row->cana."</td>\n";
-		$tabla .= "<td>".$row->producido."</td>\n";
+		$tabla .= "	<td>".$row->ruta."&nbsp;</td>\n";
+		$tabla .= "	<td>".$row->numero."</td>\n";
+		$tabla .= "	<td>".$row->fecha."</td>\n";
+		$tabla .= "	<td>".$row->cod_cli."</td>\n";
+		//$tabla .= "<td>".$row->desca."</td>\n";
+		$tabla .= "	<td align='right'>".$row->cana."</td>\n";
+		$tabla .= "	<td align='right'>".$row->producido."</td>\n";
 
-		$tabla .= "<td>\n";
-		$tabla .= "<input name='can[$i]'    id='can[$i]'    size='6'>\n";
-		//$tabla .= "<input name='numero[$i]' id='numero[$i]' type='hidden' size='2'>\n";
-		$tabla .= "<input name='codigo[$c]' id='codigo[$c]' type='hidden' size='2'>\n";
-		$tabla .= "</td>\n";
+		$tabla .= "	<td>\n";
+		$tabla .= "		<input class='inputnum' name='cana_$i' id='cana_$i' size='4' onkeyUp='sumar($c)' value='0' >\n";
+		$tabla .= "		<input name='codigo_$c' id='codigo_$c' type='hidden' value='$i' >\n";
+		$tabla .= "		<input name='idpfac_$i' id='idpfac_$i' type='hidden' value='".$row->id.   "' >\n";
+		$tabla .= "		<input name='falta_$i'  id='falta_$i'  type='hidden' value='".$row->falta."' >\n";
+		$tabla .= "	</td>\n";
 
 		$tabla .= "</tr>\n";
 		$i++;
 	}
 	$tabla .= "</table>\n";
-
 }
 
 $tabla .= '
+<input id="totalitem" name="totalitem" type="hidden" value="'.$i.'">
+</form>
 </div>
 ';
 		$data['content'] = $tabla;
 		$data['title']   = $title;
 		$data['head']    = $styles;
 		$data['head']   .= $script;
-
 		$this->load->view('view_ventanas_lite',$data);
-
 	}
 
+	//******************************************************************
+	// Crea la Orden de Produccion
+	//
+	function guardaoe(){
+		$m = intval($_POST['totalitem']);
+		$t = 0;
+		// calcula el total de 
+		for ( $i=0; $i < $m; $i++ ){
+			$t += intval($_POST['cana_'.$i]);
+		}
+		if ( $t <= 0 ) {
+			echo "No hay pedido";
+			return;
+		}
 
+		// Crea encabezado
+		$numero  = $this->datasis->fprox_numero('nprdo');
+		$data['numero']  = $numero;
+		$data['fecha']   = date('Y-m-d');
+		$data['almacen'] = $_POST['almacen'];
+		$data['status']  = 'A';
+		$data['usuario'] = $this->secu->usuario();
+		$data['estampa'] = date('Ymd');
+		$data['hora']    = date('H:i:s');
+		$this->db->insert('prdo',$data);
+		
+		// Crea Detalle
+		$ids = '';
+		for ( $i=0; $i < $m; $i++ ){
+			$cana = intval($_POST['cana_'.$i]);
+			if ( $cana > 0 ){
+				// Guarda 
+				$id = intval($_POST['idpfac_'.$i]);
+				$mSQL = "
+				INSERT INTO itprdo (numero, pedido, codigo, descrip, cana, ordenado, idpfac )
+				SELECT '${numero}' numero, a.numa pedido, a.codigoa codigo, a.desca descrip, a.cana, ${cana} ordenado, ${id} idpfac 
+				FROM itpfac a JOIN pfac b ON a.numa = b.numero
+				WHERE a.id= ${id}";
+				$this->db->query($mSQL);
+			}
+		}
+		
+	}
 }
-
 
 ?>
