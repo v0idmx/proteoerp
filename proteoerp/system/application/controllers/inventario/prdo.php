@@ -251,7 +251,7 @@ class Prdo extends Controller {
 			function(){
 				var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 				if(id){
-					window.open(\''.site_url('inventario/prdo/recibir/').'/\', \'_blank\', \'width=900, height=600, scrollbars=yes, status=yes, resizable=yes,screenx=((screen.availHeight/2)-300), screeny=((screen.availWidth/2)-400)\');
+					window.open(\''.site_url('inventario/prdo/recibir/').'/\'+id, \'_blank\', \'width=700, height=500, scrollbars=yes, status=yes, resizable=yes,screenx=((screen.availHeight/2)-300), screeny=((screen.availWidth/2)-400)\');
 				} else {
 					$.prompt("<h1>Por favor Seleccione una Orden</h1>");
 				}
@@ -1227,29 +1227,242 @@ $tabla .= '
 		
 	}
 
-
-	function recibir(){
-		$this->rapyd->load('dataform');
-		$this->rapyd->config->set_item('theme','clean');
-
-		$titusize=1.5;
-		$form0 = new DataForm('inventario/invfis/define/process/crear');
-		$form0->title('<span style="font-size:'.$titusize.'em;">1-Crear un nuevo Inventario F&iacute;sico</span>');
-		$form0->explica1 = new containerField('',"<p style='color:blue;background-color:C6DAF6;align:center'>Esta secci&oacute;n crea una tabla de inventario vacia de el Almac&eacute;n seleccionado donde se ingresa los valores resultantes del conteo de Inventario, en caso de haber creado un inventario f&iacute;sico previamente puede saltarse al paso 2.</p>");
-		$form0->alma = new dropdownField('<span style="font-size:1.2em;color:#000000">Almac&eacute;n</span>', 'alma');
-		$form0->alma->options("SELECT TRIM(ubica),CONCAT_WS('-',TRIM(ubides),TRIM(ubica)) AS desca FROM caub WHERE gasto='N' AND invfis='N' ORDER BY ubides");
-		$form0->alma->rule='required';
-		$form0->explica2 = new containerField('',"<p style='color:blue;background-color:C6DAF6;align:center'>La fecha es <b>muy importante</b>, si el conteo f&iacute;sico se realizo en la ma&ntilde;ana antes de abrir debe colocar la fecha de hoy, de lo contrario si el conteo se hizo en la tarde al final de la jornada debe colocar la fecha de Ma&ntilde;ana.</p>");
-
-		$form0->fecha = new dateonlyField('<span style="font-size:1.2em;color:#000000">Fecha</span>', 'fecha');
-		$form0->fecha->rule='required|chfecha';
-		$form0->fecha->insertValue = date('Y-m-d');
-		$form0->fecha->size=12;
-		$form0->explica3 = new containerField('',"<p style='color:blue;background-color:C6DAF6;align:center'>Finalmente si observo las indicaciones anteriores presione el siguiente bot&oacute;n:</p> ");
-		$form0->submit('btnsubmit','Crear Inventario F&iacute;sico');
-
-
+	//******************************************************************
+	//
+	//
+	function recibir( $id = 0){
+		if ( $id == 0 ) die('Error no hay orden seleccionada');
+		$id = intval($id);
 		
+		$numero = $this->datasis->dameval("SELECT numero FROM prdo WHERE id=$id");
+		if ( $numero <= 0 ) die('Error en numero de orden');
+		
+		// Esto debe hacerse por dataform
+		$styles  = "\n<!-- Estilos -->\n";
+		$styles .= style('rapyd.css');
+		$styles .= style('ventanas.css');
+		$styles .= style('themes/proteo/proteo.css');
+		$styles .= style("themes/ui.jqgrid.css");
+		$styles .= style("themes/ui.multiselect.css");
+		$styles .= style('layout1.css');
+		$styles .= '<link rel="stylesheet" href="'.base_url().'system/application/rapyd/elements/proteo/css/rapyd_components.css" type="text/css" />'."\n";
+
+
+		$styles .= '
+<style type="text/css">
+	p {font-size:1em; margin: 1ex 0;}
+	p.buttons {text-align:center;line-height:2.5em;}
+	button {line-height: normal;}
+	.hidden {display: none;}
+	ul {z-index:100000;margin:1ex 0;padding:0;list-style:none;cursor:pointer;border:1px solid Black;width:15ex;position:	relative;}
+	ul li {background-color: #EEE;padding: 0.15em 1em 0.3em 5px;}
+	ul ul {display:none;position:absolute;width:100%;left:-1px;bottom:0;margin:0;margin-bottom: 1.55em;}
+	.ui-layout-north ul ul {bottom:auto;margin:0;margin-top:1.45em;}
+	ul ul li { padding: 3px 1em 3px 5px; }
+	ul ul li:hover { background-color: #FF9; }
+	ul li:hover ul { display:block; background-color: #EEE; }
+
+	#feedback { font-size: 0.8em; }
+	#tablas .ui-selecting { background: #FECA40; }
+	#tablas .ui-selected { background: #F39814; color: white; }
+	#tablas { list-style-type: none; margin: 0; padding: 0; width: 90%; }
+	#tablas li { margin: 1px; padding: 0em; font-size: 0.8em; height: 14px; }
+
+	table.tc td.header {padding-right: 1px;padding-left: 1px;font-weight: bold;font-size: 8pt;color: navy;background-color: #f4edd5;text-align:center;}
+	table.tc td.title{padding-right: 1px;padding-left: 1px;font-weight: bold;font-size: 8pt;color:navy;text-align:center;background-color: #fdffdf;}
+	table.tc td.resalte{border-left:solid 1px #daac00;border-top:solid 1px #daac00;text-align:center;font-weight: bold;}
+	table.tc td{ border-left:solid 1px #DAAC00;border-TOP:solid  1px #DAAC00;}
+	table.tc {border-right: #daac00 1px solid;padding-right: 0px;border-top: medium none;padding-left: 0px;padding-bottom: 0px;border-left: medium none;border-bottom:  #daac00 1px solid;font-family: verdana;font-size:8pt;cellspacing: 0px}
+	table.tc td.sin_borde{border-left:solid 1px #DAAC00;border-TOP:solid 1px #DAAC00;text-align:center;border-right:solid 5px #f6f6f6;border-bottom:solid 5px #f6f6f6;}
+
+	.custom-combobox {position: relative;display: inline-block;}
+	.custom-combobox-toggle {position: absolute;top: 0;bottom: 0;margin-left: -1px;padding: 0;}
+	.custom-combobox-input {margin: 0;padding: 5px 10px;}
+
+</style>
+';
+
+		$title = "
+<div id='encabe'>
+<table width='98%'>
+	<tr>
+		<td>".heading('Guardar Produccion')."</td>
+		<td align='right' width='40'>".image('cerrar.png','Cerrar Ventana',array('onclick'=>'window.close()','height'=>'20'))."</td>
+	</tr>
+</table>
+</div>
+";
+		$script  = "\n<!-- JQUERY -->\n";
+		$script .= script('jquery-min.js');
+		$script .= script('jquery-migrate-min.js');
+		$script .= script('jquery-ui.custom.min.js');
+
+		$script .= script("jquery.layout.js");
+		$script .= script("i18n/grid.locale-sp.js");
+
+		$script .= script("ui.multiselect.js");
+		$script .= script("jquery.jqGrid.min.js");
+		$script .= script("jquery.tablednd.js");
+		$script .= script("jquery.contextmenu.js");
+
+		$script .= script('plugins/jquery.numeric.pack.js');
+		$script .= script('plugins/jquery.floatnumber.js');
+		$script .= script('plugins/jquery.maskedinput.min.js');
+
+		$script .= '
+<script type="text/javascript">
+	$(function(){
+		$(".inputnum").numeric(".");
+	});
+	$(function() {
+		$( "input:submit, a, button", ".botones",".otros" ).button();
+	});
+';
+
+		$script .= '
+	// set EVERY state here so will undo ALL layout changes
+	$(document).ready(function () {
+		$(function() {
+			$("button").button().click(function(event) {event.preventDefault();});
+		});
+ 	});
+
+	function guardar(){
+		alert("Guardar");
+		$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardar").serialize(), 
+			function(data) {
+				alert(data);
+				//location.reload();
+				//window.opener.actualiza();
+				window.close();
+			}
+		);
 	}
+</script>
+';
+
+// ENCABEZADO
+$tabla = '
+<div class="ui-layout-north">
+<table width="100%" bgcolor="#2067B5">
+	<tr>
+		<td align="left" width="80px"><img src="'.base_url().'assets/default/css/templete_01.jpg" width="120"></td><td align="center"><h1 style="font-size: 20px; color: rgb(255, 255, 255);" onclick="history.back()">ORDEN DE PRODUCCION</h1></td><td align="left" width="100px" nowrap="nowrap"><font style="color:#FFFFFF;font-size:12px">Usuario: '.$this->secu->usuario().'<br/>'.$this->secu->getnombre().'</font></td><td align="right" width="28px"></td>
+	</tr>
+</table>
+</div>
+';
+
+// IZQUIERDO
+$tabla .= '
+<div class="ui-layout-west">
+<form id="guardar" >
+<center>
+	<br><br>
+	<button type="button" onclick="guardar()">Guardar Orden</button>
+	<div id="resultados"></div>
+</center>
+</div>';
+
+// INFERIOR
+$tabla .= '
+<div class="ui-layout-south">
+';
+
+$tabla .= $this->datasis->traevalor('TITULO1');
+
+$tabla .= '
+</div>
+';
+
+// DERECHA
+$tabla .= '
+<div class="ui-layout-east">
+</div>
+';
+
+// CENTRO
+$norden = $this->datasis->dameval('SELECT MAX(id) maxi FROM prdo');
+if ($norden == '') $norden = 0;
+
+$tabla .= '
+<div class="ui-layout-center">';
+
+$mSQL = 'SELECT * FROM itprdop WHERE numero="'.$numero.'" ORDER BY codigo';
+$query  = $this->db->query($mSQL);
+
+$i = 0;
+if ($query->num_rows() > 0){
+
+	if ( $i > 0 ) $tabla .= "</tbody></table><br>\n";
+	$tabla .= '<table class="tc" width="80%">';
+	$tabla .= "<tbody>\n";
+
+	$tabla .= "<tr bgcolor='#BEDCFD'>\n";
+	$tabla .= "	<td >Codigo</td>\n";
+	$tabla .= "	<td >Descripcion</td>\n";
+	$tabla .= "	<td >Ordenado</td>\n";
+	$tabla .= "	<td >Fabricado</td>\n";
+	$tabla .= "</tr>\n";
+
+	foreach ($query->result() as $row){
+
+		$tabla .= "<tr>\n";
+		$tabla .= "	<td>".$row->codigo."</td>\n";
+		$tabla .= "	<td>".$row->descrip."</td>\n";
+		$tabla .= "	<td align='right'>".$row->ordenado."</td>\n";
+		$idc = $row->id;
+		$tabla .= "	<td>\n";
+		$tabla .= "		<input class='inputnum' name='cana_$i' id='producido_$i' size='4' value='0' >\n";
+		$tabla .= "		<input name='codigo_$i' id='codigo_$i' type='hidden' value='$idc' >\n";
+		$tabla .= "	</td>\n";
+
+		$tabla .= "</tr>\n";
+		$i++;
+	}
+	$tabla .= "</table>\n";
+}
+
+$tabla .= '
+<input id="totalitem" name="totalitem" type="hidden" value="'.$i.'">
+</form>
+</div>
+';
+		$data['content'] = $tabla;
+		$data['title']   = $title;
+		$data['head']    = $styles;
+		$data['head']   .= $script;
+		$this->load->view('view_ventanas_lite',$data);
+	}
+
+
+	//******************************************************************
+	// Crea la Orden de Produccion
+	//
+	function guardare(){
+		$m = intval($_POST['totalitem']);
+		$t = 0;
+		// calcula el total de 
+		for ( $i=0; $i < $m; $i++ ){
+			$t += intval($_POST['cana_'.$i]);
+		}
+		if ( $t <= 0 ) {
+			echo "No hay cambios";
+			return;
+		}
+
+		$ids = '';
+		for ( $i=0; $i < $m; $i++ ){
+			// Guarda 
+			$cana = intval($_POST['cana_'.$i]);
+			$id   = intval($_POST['codigo_'.$i]);
+			$mSQL = "UPDATE itprdop SET producido = ${cana} WHERE id= ${id}";
+			$this->db->query($mSQL);
+		}
+
+		echo "Produccion Guardada";
+	}
+
+
+
 }
 ?>

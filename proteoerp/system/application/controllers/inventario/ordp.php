@@ -20,11 +20,6 @@ class Ordp extends Controller {
 	}
 
 	function index(){
-		/*if ( !$this->datasis->iscampo('ordp','id') ) {
-			$this->db->query('ALTER TABLE ordp DROP PRIMARY KEY');
-			$this->db->query('ALTER TABLE ordp ADD UNIQUE INDEX numero (numero)');
-			$this->db->query('ALTER TABLE ordp ADD COLUMN id INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
-		};*/
 		//$this->datasis->creaintramenu(array('modulo'=>'000','titulo'=>'<#titulo#>','mensaje'=>'<#mensaje#>','panel'=>'<#panal#>','ejecutar'=>'<#ejecuta#>','target'=>'popu','visible'=>'S','pertenece'=>'<#pertenece#>','ancho'=>900,'alto'=>600));
 		$this->datasis->modintramenu( 800, 600, substr($this->url,0,-1) );
 		redirect($this->url.'jqdatag');
