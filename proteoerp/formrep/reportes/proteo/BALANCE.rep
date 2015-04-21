@@ -25,7 +25,7 @@ $filter->fechah->insertValue = $final;
 $filter->fechah->rule = 'required';
 $filter->fechah->group = 'Fecha';
 
-$filter->salformat = new radiogroupField("Formato de salida","salformat");
+$filter->salformat = new radiogroupField('Formato de salida','salformat');
 $filter->salformat->options($this->opciones);
 $filter->salformat->insertValue ='PDF';
 $filter->salformat->clause = '';
@@ -142,8 +142,8 @@ if($this->rapyd->uri->is_set('search') AND $filter->is_valid() AND $pasamos){
 	$pdf->Table();
 	$pdf->Output();
 }else{
-	$data["filtro"] = $filter->output;
-	$data["titulo"] = '<h2 class="mainheader">Balance General</h2>';
-	$data["head"] = $this->rapyd->get_head();
+	$data['filtro'] = $filter->output;
+	$data['titulo'] = '<h2 class="mainheader">Balance General</h2>';
+	$data['head'] = $this->rapyd->get_head();
 	$this->load->view('view_freportes', $data);
 }

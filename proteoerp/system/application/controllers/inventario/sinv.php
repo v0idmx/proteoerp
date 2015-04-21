@@ -4026,21 +4026,29 @@ class Sinv extends Controller {
 	//  Cambia el Grupo
 	//
 	function sinvcamgrup() {
-		$productos  = $this->input->post('productos');
-		$mgrupo     = rawurldecode($this->input->post('grupo'));
+		$productos = $this->input->post('productos');
+		$mgrupo    = rawurldecode($this->input->post('grupo'));
+		$dbmgrupo  = $this->db->escape($mgrupo);
 
-		if($this->datasis->dameval("SELECT COUNT(*) FROM grup WHERE grupo='$mgrupo'") == 0 ){
-			echo "Grupo no existe $mgrupo";
-		} else {
+		$cana = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM grup WHERE grupo=${dbmgrupo}"));
+		if($cana == 0){
+			echo "Grupo no existe ${mgrupo}";
+		}elseif(is_array($productos) && count($productos)>0){
 			//Busca el Depto y Linea del grupo
-			$productos = implode(",",$productos);
-			$depto = $this->datasis->dameval("SELECT depto FROM grup WHERE grupo='$mgrupo'");
-			$linea = $this->datasis->dameval("SELECT linea FROM grup WHERE grupo='$mgrupo'");
+			foreach($productos as $i => $val){
+				$productos[$i] = $this->db->escape($val);
+			}
+			$productos = implode(',',$productos);
+			$depto     = $this->datasis->dameval("SELECT depto FROM grup WHERE grupo=${dbmgrupo}");
+			$linea     = $this->datasis->dameval("SELECT linea FROM grup WHERE grupo=${dbmgrupo}");
+			$dbdepto   = $this->db->escape($depto);
+			$dblinea   = $this->db->escape($linea);
+
 			//echo "$mgrupo $productos";
-			$mSQL = "UPDATE sinv SET grupo='$mgrupo', linea='$linea', depto='$depto' WHERE id IN ($productos) ";
+			$mSQL = "UPDATE sinv SET grupo=${dbmgrupo}, linea=${dblinea}, depto=${dbdepto} WHERE id IN (${productos})";
 			$this->db->simple_query($mSQL);
-			logusu("SINV","Cambio grupo ".$mgrupo."-->".$productos);
-			echo "Cambiado a Depto $depto, linea $linea, grupo $mgrupo Exitosamente";
+			logusu('sinv','Cambio grupo '.$mgrupo.'-->'.$productos);
+			echo "Cambiado a Depto ${depto}, linea ${linea}, grupo ${mgrupo} Exitosamente";
 		}
 	}
 
@@ -4093,14 +4101,19 @@ class Sinv extends Controller {
 	function sinvcammarca() {
 		$productos  = $this->input->post('productos');
 		$mmarca     = rawurldecode($this->input->post('marca'));
+		$dbmmarca   = $this->db->escape($mmarca);
 
-		if($this->datasis->dameval("SELECT COUNT(*) FROM marc WHERE TRIM(marca)='".addslashes($mmarca)."'") == 0 ){
+		$cana = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM marc WHERE TRIM(marca)=${dbmmarca}"));
+		if($cana == 0 ){
 			echo "Marca no existe $mmarca";
-		} else {
-			$productos = implode(",",$productos);
-			$mSQL = "UPDATE sinv SET marca='".addslashes($mmarca)."' WHERE id IN ($productos) ";
+		}elseif(is_array($productos) && count($productos)>0){
+			foreach($productos as $i => $val){
+				$productos[$i] = $this->db->escape($val);
+			}
+			$productos = implode(',',$productos);
+			$mSQL = "UPDATE sinv SET marca=${dbmmarca} WHERE id IN (${productos}) ";
 			$this->db->simple_query($mSQL);
-			logusu("SINV","Cambio marca ".$mmarca."-->".$productos);
+			logusu('sinv','Cambio marca '.$mmarca.'-->'.$productos);
 			echo "Cambiadas las  marcas $mmarca Exitosamente";
 		}
 	}
@@ -4110,13 +4123,14 @@ class Sinv extends Controller {
 	//  Existe el Codigo
 	//
 	function sinvcodigoexiste(){
-		$id = rawurldecode($this->input->post('codigo'));
+		$id   = rawurldecode($this->input->post('codigo'));
+		$dbid = $this->db->escape($id);
 		//$id = $this->uri->segment($this->uri->total_segments());
-		$existe = $this->datasis->dameval("SELECT count(*) FROM sinv WHERE codigo='".addslashes($id)."'");
+		$existe = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sinv WHERE codigo=${dbid}"));
 		$devo = 'N '.$id;
-		if ($existe > 0 ) {
+		if($existe > 0){
 			$devo  ='S';
-			$devo .= $this->datasis->dameval("SELECT descrip FROM sinv WHERE codigo='".addslashes($id)."'");
+			$devo .= $this->datasis->dameval("SELECT descrip FROM sinv WHERE codigo=${dbid}");
 		}
 		echo $devo;
 	}
@@ -4261,7 +4275,7 @@ class Sinv extends Controller {
 			}
 		}
 
-		if ( $this->db->table_exists('sinvfusion') == false ) {
+		if($this->db->table_exists('sinvfusion') == false){
 			$mSQL  = "CREATE TABLE sinvfusion ( ";
 			$mSQL .= "	id INT(10) NOT NULL AUTO_INCREMENT, ";
 			$mSQL .= "	anterior VARCHAR(15) NOT NULL, ";
@@ -4434,21 +4448,24 @@ class Sinv extends Controller {
 	// Borra Codigo de barras suplementarios
 	function sinvborrasuple() {
 		$codigo   = $this->input->post('codigo');
-		$mSQL = "DELETE FROM barraspos WHERE suplemen='$codigo'";
+		$dbcodigo = $this->db->escape($codigo);
+		$mSQL = "DELETE FROM barraspos WHERE suplemen=${dbcodigo}";
 		$this->db->simple_query($mSQL);
 		logusu("SINV","Eliminado Codigo Suplementario ".$codigo);
-		echo "Codigo Eliminado";
+		echo 'Codigo Eliminado';
 	}
 
 	// Borra Codigo de proveedores
 	function sinvborraprv() {
 		$codigo   = $this->input->post('codigo');
 		$proveed  = $this->input->post('proveed');
+		$dbcodigo = $this->db->escape($codigo );
+        $dbproveed= $this->db->escape($proveed);
 
-		$mSQL = "DELETE FROM sinvprov WHERE codigop='$codigo' AND proveed='$proveed'";
+		$mSQL = "DELETE FROM sinvprov WHERE codigop=${dbcodigo} AND proveed=${dbproveed}";
 		$this->db->simple_query($mSQL);
-		logusu("SINV","Eliminado Codigo de proveedor $codigo => $proveed");
-		echo "Codigo Eliminado";
+		logusu("sinv","Eliminado Codigo de proveedor ${codigo} => ${proveed}");
+		echo 'Codigo Eliminado';
 	}
 
 	// Busca Proveedor por autocomplete
@@ -4500,9 +4517,14 @@ class Sinv extends Controller {
 		$codigo  = $this->uri->segment($this->uri->total_segments());
 		$cod_prv = $this->uri->segment($this->uri->total_segments()-1);
 		$id      = $this->uri->segment($this->uri->total_segments()-2);
-		$mSQL = "REPLACE INTO sinvprov SELECT '$cod_prv' proveed, '$codigo' codigop, codigo FROM sinv WHERE id=$id ";
+
+		$dbcodigo  = $this->db->escape($codigo );
+		$dbcod_prv = $this->db->escape($cod_prv);
+		$dbid      = $this->db->escape($id     );
+
+		$mSQL = "REPLACE INTO sinvprov SELECT ${dbcod_prv} AS proveed, ${dbcodigo} AS codigop, codigo FROM sinv WHERE id=${dbid}";
 		$this->db->simple_query($mSQL);
-		echo " codigo=$codigo guardado al prv $cod_prv " ;
+		echo " codigo=${codigo} guardado al prv ${cod_prv} " ;
 	}
 
 	//*************************
@@ -4510,9 +4532,9 @@ class Sinv extends Controller {
 	// Promociones
 	//
 	function sinvpromo() {
-		$mid     = $this->input->post('id');
+		$mid     = intval($this->input->post('id'));
 		$margen  = $this->input->post('margen');
-		$mcodigo = $this->datasis->dameval("SELECT codigo FROM sinv WHERE id=$mid");
+		$mcodigo = $this->datasis->dameval("SELECT codigo FROM sinv WHERE id=${mid}");
 		$htmlcod = addslashes($mcodigo);
 
 		//Busca si ya esta
@@ -4528,7 +4550,7 @@ class Sinv extends Controller {
 			$mSQL = "UPDATE sinvpromo SET margen=$margen WHERE codigo='$htmlcod' ";
 		}
 		$this->db->simple_query($mSQL);
-		logusu("SINV","Promocion ".$htmlcod."-->".$margen);
+		logusu('sinv',"Promocion ".$htmlcod."-->".$margen);
 		echo "Cambio Exitoso";
 	}
 
@@ -4572,7 +4594,7 @@ class Sinv extends Controller {
 			$msj='';
 		}
 
-		$this->rapyd->load("datafilter2","datagrid");
+		$this->rapyd->load('datafilter2','datagrid');
 		$mSPRV=array(
 				'tabla'   =>'sprv',
 				'columnas'=>array(
@@ -4866,9 +4888,9 @@ class Sinv extends Controller {
 
 	function chexiste($codigo){
 		$dbcodigo=$this->db->escape($codigo);
-		$check=$this->datasis->dameval("SELECT COUNT(*) FROM sinv WHERE codigo=$dbcodigo");
+		$check=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sinv WHERE codigo=${dbcodigo}"));
 		if($check > 0){
-			$descrip=$this->datasis->dameval("SELECT descrip FROM sinv WHERE codigo=$dbcodigo");
+			$descrip=$this->datasis->dameval("SELECT descrip FROM sinv WHERE codigo=${dbcodigo}");
 			$this->validation->set_message('chexiste',"El codigo ${codigo} ya existe para el producto ${descrip}");
 			return false;
 		}else{
@@ -5064,7 +5086,7 @@ class Sinv extends Controller {
 	//Consulta rapida
 	function consulta(){
 		$this->load->helper('openflash');
-		$this->rapyd->load("datagrid");
+		$this->rapyd->load('datagrid');
 		$fields = $this->db->field_data('sinv');
 		$url_pk = $this->uri->segment_array();
 		$coun=0; $pk=array();
@@ -5267,7 +5289,7 @@ class Sinv extends Controller {
 		$mSQL  = "
 		SELECT
 			MID(a.fecha,1,7) mes,
-			sum(a.cantidad*(a.origen='3I')) cventa,
+			SUM(a.cantidad*(a.origen='3I')) cventa,
 			ROUND(sum(a.promedio*a.cantidad*(a.origen='3I')),2) mventa,
 			ROUND(sum(a.venta*(a.origen='3I')),2) mpvp,
 			sum(a.cantidad*(a.origen='2C')) ccompra,
@@ -5349,7 +5371,7 @@ class Sinv extends Controller {
 	}
 
 	function consulta_logusu() {
-		$id = $this->uri->segment($this->uri->total_segments());
+		$id = intval($this->uri->segment($this->uri->total_segments()));
 		$mCodigo = $this->datasis->dameval("SELECT codigo FROM sinv WHERE id=".$id."");
 
 		$mSQL  = 'SELECT a.fecha, a.usuario,  MID(a.hora,1,5) hora, a.modulo, MID(REPLACE(a.comenta,"ARTICULO DE INVENTARIO",""),1,30) comenta ';
@@ -5378,12 +5400,12 @@ class Sinv extends Controller {
 
 		$codigo = $this->datasis->dameval("SELECT codigo FROM sinv WHERE id=$id");
 		$mSQL = "SELECT	a.tipoa,MID(a.fecha,1,7) mes,
-			sum(a.cana*(a.tipoa='F')) cventa,
-			sum(a.cana*(a.tipoa='D')) cdevol,
-			sum(a.cana*if(a.tipoa='D',-1,1)) cana,
-			sum(a.tota*(a.tipoa='F')) mventa,
-			sum(a.tota*(a.tipoa='D')) mdevol,
-			sum(a.tota*if(a.tipoa='D',-1,1)) tota
+			SUM(a.cana*(a.tipoa='F')) cventa,
+			SUM(a.cana*(a.tipoa='D')) cdevol,
+			SUM(a.cana*if(a.tipoa='D',-1,1)) cana,
+			SUM(a.tota*(a.tipoa='F')) mventa,
+			SUM(a.tota*(a.tipoa='D')) mdevol,
+			SUM(a.tota*if(a.tipoa='D',-1,1)) tota
 		FROM sitems a
 		WHERE a.codigoa='$codigo' AND a.tipoa IN ('F','D') AND a.fecha >= CONCAT(MID(SUBDATE(curdate(),365),1,8),'01')
 		GROUP BY MID( a.fecha, 1,7 )  LIMIT 7";
@@ -5434,12 +5456,12 @@ class Sinv extends Controller {
 
 		$codigo = $this->datasis->dameval("SELECT codigo FROM sinv WHERE id=$id");
 		$mSQL = "SELECT	MID(a.fecha,1,7) mes,
-			sum(a.cantidad*(b.tipo_doc='FC')) cventa,
-			sum(a.cantidad*(b.tipo_doc='NC')) cdevol,
-			sum(a.cantidad*if(b.tipo_doc='NC',-1,1)) cana,
-			sum(a.importe*(b.tipo_doc='FC')) mventa,
-			sum(a.importe*(b.tipo_doc='NC')) mdevol,
-			sum(a.importe*if(b.tipo_doc='NC',-1,1)) tota
+			SUM(a.cantidad*(b.tipo_doc='FC')) cventa,
+			SUM(a.cantidad*(b.tipo_doc='NC')) cdevol,
+			SUM(a.cantidad*if(b.tipo_doc='NC',-1,1)) cana,
+			SUM(a.importe*(b.tipo_doc='FC')) mventa,
+			SUM(a.importe*(b.tipo_doc='NC')) mdevol,
+			SUM(a.importe*if(b.tipo_doc='NC',-1,1)) tota
 		FROM itscst a JOIN scst b ON a.control=b.control
 		WHERE a.codigo='$codigo' AND b.tipo_doc IN ('FC','NC') AND b.fecha >= CONCAT(MID(SUBDATE(curdate(),365),1,8),'01')
 				AND  a.fecha <= b.actuali
@@ -5487,14 +5509,18 @@ class Sinv extends Controller {
 
 	// Qr del Inventario
 	function sinvqr($id = 0 ){
+		$id = intval($id);
+		if($id<=0) return '';
 		$this->load->library('qr');
-		$reg = $this->datasis->damereg("SELECT codigo, descrip, barras, ficha FROM sinv WHERE id=$id");
+		$reg = $this->datasis->damereg("SELECT codigo, descrip, barras, ficha FROM sinv WHERE id=${id}");
 		header('Content-type: image/pnp');
 		echo $this->qr->imgcode("Codigo: ".trim($reg['codigo'])."\n".trim($reg['descrip'])."\nBarras: ".trim($reg['barras']).trim($reg['ficha']) );
 	}
 
 	function ibarras($id = 0, $alto=20){
 		//error_reporting(0);
+		$id = intval($id);
+		if($id<=0) return '';
 		require_once 'Image/Barcode2.php';
 		$codigo = $this->datasis->dameval("SELECT codigo FROM sinv WHERE id=$id");
 		Image_Barcode2::draw($codigo, 'code128', 'png', true, $alto);
@@ -5849,7 +5875,7 @@ class Sinv extends Controller {
 	function getbarras( $id = 0 ){
 		$grid       = $this->jqdatagrid;
 
-		if ( $id == 0 ){
+		if( $id == 0 ){
 			echo '';
 			return;
 		}
@@ -5880,17 +5906,17 @@ class Sinv extends Controller {
 		unset($data['id']);
 		if($oper == 'add'){
 			if(false == empty($data)){
-				$check  = $this->datasis->dameval("SELECT count(*) FROM barraspos WHERE suplemen=".$this->db->escape($data['suplemen']));
-				$check += $this->datasis->dameval("SELECT count(*) FROM sinv      WHERE barras=".$this->db->escape($data['suplemen']));
+				$check  = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM barraspos WHERE suplemen=".$this->db->escape($data['suplemen'])));
+				$check += intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sinv      WHERE barras=".$this->db->escape($data['suplemen'])));
 				if ( $check == 0 ){
 					$data['codigo'] = $codigo;
 					$this->db->insert('barraspos', $data);
 					logusu('BARRASPOS',"Barra '".$codigo.' => '.$data['suplemen']."' INCLUIDA");
-					echo "Barra adicional agregada";
+					echo 'Barra adicional agregada';
 				} else
-					echo "Ya existe un registro con esa barra";
+					echo 'Ya existe un registro con esa barra';
 			} else
-				echo "Fallo Agregado!!!";
+				echo 'Fallo Agregado!!!';
 
 		} elseif($oper == 'edit') {
 			$check = $this->datasis->dameval("SELECT count(*) FROM barraspos WHERE id <> $id AND suplemen=".$this->db->escape($data['suplemen']));
@@ -5901,7 +5927,7 @@ class Sinv extends Controller {
 				logusu('BARRASPOS',"Barra Adicional  ".$codigo.'=>'.$data['suplemen']." MODIFICADO");
 				echo "Codigo $codigo => ".$data['suplemen']." Modificado";
 			} else
-				echo "Fallo Agregado!!!";
+				echo 'Fallo Agregado!!!';
 
 		} elseif($oper == 'del') {
 			$this->db->query("DELETE FROM barraspos WHERE id=$id ");
@@ -6054,10 +6080,12 @@ class Sinv extends Controller {
 		}
 	}
 
+	//Para realizarr auditorias de inventario
 	function sinvaudit(){
-		//print_r($_POST);
+		$error=0;
 		$arr_sinvs=$this->input->post('sinvs');
 		if(is_array($arr_sinvs)){
+			$corte = date('Y-m-d H:i:s');
 			foreach($arr_sinvs as $id_sinv){
 				$sql="SELECT a.codigo, a.descrip ,SUM(b.existen) AS existen FROM sinv AS a JOIN itsinv AS b ON a.codigo=b.codigo WHERE a.id=${id_sinv}";
 				$rowval = $this->datasis->damerow($sql);
@@ -6070,7 +6098,7 @@ class Sinv extends Controller {
 				$data['status']  = 'P';
 				$data['codigo']  = $rowval['codigo'];
 				$data['descrip'] = $rowval['descrip'];
-				$data['corte']   = date('Y-m-d H:i:s');
+				$data['corte']   = $corte;
 				$data['existen'] = $rowval['existen'];
 				$data['usuario'] = $this->session->userdata('usuario');
 				$dbcodigo = $this->db->escape($rowval['codigo']);
@@ -6079,6 +6107,8 @@ class Sinv extends Controller {
 				$ban=$this->db->simple_query($mSQL);
 				if(!$ban){ memowrite($mSQL,'sinv'); $error++;}
 				$id_sinvaudit = $this->db->insert_id();
+				$treparto = 0;
+				$texisten = 0;
 
 				$sql="SELECT
 				c.ubica AS alma,COALESCE(b.existen,0) AS existen
@@ -6089,7 +6119,12 @@ class Sinv extends Controller {
 				$query = $this->db->query($sql);
 				if ($query->num_rows() > 0){
 					foreach ($query->result() as $row){
-						$mSQL="SELECT SUM(b.cana) FROM sfac AS a JOIN sitems AS b ON a.numero=b.numa AND a.tipo_doc=b.tipoa WHERE b.codigoa=${dbcodigo} AND reparto=0";
+						$mSQL="SELECT SUM(IF(a.tipo_doc='F',1,-1)*b.cana) AS cana
+						FROM sfac AS a
+						JOIN sitems AS b ON a.numero=b.numa AND a.tipo_doc=b.tipoa
+						LEFT JOIN sfac AS c ON a.tipo_doc='D' AND c.tipo_doc='F' AND a.factura=c.numero
+						WHERE b.codigoa=${dbcodigo}
+						AND a.reparto+COALESCE(c.reparto,0)=0 AND a.referen<>'P'";
 						$reparto = floatval($this->datasis->dameval($mSQL));
 
 						$data=array();
@@ -6099,12 +6134,19 @@ class Sinv extends Controller {
 						$data['pendiente']   = $reparto;
 						$data['contado']     = null;
 
+						$treparto += $reparto;
+						$texisten += $row->existen;
+
 						$mSQL = $this->db->insert_string('itsinvaudit', $data);
 						$ban=$this->db->simple_query($mSQL);
 						if(!$ban){ memowrite($mSQL,'sinv'); $error++;}
 					}
 				}
 			}
+
+			$this->db->where('id', $id_sinvaudit );
+			$this->db->update('sinvaudit', array('pendiente'=>$treparto,'existen'=>$texisten));
+
 			echo 'Auditoria creada';
 		}
 	}
@@ -6371,6 +6413,45 @@ class Sinv extends Controller {
 			COLLATE='latin1_swedish_ci'
 			ENGINE=MyISAM";
 			$this->db->simple_query($mSQL);
+		}
+
+		if(!$this->db->table_exists('sinvaudit')){
+			$mSQL="CREATE TABLE `sinvaudit` (
+				`id` INT(11) NOT NULL AUTO_INCREMENT,
+				`id_sinv` INT(11) NULL DEFAULT '0',
+				`status` CHAR(1) NULL DEFAULT 'P',
+				`codigo` VARCHAR(15) NULL DEFAULT NULL,
+				`descrip` VARCHAR(40) NULL DEFAULT NULL,
+				`corte` DATETIME NULL DEFAULT NULL,
+				`existen` DECIMAL(10,2) NULL DEFAULT '0.00',
+				`contado` DECIMAL(10,2) NULL DEFAULT '0.00',
+				`pendiente` DECIMAL(10,2) NULL DEFAULT '0.00',
+				`estampa` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+				`usuario` VARCHAR(50) NULL DEFAULT NULL,
+				PRIMARY KEY (`id`),
+				INDEX `id_sinv` (`id_sinv`)
+			)
+			COMMENT='Auditoria inventario'
+			COLLATE='latin1_swedish_ci'
+			ENGINE=MyISAM";
+			$this->db->simple_query($mSQL);
+
+			$mSQL="CREATE TABLE `itsinvaudit` (
+				`id` INT(11) NOT NULL AUTO_INCREMENT,
+				`id_sinvaudit` INT(11) NULL DEFAULT NULL,
+				`almacen` VARCHAR(50) NULL DEFAULT NULL,
+				`existen`   DECIMAL(10,2) NULL DEFAULT NULL,
+				`despacho`  DECIMAL(10,2) NULL DEFAULT NULL,
+				`reparto`   DECIMAL(10,2) NULL DEFAULT NULL,
+				`pendiente` DECIMAL(10,2) NULL DEFAULT NULL,
+				`contado`   DECIMAL(10,2) NULL DEFAULT NULL,
+				PRIMARY KEY (`id`),
+				INDEX `id_sinvaudit` (`id_sinvaudit`)
+			)
+			COLLATE='latin1_swedish_ci'
+			ENGINE=MyISAM";
+			$this->db->simple_query($mSQL);
+
 		}
 
 		if($this->db->field_exists('minutos', 'sinvplabor')){
