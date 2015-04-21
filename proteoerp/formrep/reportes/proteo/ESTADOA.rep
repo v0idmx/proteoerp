@@ -39,11 +39,17 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid() && $pasamos){
 	$nivel3 = $this->datasis->lennivel(3);
 	$nivel4 = $this->datasis->lennivel(4);
 
+	$dbinicio = $this->db->escape($inicio);
+	$dbfinal  = $this->db->escape($filter->fechah->newValue);
+
 	// Nivel 1
 	$mSQL = '
 	SELECT MID(a.cuenta,1,1) nivel, a.cuenta, c.descrip, " " nivel1, " " nivel2, " " nivel3, " " nivel4
-	FROM itcasi a JOIN casi b ON a.comprob=b.comprob JOIN cpla c ON MID(a.cuenta,1,1)=c.codigo JOIN cemp d
-	WHERE a.fecha >= "'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
+	FROM itcasi AS a
+	JOIN casi   AS b ON a.comprob=b.comprob
+	JOIN cpla   AS c ON MID(a.cuenta,1,1)=c.codigo
+	JOIN cemp   AS d
+	WHERE a.fecha >= '.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
 	GROUP BY MID(a.cuenta,1,1)
 
 	UNION ALL
@@ -52,7 +58,7 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid() && $pasamos){
 	FROM itcasi AS a JOIN casi b ON a.comprob=b.comprob
 	JOIN cpla   AS c ON MID(a.cuenta,1,1)=c.codigo
 	JOIN cemp   AS d
-	WHERE a.fecha>="'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
+	WHERE a.fecha >= '.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
 	GROUP BY MID(a.cuenta,1,1)
 
 	';
@@ -65,17 +71,17 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid() && $pasamos){
 	JOIN casi   AS b ON a.comprob=b.comprob
 	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel2.')=c.codigo
 	JOIN cemp   AS d
-	WHERE a.fecha>="'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
+	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
 	GROUP BY MID(a.cuenta,1,'.$nivel2.')
 
 	UNION ALL
 
-	SELECT CONCAT(MID(a.cuenta,1,'.$nivel2.'),"Z") nivel, a.cuenta, CONCAT("      TOTAL ",c.descrip) descrip, " " nivel1, " " nivel2, format(sum(a.debe-a.haber),2) nivel3, " " nivel4
+	SELECT CONCAT(MID(a.cuenta,1,'.$nivel2.'),"Z") nivel, a.cuenta, CONCAT("      TOTAL ",c.descrip) descrip, " " nivel1, " " nivel2, FORMAT(SUM(a.debe-a.haber),2) nivel3, " " nivel4
 	FROM itcasi AS a
 	JOIN casi   AS b ON a.comprob=b.comprob
 	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel2.')=c.codigo
 	JOIN cemp   AS d
-	WHERE a.fecha>="'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
+	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
 	GROUP BY MID(a.cuenta,1,'.$nivel2.')
 	';
 
@@ -83,30 +89,42 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid() && $pasamos){
 	$mSQL .= '
 	UNION ALL
 	SELECT MID(a.cuenta,1,'.$nivel3.') nivel, a.cuenta, CONCAT("              ",c.descrip) descrip, " " nivel1, " " nivel2, " " nivel3, "" nivel4
-	FROM itcasi a JOIN casi b ON a.comprob=b.comprob JOIN cpla c ON MID(a.cuenta,1,'.$nivel3.')=c.codigo JOIN cemp d
-	WHERE a.fecha>="'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
+	FROM itcasi AS a
+	JOIN casi   AS b ON a.comprob=b.comprob
+	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel3.')=c.codigo
+	JOIN cemp   AS d
+	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
 	GROUP BY MID(a.cuenta,1,'.$nivel3.')
 
 	UNION ALL
-	SELECT CONCAT(MID(a.cuenta,1,'.$nivel3.'),"Z") nivel, a.cuenta, CONCAT("              TOTAL ",c.descrip) descrip, " " nivel1, format(sum(a.debe-a.haber),2) nivel2, " " nivel3, " " nivel4
-	FROM itcasi a JOIN casi b ON a.comprob=b.comprob JOIN cpla c ON MID(a.cuenta,1,'.$nivel3.')=c.codigo JOIN cemp d
-	WHERE a.fecha>="'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
+	SELECT CONCAT(MID(a.cuenta,1,'.$nivel3.'),"Z") nivel, a.cuenta, CONCAT("              TOTAL ",c.descrip) descrip, " " nivel1, FORMAT(SUM(a.debe-a.haber),2) nivel2, " " nivel3, " " nivel4
+	FROM itcasi AS a
+	JOIN casi   AS b ON a.comprob=b.comprob
+	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel3.')=c.codigo
+	JOIN cemp   AS d
+	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
 	GROUP BY MID(a.cuenta,1,'.$nivel3.')
 	';
 
 	$mSQL .= '
 	UNION ALL
-	SELECT MID(a.cuenta,1,'.$nivel4.') nivel, a.cuenta, CONCAT("                    ",c.descrip) descrip, format(sum(a.debe-a.haber),2) nivel1, " " nivel2, " " nivel3, " " nivel4
-	FROM itcasi a JOIN casi b ON a.comprob=b.comprob JOIN cpla c ON MID(a.cuenta,1,'.$nivel4.')=c.codigo JOIN cemp d
-	WHERE a.fecha>="'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
+	SELECT MID(a.cuenta,1,'.$nivel4.') nivel, a.cuenta, CONCAT("                    ",c.descrip) descrip, FORMAT(SUM(a.debe-a.haber),2) nivel1, " " nivel2, " " nivel3, " " nivel4
+	FROM itcasi AS a
+	JOIN casi   AS b ON a.comprob=b.comprob
+	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel4.')=c.codigo
+	JOIN cemp   AS d
+	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
 	GROUP BY MID(a.cuenta,1,'.$nivel4.')
 	';
 
 	$mSQL .= '
 	UNION ALL
-	SELECT "BZ" nivel, a.cuenta, "(UTILIDAD) O PERDIDA DEL EJERCICIO" descrip, " " nivel1, " " nivel2, " " nivel3, format(sum(a.debe-a.haber),2) nivel4
-	FROM itcasi a JOIN casi b ON a.comprob=b.comprob JOIN cpla c ON MID(a.cuenta,1,1)=c.codigo JOIN cemp d
-	WHERE a.fecha>="'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
+	SELECT "BZ" nivel, a.cuenta, "(UTILIDAD) O PERDIDA DEL EJERCICIO" descrip, " " nivel1, " " nivel2, " " nivel3, FORMAT(SUM(a.debe-a.haber),2) nivel4
+	FROM itcasi  AS a
+	JOIN casi    AS b ON a.comprob=b.comprob
+	JOIN cpla    AS c ON MID(a.cuenta,1,1)=c.codigo
+	JOIN cemp    AS d
+	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
 
 	UNION ALL
 	SELECT CONCAT("AZ") nivel, " " cuenta, " " descrip, " " nivel1, " " nivel2, " " nive3,

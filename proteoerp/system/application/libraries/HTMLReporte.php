@@ -608,7 +608,7 @@ border-bottom-right-radius:5px;
 	}
 
 	function us_ascii2html($str){
-		$rt =trim($str);
+		$rt = rtrim($str);
 
 		//Convierte los caracteres de us-ascii
 		if($this->is_utf8($rt)){
@@ -629,6 +629,7 @@ border-bottom-right-radius:5px;
 			$rt =htmlspecialchars($rt,ENT_COMPAT,'ISO-8859-1');
 		}
 
+		$rt =str_replace(' ','&nbsp;',$rt);
 		return $rt;
 	}
 
