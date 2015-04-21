@@ -6426,7 +6426,7 @@ class Sinv extends Controller {
 				`existen` DECIMAL(10,2) NULL DEFAULT '0.00',
 				`contado` DECIMAL(10,2) NULL DEFAULT '0.00',
 				`pendiente` DECIMAL(10,2) NULL DEFAULT '0.00',
-				`estampa` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+				`estampa` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
 				`usuario` VARCHAR(50) NULL DEFAULT NULL,
 				PRIMARY KEY (`id`),
 				INDEX `id_sinv` (`id_sinv`)

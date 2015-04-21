@@ -355,7 +355,7 @@ class Grcl extends Controller {
 
 		$edit->gr_desc = new inputField('Descripci&oacute;n', 'gr_desc');
 		$edit->gr_desc->size =30;
-		$edit->gr_desc->maxlength =25;
+		$edit->gr_desc->maxlength =60;
 		$edit->gr_desc->rule= 'required|strtoupper';
 
 		$edit->cuenta = new inputField('Cta. Contable', 'cuenta');

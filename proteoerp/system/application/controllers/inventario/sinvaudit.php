@@ -14,7 +14,7 @@ class Sinvaudit extends Controller {
 	}
 
 	function index(){
-		$this->datasis->creaintramenu(array('modulo'=>'332','titulo'=>'Auditoria de inventario','mensaje'=>'Auditoria de inventario','panel'=>'REGISTRO','ejecutar'=>'inventario/sinvaudit','target'=>'popu','visible'=>'S','pertenece'=>'3','ancho'=>900,'alto'=>600));
+		$this->datasis->creaintramenu(array('modulo'=>'332','titulo'=>'Auditoria de inventario','mensaje'=>'Auditoria de inventario','panel'=>'REGISTROS','ejecutar'=>'inventario/sinvaudit','target'=>'popu','visible'=>'S','pertenece'=>'3','ancho'=>900,'alto'=>600));
 		$this->datasis->modintramenu( 800, 600, substr($this->url,0,-1) );
 		redirect($this->url.'jqdatag');
 	}
@@ -858,40 +858,6 @@ class Sinvaudit extends Controller {
 	}
 
 	function instalar(){
-		if (!$this->db->table_exists('sinvaudit')) {
-			$mSQL="CREATE TABLE `sinvaudit` (
-			  `id` int(11) NOT NULL AUTO_INCREMENT,
-			  `id_sinv` int(11) DEFAULT '0',
-			  `status` char(1) DEFAULT 'P',
-			  `codigo` varchar(15) DEFAULT NULL,
-			  `corte` datetime DEFAULT NULL,
-			  `existen` decimal(10,2) DEFAULT '0.00',
-			  `estampa` datetime DEFAULT CURRENT_TIMESTAMP,
-			  `usuario` varchar(50) DEFAULT NULL,
-			  PRIMARY KEY (`id`),
-			  KEY `id_sinv` (`id_sinv`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Auditoria inventario'";
-			$this->db->query($mSQL);
-		}
-		//$campos=$this->db->list_fields('sinvaudit');
-		//if(!in_array('<#campo#>',$campos)){ }
 
-		if (!$this->db->table_exists('itsinvaudit')) {
-			$mSQL="CREATE TABLE `itsinvaudit` (
-			  `id` int(11) NOT NULL AUTO_INCREMENT,
-			  `id_sinvaudit` int(11) DEFAULT NULL,
-			  `almacen` varchar(50) DEFAULT NULL,
-			  `existen` decimal(13,3) DEFAULT NULL,
-			  `despacho` decimal(13,3) DEFAULT NULL,
-			  `reparto` decimal(13,3) DEFAULT NULL,
-			  `pendiente` decimal(13,3) DEFAULT NULL,
-			  `contado` decimal(13,3) DEFAULT NULL,
-			  PRIMARY KEY (`id`),
-			  KEY `id_sinvaudit` (`id_sinvaudit`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-			$this->db->query($mSQL);
-		}
-		//$campos=$this->db->list_fields('itsinvaudit');
-		//if(!in_array('<#campo#>',$campos)){ }
 	}
 }
