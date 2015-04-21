@@ -22,7 +22,7 @@ $filter->attributes=array('onsubmit'=>'is_loaded()');
 $filter->fechah = new dateonlyField('Hasta', 'fechah','d/m/Y');
 $filter->fechah->insertValue = $final;
 $filter->fechah->rule  = 'required';
-$filter->fechah->group = "Fecha";
+$filter->fechah->group = 'Fecha';
 
 $filter->salformat = new radiogroupField('Formato de salida','salformat');
 $filter->salformat->options($this->opciones);
@@ -48,8 +48,10 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid() && $pasamos){
 
 	UNION ALL
 	SELECT CONCAT(MID(a.cuenta,1,1),"Z") nivel, a.cuenta, CONCAT("TOTAL ",c.descrip) descrip, " " nivel1, " " nivel2, " " nivel3,
-	format(sum(a.debe-a.haber),2) nivel4
-	FROM itcasi a JOIN casi b ON a.comprob=b.comprob JOIN cpla c ON MID(a.cuenta,1,1)=c.codigo JOIN cemp d
+	format(SUM(a.debe-a.haber),2) nivel4
+	FROM itcasi AS a JOIN casi b ON a.comprob=b.comprob
+	JOIN cpla   AS c ON MID(a.cuenta,1,1)=c.codigo
+	JOIN cemp   AS d
 	WHERE a.fecha>="'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
 	GROUP BY MID(a.cuenta,1,1)
 
@@ -59,13 +61,20 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid() && $pasamos){
 	$mSQL .= '
 	UNION ALL
 	SELECT MID(a.cuenta,1,'.$nivel2.') nivel, a.cuenta, CONCAT("      ",c.descrip) descrip, " " nivel1, " " nivel2, " " nivel3, " " nivel4
-	FROM itcasi a JOIN casi b ON a.comprob=b.comprob JOIN cpla c ON MID(a.cuenta,1,'.$nivel2.')=c.codigo JOIN cemp d
+	FROM itcasi AS a
+	JOIN casi   AS b ON a.comprob=b.comprob
+	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel2.')=c.codigo
+	JOIN cemp   AS d
 	WHERE a.fecha>="'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
 	GROUP BY MID(a.cuenta,1,'.$nivel2.')
 
 	UNION ALL
+
 	SELECT CONCAT(MID(a.cuenta,1,'.$nivel2.'),"Z") nivel, a.cuenta, CONCAT("      TOTAL ",c.descrip) descrip, " " nivel1, " " nivel2, format(sum(a.debe-a.haber),2) nivel3, " " nivel4
-	FROM itcasi a JOIN casi b ON a.comprob=b.comprob JOIN cpla c ON MID(a.cuenta,1,'.$nivel2.')=c.codigo JOIN cemp d
+	FROM itcasi AS a
+	JOIN casi   AS b ON a.comprob=b.comprob
+	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel2.')=c.codigo
+	JOIN cemp   AS d
 	WHERE a.fecha>="'.$inicio.'"  AND a.fecha <= '.$filter->fechah->newValue.' AND MID(a.cuenta,1,1) > d.patrimo
 	GROUP BY MID(a.cuenta,1,'.$nivel2.')
 	';

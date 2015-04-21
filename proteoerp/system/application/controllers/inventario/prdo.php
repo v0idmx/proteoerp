@@ -267,7 +267,7 @@ class Prdo extends Controller {
 		$bodyscript .= '
 		function guardarp(){
 			alert("Guardar Produccion");
-			$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardarpro").serialize(), 
+			$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardarpro").serialize(),
 				function(data) {
 					alert(data);
 				}
@@ -331,7 +331,7 @@ class Prdo extends Controller {
 
 
 	//******************************************************************
-	// Definicion del Grid o Tabla 
+	// Definicion del Grid o Tabla
 	//
 	function defgrid( $deployed = false ){
 		$i      = 1;
@@ -726,7 +726,7 @@ class Prdo extends Controller {
 
 
 	//******************************************************************
-	// Edicion 
+	// Edicion
 
 	function dataedit(){
 		$this->rapyd->load('dataedit');
@@ -870,10 +870,10 @@ class Prdo extends Controller {
 				PRIMARY  KEY (`id`),
 				INDEX numero (numero),
 				INDEX pedido (pedido)
-			) 
-			ENGINE=MyISAM 
-			CHARSET=latin1 
-			ROW_FORMAT=DYNAMIC 
+			)
+			ENGINE=MyISAM
+			CHARSET=latin1
+			ROW_FORMAT=DYNAMIC
 			COMMENT='Detalle de Ordenes de Produccion'";
 			$this->db->query($mSQL);
 		}
@@ -891,7 +891,7 @@ class Prdo extends Controller {
 				INDEX numero (numero)
 			)
 			COMMENT='Detalle de productos fabricados'
-			CHARSET=latin1 
+			CHARSET=latin1
 			ENGINE=MyISAM
 			ROW_FORMAT=DYNAMIC
 ;";
@@ -1050,7 +1050,7 @@ class Prdo extends Controller {
 
 		// Valida el maximo
 		$("#resultados").html("Maximo "+maximo);
-	
+
 		$(nn).each( function() {
 			k = $(this).val();
 			t = Number($("#cana_"+k).val());
@@ -1066,7 +1066,7 @@ class Prdo extends Controller {
 
 	function guardar(){
 		alert("Guardar");
-		$.post( "'.base_url().'inventario/prdo/guardaoe", $("form#guardar").serialize(), 
+		$.post( "'.base_url().'inventario/prdo/guardaoe", $("form#guardar").serialize(),
 			function(data) {
 				alert(data);
 				location.reload();
@@ -1098,7 +1098,7 @@ $tabla .= $this->datasis->llenaopciones("SELECT ubica, ubides FROM caub WHERE ga
 
 $tabla .= '
 	<br><br>
-	<lable>Instruciones</lable> 
+	<lable>Instruciones</lable>
 	<textarea rows="4" cols="25" id="instrucciones" name="instrucciones"></textarea>
 	<br><br>
 	<button type="button" onclick="guardar()">Guardar Orden</button>
@@ -1131,9 +1131,9 @@ $tabla .= '
 <div class="ui-layout-center">';
 
 $mSQL = '
-SELECT a.id, b.numero, b.fecha, b.cod_cli, b.nombre, a.codigoa, a.desca, a.cana, COALESCE(sum(e.ordenado),0) producido, a.cana-COALESCE(sum(e.ordenado),0) falta, COALESCE(sum(e.ordenado),0) ordenado, d.ruta, d.descrip 
-FROM itpfac a 
-JOIN pfac b ON a.numa = b.numero 
+SELECT a.id, b.numero, b.fecha, b.cod_cli, b.nombre, a.codigoa, a.desca, a.cana, COALESCE(sum(e.ordenado),0) producido, a.cana-COALESCE(sum(e.ordenado),0) falta, COALESCE(sum(e.ordenado),0) ordenado, d.ruta, d.descrip
+FROM itpfac a
+JOIN pfac b ON a.numa = b.numero
 LEFT JOIN sclitrut c ON b.cod_cli=c.cliente
 LEFT JOIN sclirut  d ON c.ruta=d.ruta
 LEFT JOIN itprdo   e ON a.id = e.idpfac
@@ -1217,7 +1217,7 @@ $tabla .= '
 	function guardaoe(){
 		$m = intval($_POST['totalitem']);
 		$t = 0;
-		// calcula el total de 
+		// calcula el total de
 		for ( $i=0; $i < $m; $i++ ){
 			$t += intval($_POST['cana_'.$i]);
 		}
@@ -1235,36 +1235,36 @@ $tabla .= '
 		$data['usuario']  = $this->secu->usuario();
 		$data['estampa']  = date('Ymd');
 		$data['hora']     = date('H:i:s');
-		
+
 		$data['instrucciones'] = $_POST['instrucciones'];
-		
+
 		$this->db->insert('prdo',$data);
-		
+
 		// Crea Detalle
 		$ids = '';
 		for ( $i=0; $i < $m; $i++ ){
 			$cana = intval($_POST['cana_'.$i]);
 			if ( $cana > 0 ){
-				// Guarda 
+				// Guarda
 				$id = intval($_POST['idpfac_'.$i]);
 				$mSQL = "
 				INSERT INTO itprdo (numero, pedido, codigo, descrip, cana, ordenado, idpfac )
-				SELECT '${numero}' numero, a.numa pedido, a.codigoa codigo, a.desca descrip, a.cana, ${cana} ordenado, ${id} idpfac 
+				SELECT '${numero}' numero, a.numa pedido, a.codigoa codigo, a.desca descrip, a.cana, ${cana} ordenado, ${id} idpfac
 				FROM itpfac a JOIN pfac b ON a.numa = b.numero
 				WHERE a.id= ${id}";
 				$this->db->query($mSQL);
 			}
 		}
-		
+
 		// Crea totales
 		$mSQL = "
 		INSERT INTO itprdop ( numero, codigo, descrip, ordenado, producido)
-		SELECT '${numero}' numero, codigo, descrip, sum(ordenado) ordenado, 0 producido 
+		SELECT '${numero}' numero, codigo, descrip, sum(ordenado) ordenado, 0 producido
 		FROM itprdo
 		WHERE numero = '${numero}'
 		GROUP BY codigo";
 		$this->db->query($mSQL);
-		
+
 	}
 
 	//******************************************************************
@@ -1273,7 +1273,7 @@ $tabla .= '
 	function fabri( $id = 0, $ver = 0){
 		if ( $id == 0 ) die('Error no hay orden seleccionada');
 		$id = intval($id);
-		
+
 		$numero = $this->datasis->dameval("SELECT numero FROM prdo WHERE id=$id");
 		if ( $numero <= 0 ) die('Error en numero de orden');
 
@@ -1285,20 +1285,20 @@ $tabla .= '
 		if ($query->num_rows() > 0){
 			//$tabla .= "</tbody></table><br>\n";
 			if($ver!=0) $tabla .= "<form id='guardarpro' name='guardarpro' >\n";
-			
+
 			$tabla .= '<table align="center" class="tc" style="width:95%;border-collapse:collapse;padding:0px;background:#EDEDFD;border:1px solid;">';
 			//$tabla .= "<tbody>\n";
 
-			if($ver!=0){ 
+			if($ver!=0){
 				$tabla .= "<tr>\n";
-				$tabla .= "	
+				$tabla .= "
 				<td colspan='3'>
 					<label>Fecha:</label>
-					<input name='fechap' id='fechap' value='".date('d/m/Y')."' size='10' class='input hasDatepicker' type='text'>
+					<input name='fechap' id='fechap' value='".date('d/m/Y')."' size='10' type='text'>
 				</td>\n";
 				$tabla .= "</tr>\n";
 			}
-			
+
 			$tabla .= "<tr style='background:#2067B5;color:#FFFFFF;font-weight:bold;'>\n";
 			$tabla .= "	<td >Codigo</td>\n";
 			$tabla .= "	<td >Orden</td>\n";
@@ -1321,7 +1321,7 @@ $tabla .= '
 				$tabla .= "</tr>\n";
 				$i++;
 			}
-			if($ver!=0){ 
+			if($ver!=0){
 				$tabla .= "<tr style='background:#2067B5;color:#FFFFFF;'>\n";
 				$tabla .= "	<td align='center'><button type='button' onclick='guardarp()'>Guardar</button></td>\n";
 				$tabla .= "	<td align='center' colspan='2'><button type='button' onclick='cancelarp()'>Cancelar</button></td>\n";
@@ -1335,7 +1335,7 @@ $tabla .= '
 				$tabla .= '
 				<script>
 					function guardarp(){
-						$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardarpro").serialize(), 
+						$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardarpro").serialize(),
 						function(data) {
 							mostrarpr();
 						});
@@ -1369,10 +1369,10 @@ $tabla .= '
 	function recibir( $id = 0){
 		if ( $id == 0 ) die('Error no hay orden seleccionada');
 		$id = intval($id);
-		
+
 		$numero = $this->datasis->dameval("SELECT numero FROM prdo WHERE id=$id");
 		if ( $numero <= 0 ) die('Error en numero de orden');
-		
+
 		// Esto debe hacerse por dataform
 		$styles  = "\n<!-- Estilos -->\n";
 		$styles .= style('rapyd.css');
@@ -1459,7 +1459,7 @@ $tabla .= '
 
 	function guardar(){
 		alert("Guardar");
-		$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardar").serialize(), 
+		$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardar").serialize(),
 			function(data) {
 				alert(data);
 				window.close();
@@ -1558,7 +1558,7 @@ $tabla .= '
 	function guardare(){
 		$m = intval($_POST['totalitem']);
 		$t = 0;
-		// calcula el total de 
+		// calcula el total de
 		for ( $i=0; $i < $m; $i++ ){
 			$t += intval($_POST['cana_'.$i]);
 		}
@@ -1569,7 +1569,7 @@ $tabla .= '
 
 		$ids = '';
 		for ( $i=0; $i < $m; $i++ ){
-			// Guarda 
+			// Guarda
 			$cana = intval($_POST['cana_'.$i]);
 			$id   = intval($_POST['codigo_'.$i]);
 			$mSQL = "UPDATE itprdop SET producido = ${cana} WHERE id= ${id}";
