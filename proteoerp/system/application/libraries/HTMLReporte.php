@@ -566,7 +566,7 @@ border-bottom-right-radius:5px;
 		}
 
 		echo '<td style=\'text-align:'.$align.';\'>';
-		echo $this->us_ascii2html(trim($campo));
+		echo $this->us_ascii2html($campo);
 		echo '</td>';
 	}
 
