@@ -1409,9 +1409,8 @@ class Sfac extends Controller {
 		$grid->setOnSelectRow('
 			function(id){
 				if (id){
-					//jQuery(gridId2).setGridParam({datatype: "json"});
-					jQuery(gridId2).jqGrid(\'setGridParam\',{url:"'.site_url($this->url.'getdatait/').'/"+id+"/", page:1});
-					jQuery(gridId2).trigger("reloadGrid");
+					$(gridId2).jqGrid(\'setGridParam\',{url:"'.site_url($this->url.'getdatait/').'/"+id+"/", page:1});
+					$(gridId2).trigger("reloadGrid");
 					$.ajax({
 						url: "'.base_url().$this->url.'tabla/"+id,
 						success: function(msg){

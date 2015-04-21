@@ -251,12 +251,46 @@ class Prdo extends Controller {
 			function(){
 				var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 				if(id){
-					window.open(\''.site_url('inventario/prdo/recibir/').'/\'+id, \'_blank\', \'width=700, height=500, scrollbars=yes, status=yes, resizable=yes,screenx=((screen.availHeight/2)-300), screeny=((screen.availWidth/2)-400)\');
+					$.ajax({
+						url: "'.base_url().$this->url.'fabri/"+id+"/1",
+						success: function(msg){
+							$("#ladicional").html(msg);
+						}
+					});
+					//window.open(\''.site_url('inventario/prdo/recibir/').'/\'+id, \'_blank\', \'width=700, height=500, scrollbars=yes, status=yes, resizable=yes,screenx=((screen.availHeight/2)-300), screeny=((screen.availWidth/2)-400)\');
 				} else {
 					$.prompt("<h1>Por favor Seleccione una Orden</h1>");
 				}
 		})';
 
+/*
+		$bodyscript .= '
+		function guardarp(){
+			alert("Guardar Produccion");
+			$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardarpro").serialize(), 
+				function(data) {
+					alert(data);
+				}
+			);
+		}
+		';
+
+
+
+			function(id){
+				if (id){
+					$(gridId2).jqGrid(\'setGridParam\',{url:"'.site_url($this->url.'getdatait/').'/"+id+"/", page:1});
+					$(gridId2).trigger("reloadGrid");
+					$.ajax({
+						url: "'.base_url().$this->url.'fabri/"+id+"/0",
+						success: function(msg){
+							$("#ladicional").html(msg);
+						}
+					});
+				}
+			}'
+
+*/
 
 		$bodyscript .= '
 		function actualiza(){
@@ -420,7 +454,7 @@ class Prdo extends Controller {
 
 		$grid->showpager(true);
 		$grid->setWidth('');
-		$grid->setHeight('290');
+		$grid->setHeight('220');
 		$grid->setTitle($this->titp);
 		$grid->setfilterToolbar(true);
 		$grid->setToolbar('false', '"top"');
@@ -428,8 +462,14 @@ class Prdo extends Controller {
 		$grid->setOnSelectRow('
 			function(id){
 				if (id){
-					jQuery(gridId2).jqGrid("setGridParam",{url:"'.site_url($this->url.'getdatait/').'/"+id+"/", page:1});
-					jQuery(gridId2).trigger("reloadGrid");
+					$(gridId2).jqGrid(\'setGridParam\',{url:"'.site_url($this->url.'getdatait/').'/"+id+"/", page:1});
+					$(gridId2).trigger("reloadGrid");
+					$.ajax({
+						url: "'.base_url().$this->url.'fabri/"+id+"/0",
+						success: function(msg){
+							$("#ladicional").html(msg);
+						}
+					});
 				}
 			}'
 		);
@@ -1230,6 +1270,102 @@ $tabla .= '
 	//******************************************************************
 	//
 	//
+	function fabri( $id = 0, $ver = 0){
+		if ( $id == 0 ) die('Error no hay orden seleccionada');
+		$id = intval($id);
+		
+		$numero = $this->datasis->dameval("SELECT numero FROM prdo WHERE id=$id");
+		if ( $numero <= 0 ) die('Error en numero de orden');
+
+		$mSQL = 'SELECT * FROM itprdop WHERE numero="'.$numero.'" ORDER BY codigo';
+		$query  = $this->db->query($mSQL);
+		$tabla = '';
+
+
+		if ($query->num_rows() > 0){
+			//$tabla .= "</tbody></table><br>\n";
+			if($ver!=0) $tabla .= "<form id='guardarpro' name='guardarpro' >\n";
+			
+			$tabla .= '<table align="center" class="tc" style="width:95%;border-collapse:collapse;padding:0px;background:#EDEDFD;border:1px solid;">';
+			//$tabla .= "<tbody>\n";
+
+			if($ver!=0){ 
+				$tabla .= "<tr>\n";
+				$tabla .= "	
+				<td colspan='3'>
+					<label>Fecha:</label>
+					<input name='fechap' id='fechap' value='".date('d/m/Y')."' size='10' class='input hasDatepicker' type='text'>
+				</td>\n";
+				$tabla .= "</tr>\n";
+			}
+			
+			$tabla .= "<tr style='background:#2067B5;color:#FFFFFF;font-weight:bold;'>\n";
+			$tabla .= "	<td >Codigo</td>\n";
+			$tabla .= "	<td >Orden</td>\n";
+			$tabla .= "	<td >Fabricado</td>\n";
+			$tabla .= "</tr>\n";
+			$i      = 0;
+			foreach ($query->result() as $row) {
+				$tabla .= "<tr>\n";
+				$tabla .= "	<td>".$row->codigo."</td>\n";
+				$tabla .= "	<td align='right'>".$row->ordenado."</td>\n";
+				if ( $ver == 0 ){
+					$tabla .= "	<td align='right'>".$row->producido."</td>\n";
+				} else {
+					$idc = $row->id;
+					$tabla .= "	<td align='center'>\n";
+					$tabla .= "		<input class='inputnum' name='cana_$i' id='producido_$i' size='6' value='".$row->producido."' >\n";
+					$tabla .= "		<input name='codigo_$i' id='codigo_$i' type='hidden' value='$idc' >\n";
+					$tabla .= "	</td>\n";
+				}
+				$tabla .= "</tr>\n";
+				$i++;
+			}
+			if($ver!=0){ 
+				$tabla .= "<tr style='background:#2067B5;color:#FFFFFF;'>\n";
+				$tabla .= "	<td align='center'><button type='button' onclick='guardarp()'>Guardar</button></td>\n";
+				$tabla .= "	<td align='center' colspan='2'><button type='button' onclick='cancelarp()'>Cancelar</button></td>\n";
+				$tabla .= "</tr>\n";
+			}
+			$tabla .= "</table>\n";
+
+			$tabla .= '<input id="totalitem" name="totalitem" type="hidden" value="'.$i.'">';
+			if($ver!=0) {
+				$tabla .= "</form>\n";
+				$tabla .= '
+				<script>
+					function guardarp(){
+						$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardarpro").serialize(), 
+						function(data) {
+							mostrarpr();
+						});
+					}
+					function cancelarp(){
+						mostrarpr();
+					}
+					function mostrarpr(){
+						$.ajax({
+							url: "'.base_url().$this->url.'fabri/'.$id.'/0",
+							success: function(msg){
+								$("#ladicional").html(msg);
+							}
+						});
+					}
+					$(function(){
+						$("#fechap").datepicker({dateFormat:"dd/mm/yy"});
+						$(".inputnum").numeric(".");
+					});
+				</script>
+				';
+			}
+		}
+		echo $tabla;
+	}
+
+
+	//******************************************************************
+	//
+	//
 	function recibir( $id = 0){
 		if ( $id == 0 ) die('Error no hay orden seleccionada');
 		$id = intval($id);
@@ -1275,9 +1411,6 @@ $tabla .= '
 	table.tc {border-right: #daac00 1px solid;padding-right: 0px;border-top: medium none;padding-left: 0px;padding-bottom: 0px;border-left: medium none;border-bottom:  #daac00 1px solid;font-family: verdana;font-size:8pt;cellspacing: 0px}
 	table.tc td.sin_borde{border-left:solid 1px #DAAC00;border-TOP:solid 1px #DAAC00;text-align:center;border-right:solid 5px #f6f6f6;border-bottom:solid 5px #f6f6f6;}
 
-	.custom-combobox {position: relative;display: inline-block;}
-	.custom-combobox-toggle {position: absolute;top: 0;bottom: 0;margin-left: -1px;padding: 0;}
-	.custom-combobox-input {margin: 0;padding: 5px 10px;}
 
 </style>
 ';
@@ -1313,14 +1446,11 @@ $tabla .= '
 <script type="text/javascript">
 	$(function(){
 		$(".inputnum").numeric(".");
-	});
-	$(function() {
 		$( "input:submit, a, button", ".botones",".otros" ).button();
 	});
 ';
 
 		$script .= '
-	// set EVERY state here so will undo ALL layout changes
 	$(document).ready(function () {
 		$(function() {
 			$("button").button().click(function(event) {event.preventDefault();});
@@ -1332,8 +1462,6 @@ $tabla .= '
 		$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardar").serialize(), 
 			function(data) {
 				alert(data);
-				//location.reload();
-				//window.opener.actualiza();
 				window.close();
 			}
 		);
@@ -1357,35 +1485,24 @@ $tabla .= '
 <div class="ui-layout-west">
 <form id="guardar" >
 <center>
-	<br><br>
 	<button type="button" onclick="guardar()">Guardar Orden</button>
 	<div id="resultados"></div>
 </center>
 </div>';
 
 // INFERIOR
-$tabla .= '
-<div class="ui-layout-south">
-';
-
-$tabla .= $this->datasis->traevalor('TITULO1');
-
-$tabla .= '
-</div>
+$tabla .= '<div class="ui-layout-south">';
+//$tabla .= $this->datasis->traevalor('TITULO1');
+$tabla .= '</div>
 ';
 
 // DERECHA
-$tabla .= '
-<div class="ui-layout-east">
-</div>
-';
+$tabla .= '<div class="ui-layout-east"></div>';
 
 // CENTRO
 $norden = $this->datasis->dameval('SELECT MAX(id) maxi FROM prdo');
-if ($norden == '') $norden = 0;
 
-$tabla .= '
-<div class="ui-layout-center">';
+$tabla .= '<div class="ui-layout-center">';
 
 $mSQL = 'SELECT * FROM itprdop WHERE numero="'.$numero.'" ORDER BY codigo';
 $query  = $this->db->query($mSQL);
@@ -1394,7 +1511,7 @@ $i = 0;
 if ($query->num_rows() > 0){
 
 	if ( $i > 0 ) $tabla .= "</tbody></table><br>\n";
-	$tabla .= '<table class="tc" width="80%">';
+	$tabla .= '<table align="center" class="tc" width="90%">';
 	$tabla .= "<tbody>\n";
 
 	$tabla .= "<tr bgcolor='#BEDCFD'>\n";
