@@ -1895,8 +1895,8 @@ class Pfac extends Controller {
 		if(!in_array('ordprod', $campos)) $this->db->query("ALTER TABLE pfac ADD COLUMN ordprod  VARCHAR(8) NOT NULL DEFAULT '' COMMENT 'Nro de orden de Produccion'");
 
 		$itcampos=$this->db->list_fields('itpfac');
-		if(!in_array('dxapli',$itcampos))    $this->db->query("ALTER TABLE itpfac ADD COLUMN dxapli    VARCHAR(20)   NOT NULL COMMENT 'descuento por aplicar'");
-		if(!in_array('producido',$itcampos)) $this->db->query("ALTER TABLE itpfac ADD COLUMN producido DECIMAL(12,3) NOT NULL COMMENT 'Cantidad producida'");
+		if(!in_array('dxapli',$itcampos))    $this->db->query("ALTER TABLE itpfac ADD COLUMN dxapli    VARCHAR(20)   NULL DEFAULT '0' COMMENT 'descuento por aplicar'");
+		if(!in_array('producido',$itcampos)) $this->db->query("ALTER TABLE itpfac ADD COLUMN producido DECIMAL(12,3) NULL DEFAULT '0' COMMENT 'Cantidad producida'");
 
 	}
 }
