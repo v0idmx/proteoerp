@@ -4,9 +4,11 @@
  * @autor    Andres Hocevar
  * @license  GNU GPL v3
 */
+$depura=false; //Activar para columnas de depuracion
+
 $pasamos=false;
-$query = $this->db->query("SELECT formato, DATE_FORMAT(inicio, '%d/%m/%Y') AS inicio,final FROM cemp LIMIT 0,1");
-if ($query->num_rows() > 0){
+$query = $this->db->query("SELECT formato, inicio, final FROM cemp LIMIT 0,1");
+if($query->num_rows() > 0){
 	$pasamos=true;
 	$row   = $query->row();
 	$final   =$row->final;
@@ -19,7 +21,7 @@ $filter = new DataForm($this->rapyd->uri->add_clause($base_process_uri, "search"
 $filter->title('Filtro del Reporte');
 $filter->attributes=array('onsubmit'=>'is_loaded()');
 
-$filter->fechah = new dateonlyField('Hasta', 'fechah','d/m/Y');
+$filter->fechah = new dateonlyField('Fecha de corte', 'fechah','d/m/Y');
 $filter->fechah->insertValue = $final;
 $filter->fechah->rule  = 'required';
 $filter->fechah->group = 'Fecha';
@@ -42,108 +44,102 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid() && $pasamos){
 	$dbinicio = $this->db->escape($inicio);
 	$dbfinal  = $this->db->escape($filter->fechah->newValue);
 
+	$mSQL = array();
+
 	// Nivel 1
-	$mSQL = '
-	SELECT MID(a.cuenta,1,1) nivel, a.cuenta, c.descrip, " " nivel1, " " nivel2, " " nivel3, " " nivel4
+	$mSQL[] = '
+	SELECT "C1" clta, MID(a.cuenta,1,1) nivel, a.cuenta, c.descrip, " " nivel1, " " nivel2, " " nivel3, " " nivel4
 	FROM itcasi AS a
 	JOIN casi   AS b ON a.comprob=b.comprob
 	JOIN cpla   AS c ON MID(a.cuenta,1,1)=c.codigo
 	JOIN cemp   AS d
 	WHERE a.fecha >= '.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
-	GROUP BY MID(a.cuenta,1,1)
+	GROUP BY MID(a.cuenta,1,1)';
 
-	UNION ALL
-	SELECT CONCAT(MID(a.cuenta,1,1),"Z") nivel, a.cuenta, CONCAT("TOTAL ",c.descrip) descrip, " " nivel1, " " nivel2, " " nivel3,
-	format(SUM(a.debe-a.haber),2) nivel4
+	$mSQL[] = '
+	SELECT "C2" clta, CONCAT(MID(a.cuenta,1,1),"Z") nivel, a.cuenta, CONCAT("TOTAL ",c.descrip) descrip, " " nivel1, " " nivel2, " " nivel3,
+	FORMAT(SUM(a.debe-a.haber),2) nivel4
 	FROM itcasi AS a JOIN casi b ON a.comprob=b.comprob
 	JOIN cpla   AS c ON MID(a.cuenta,1,1)=c.codigo
 	JOIN cemp   AS d
 	WHERE a.fecha >= '.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
-	GROUP BY MID(a.cuenta,1,1)
-
-	';
+	GROUP BY MID(a.cuenta,1,1)';
 
 	//Nivel 2
-	$mSQL .= '
-	UNION ALL
-	SELECT MID(a.cuenta,1,'.$nivel2.') nivel, a.cuenta, CONCAT("      ",c.descrip) descrip, " " nivel1, " " nivel2, " " nivel3, " " nivel4
+	$mSQL[] = '
+	SELECT "C3" clta, MID(a.cuenta,1,'.$nivel2.') nivel, a.cuenta, CONCAT(SPACE(6),c.descrip) descrip, " " nivel1, " " nivel2, " " nivel3, " " nivel4
 	FROM itcasi AS a
 	JOIN casi   AS b ON a.comprob=b.comprob
 	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel2.')=c.codigo
 	JOIN cemp   AS d
 	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
-	GROUP BY MID(a.cuenta,1,'.$nivel2.')
+	GROUP BY MID(a.cuenta,1,'.$nivel2.')';
 
-	UNION ALL
-
-	SELECT CONCAT(MID(a.cuenta,1,'.$nivel2.'),"Z") nivel, a.cuenta, CONCAT("      TOTAL ",c.descrip) descrip, " " nivel1, " " nivel2, FORMAT(SUM(a.debe-a.haber),2) nivel3, " " nivel4
+	$mSQL[] = '
+	SELECT "C4" clta, CONCAT(MID(a.cuenta,1,'.$nivel2.'),"Z") nivel, a.cuenta, CONCAT("      TOTAL ",c.descrip) descrip, " " nivel1, " " nivel2, FORMAT(SUM(a.debe-a.haber),2) nivel3, " " nivel4
 	FROM itcasi AS a
 	JOIN casi   AS b ON a.comprob=b.comprob
 	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel2.')=c.codigo
 	JOIN cemp   AS d
 	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
-	GROUP BY MID(a.cuenta,1,'.$nivel2.')
-	';
+	GROUP BY MID(a.cuenta,1,'.$nivel2.')';
 
 	//Nivel 3
-	$mSQL .= '
-	UNION ALL
-	SELECT MID(a.cuenta,1,'.$nivel3.') nivel, a.cuenta, CONCAT("              ",c.descrip) descrip, " " nivel1, " " nivel2, " " nivel3, "" nivel4
+	$mSQL[] = '
+	SELECT "C5" clta, MID(a.cuenta,1,'.$nivel3.') nivel, a.cuenta, CONCAT(SPACE(14),c.descrip) descrip, " " nivel1, " " nivel2, " " nivel3, "" nivel4
 	FROM itcasi AS a
 	JOIN casi   AS b ON a.comprob=b.comprob
 	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel3.')=c.codigo
 	JOIN cemp   AS d
 	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
-	GROUP BY MID(a.cuenta,1,'.$nivel3.')
+	GROUP BY MID(a.cuenta,1,'.$nivel3.')';
 
-	UNION ALL
-	SELECT CONCAT(MID(a.cuenta,1,'.$nivel3.'),"Z") nivel, a.cuenta, CONCAT("              TOTAL ",c.descrip) descrip, " " nivel1, FORMAT(SUM(a.debe-a.haber),2) nivel2, " " nivel3, " " nivel4
+	$mSQL[] = '
+	SELECT "C6" clta, CONCAT(MID(a.cuenta,1,'.$nivel3.'),"Z") nivel, a.cuenta, CONCAT(SPACE(14),"TOTAL ",c.descrip) descrip, " " nivel1, FORMAT(SUM(a.debe-a.haber),2) nivel2, " " nivel3, " " nivel4
 	FROM itcasi AS a
 	JOIN casi   AS b ON a.comprob=b.comprob
 	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel3.')=c.codigo
 	JOIN cemp   AS d
 	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
-	GROUP BY MID(a.cuenta,1,'.$nivel3.')
-	';
+	GROUP BY MID(a.cuenta,1,'.$nivel3.')';
 
-	$mSQL .= '
-	UNION ALL
-	SELECT MID(a.cuenta,1,'.$nivel4.') nivel, a.cuenta, CONCAT("                    ",c.descrip) descrip, FORMAT(SUM(a.debe-a.haber),2) nivel1, " " nivel2, " " nivel3, " " nivel4
+	//Nivel 4
+	$mSQL[] = '
+	SELECT "C7" clta, MID(a.cuenta,1,'.$nivel4.') nivel, a.cuenta, CONCAT(SPACE(20),c.descrip) descrip, FORMAT(SUM(a.debe-a.haber),2) nivel1, " " nivel2, " " nivel3, " " nivel4
 	FROM itcasi AS a
 	JOIN casi   AS b ON a.comprob=b.comprob
 	JOIN cpla   AS c ON MID(a.cuenta,1,'.$nivel4.')=c.codigo
 	JOIN cemp   AS d
 	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
-	GROUP BY MID(a.cuenta,1,'.$nivel4.')
-	';
+	GROUP BY MID(a.cuenta,1,'.$nivel4.')';
 
-	$mSQL .= '
-	UNION ALL
-	SELECT "BZ" nivel, a.cuenta, "(UTILIDAD) O PERDIDA DEL EJERCICIO" descrip, " " nivel1, " " nivel2, " " nivel3, FORMAT(SUM(a.debe-a.haber),2) nivel4
+	$mSQL[] = '
+	SELECT "C8" clta, "BZ" nivel, a.cuenta, "(UTILIDAD) O PERDIDA DEL EJERCICIO" descrip, " " nivel1, " " nivel2, " " nivel3, FORMAT(SUM(a.debe-a.haber),2) nivel4
 	FROM itcasi  AS a
 	JOIN casi    AS b ON a.comprob=b.comprob
 	JOIN cpla    AS c ON MID(a.cuenta,1,1)=c.codigo
 	JOIN cemp    AS d
-	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo
+	WHERE a.fecha>='.$dbinicio.'  AND a.fecha <= '.$dbfinal.' AND MID(a.cuenta,1,1) > d.patrimo';
 
-	UNION ALL
-	SELECT CONCAT("AZ") nivel, " " cuenta, " " descrip, " " nivel1, " " nivel2, " " nive3,
-	"------------------------" nivel4
+	$mSQL[]= 'SELECT "C9" clta, CONCAT("AZ") nivel, " " cuenta, " " descrip, " " nivel1, " " nivel2, " " nive3, "------------------------" nivel4 ';
 
-	ORDER BY nivel
-	';
+	$mSQL= implode(' UNION ALL ',$mSQL).' ORDER BY nivel';
 
-	//echo $mSQL;
+	//echo $mSQL; exit();
 
 	$pdf = new PDFReporte($mSQL);
 	$pdf->setHeadValores('TITULO1');
 	$pdf->setSubHeadValores('TITULO2','TITULO3','RIF');
 	$pdf->setTitulo('Estado de Ganancias y Perdidas');
-	$pdf->setSubTitulo("Desde ${inicio} hasta ".$this->input->post('fechah'));
+	$pdf->setSubTitulo('Desde '.dbdate_to_human($inicio).' hasta '.$this->input->post('fechah'));
 
 	$pdf->AddPage();
 	$pdf->setTableTitu(10,'Times');
 
+	if($depura){
+		$pdf->AddCol('clta'  ,   10,' ','L',8);
+		$pdf->AddCol('nivel' ,   22,' ','L',8);
+	}
 	$pdf->AddCol('descrip',  80,' ','L',8);
 	$pdf->AddCol('nivel1',   22,' ','R',8);
 	$pdf->AddCol('nivel2',   22,' ','R',8);
