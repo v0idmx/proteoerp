@@ -836,24 +836,30 @@ class Prdo extends Controller {
 
 	function instalar(){
 		if (!$this->db->table_exists('prdo')) {
-			$mSQL="CREATE TABLE `prdo` (
-			  `numero` varchar(8) NOT NULL DEFAULT '',
-			  `fecha` date DEFAULT NULL,
-			  `almacen` varchar(4) DEFAULT NULL COMMENT 'Almacen de descuento',
-			  `status` char(2) DEFAULT '0' COMMENT 'Activa, Pausada, Finalizada',
-			  `instrucciones` text,
-			  `estampa` date NOT NULL DEFAULT '0000-00-00',
-			  `usuario` varchar(12) NOT NULL DEFAULT '',
-			  `hora` varchar(8) NOT NULL DEFAULT '',
-			  `modificado` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			  `id` int(11) NOT NULL AUTO_INCREMENT,
-			  PRIMARY KEY (`id`),
-			  UNIQUE KEY `numero` (`numero`)
-			) ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC COMMENT='Orden de Produccion'";
+			$mSQL="
+			CREATE TABLE `prdo` (
+				numero        VARCHAR(8) NOT NULL DEFAULT '',
+				fecha         DATE       DEFAULT NULL,
+				almacen       VARCHAR(4) DEFAULT NULL COMMENT 'Almacen de descuento',
+				status        CHAR(2)    DEFAULT '0'  COMMENT 'Activa, Pausada, Finalizada',
+				instrucciones TEXT,
+				fechap        DATE        DEFAULT NULL,
+				estampa       DATE NOT    NULL DEFAULT '0000-00-00',
+				usuario       VARCHAR(12) NOT NULL DEFAULT '',
+				hora          VARCHAR(8)  NOT NULL DEFAULT '',
+				modificado    TIMESTAMP   NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+				id            INT(11) NOT NULL AUTO_INCREMENT,
+				PRIMARY KEY (`id`),
+				UNIQUE KEY `numero` (`numero`)
+			) 
+			ENGINE=MyISAM DEFAULT 
+			CHARSET=latin1 
+			ROW_FORMAT=DYNAMIC 
+			COMMENT='Orden de Produccion'";
 			$this->db->query($mSQL);
 		}
-		//$campos=$this->db->list_fields('prdo');
-		//if(!in_array('<#campo#>',$campos)){ }
+		$itcampos=$this->db->list_fields('prdo');
+		if(!in_array('fechap',$itcampos)) $this->db->query("ALTER TABLE prdo ADD COLUMN fechap DATE  NULL DEFAULT NULL COMMENT 'Fecha de Produccion' AFTER instrucciones");
 
 
 		if (!$this->db->table_exists('itprdo')) {
@@ -894,12 +900,9 @@ class Prdo extends Controller {
 			CHARSET=latin1
 			ENGINE=MyISAM
 			ROW_FORMAT=DYNAMIC
-;";
+			;";
 			$this->db->query($mSQL);
 		}
-
-
-
 	}
 
 
@@ -1576,10 +1579,15 @@ $tabla .= '
 			$this->db->query($mSQL);
 		}
 
-		echo "Produccion Guardada";
+		$data['fechap'] = substr($_POST['fechap'],-4).substr($_POST['fechap'],3,2).substr($_POST['fechap'],0,2);
+
+		$id   = intval($_POST['codigo_0']);
+		$numero = $this->datasis->dameval("SELECT numero FROM itprdop WHERE id=$id");
+
+		$this->db->where('numero',$id);
+		$this->db->update('prdo', $data);
+
+		echo "Produccion Guardada ".substr($_POST['fechap'],-4).substr($_POST['fechap'],3,2).substr($_POST['fechap'],0,2);
 	}
-
-
-
 }
 ?>
