@@ -153,12 +153,16 @@ class pfaclite extends validaciones{
 		$this->load->view('view_ventanas', $data);
 	}
 
-	function vencepedido(){
+	function vencepedido($dias=null){
+		if (empty($dias)){
+			$dias=5;
+		}
+
 		$sel=array('b.codigoa','SUM(b.cana) AS cana');
 		$this->db->select($sel);
 		$this->db->from('pfac AS a');
 		$this->db->join('itpfac AS b','a.numero=b.numa');
-		$this->db->where('a.fecha < DATE_SUB(CURDATE(),INTERVAL 5 DAY)');
+		$this->db->where('a.fecha < DATE_SUB(CURDATE(),INTERVAL '.$dias.' DAY)');
 		$this->db->where_in('a.status',array('P','B'));
 		$this->db->where('b.codigoa IS NOT NULL');
 		$this->db->group_by('b.codigoa');
@@ -173,11 +177,13 @@ class pfaclite extends validaciones{
 				$ban=$this->db->simple_query($mSQL);
 				if($ban==false){ memowrite($mSQL,'pfaclite'); }
 			}
-			$mSQL="UPDATE pfac SET status='C', vence=CURDATE() WHERE fecha < DATE_SUB(CURDATE(),INTERVAL 5 DAY) AND status IN ('P','B')";
-			$ban=$this->db->simple_query($mSQL);
-			if($ban==false){ memowrite($mSQL,'pfaclite'); }
 		}
 
+		$mSQL="UPDATE pfac SET status='C', vence=CURDATE() WHERE fecha < DATE_SUB(CURDATE(),INTERVAL ${dias} DAY) AND status IN ('P','B')";
+		$ban=$this->db->simple_query($mSQL);
+		if($ban==false){ memowrite($mSQL,'pfaclite'); }
+
+		//Arregla la exdes
 		$sel=array('b.codigoa','SUM(b.cana) AS cana');
 		$this->db->select($sel);
 		$this->db->from('pfac AS a');
@@ -197,6 +203,56 @@ class pfaclite extends validaciones{
 				if($ban==false){ memowrite($mSQL,'pfaclite'); }
 			}
 		}
+		//Fin del arreglo de las exdes
+	}
+
+	//Cierra el backorder
+	function cierraba(){
+		$sel=array('b.codigoa','SUM(b.cana) AS cana');
+		$this->db->select($sel);
+		$this->db->from('pfac AS a');
+		$this->db->join('itpfac AS b','a.numero=b.numa');
+		$this->db->where_in('a.status',array('B'));
+		$this->db->where('b.codigoa IS NOT NULL');
+		$this->db->group_by('b.codigoa');
+		$query=$this->db->get();
+
+		if ($query->num_rows() > 0){
+			foreach ($query->result() as $row){
+				$dbcodigo= $this->db->escape($row->codigoa);
+				$itcana  = $row->cana;
+
+				$mSQL = "UPDATE sinv SET exdes=IF(exdes IS NULL OR exdes>=${itcana} , 0 , exdes-${itcana}) WHERE codigo=${dbcodigo}";
+				$ban=$this->db->simple_query($mSQL);
+				if($ban==false){ memowrite($mSQL,'pfaclite'); }
+			}
+		}
+
+		$mSQL="UPDATE pfac SET status='C', vence=CURDATE() WHERE status IN ('B')";
+		$ban=$this->db->simple_query($mSQL);
+		if($ban==false){ memowrite($mSQL,'pfaclite'); }
+
+		//Arregla la exdes
+		$sel=array('b.codigoa','SUM(b.cana) AS cana');
+		$this->db->select($sel);
+		$this->db->from('pfac AS a');
+		$this->db->join('itpfac AS b','a.numero=b.numa');
+		$this->db->where('a.status','P');
+		$this->db->where('b.codigoa IS NOT NULL');
+		$this->db->group_by('b.codigoa');
+		$query=$this->db->get();
+
+		if ($query->num_rows() > 0){
+			foreach ($query->result() as $row){
+				$dbcodigo= $this->db->escape($row->codigoa);
+				$itcana  = $row->cana;
+
+				$mSQL = "UPDATE sinv SET exdes=${itcana} WHERE codigo=${dbcodigo}";
+				$ban=$this->db->simple_query($mSQL);
+				if($ban==false){ memowrite($mSQL,'pfaclite'); }
+			}
+		}
+		//Fin del arreglo de las exdes
 	}
 
 	function filterscli(){

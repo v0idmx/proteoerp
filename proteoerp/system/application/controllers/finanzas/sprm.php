@@ -2762,7 +2762,7 @@ class Sprm extends Controller {
 					return false;
 				}*/
 
-				$rrow=$this->datasis->damerow("SELECT impuesto,monto,montasa,monredu,monadic,tasa,reducida,sobretasa,exento,noabonable,monto-abonos AS saldo FROM sprm WHERE cod_prv=${dbcod_prv} AND tipo_doc=${dbittipo} AND numero=${dbitnumero}");
+				$rrow=$this->datasis->damerow("SELECT impuesto,monto,montasa,monredu,monadic,tasa,reducida,sobretasa,exento,noabonable,reteiva,reten,monto-abonos AS saldo FROM sprm WHERE cod_prv=${dbcod_prv} AND tipo_doc=${dbittipo} AND numero=${dbitnumero}");
 				if(empty($rrow)){
 					$do->error_message_ar['pre_ins']='Efecto inexistente '.$ittipo.$itnumero;
 					return false;
@@ -2771,6 +2771,8 @@ class Sprm extends Controller {
 				$itmonto    = floatval($rrow['monto']);
 				$itnoabonale= floatval($rrow['noabonable']);
 				$itsaldo    = floatval($rrow['saldo']);
+				$itreteiva  = floatval($rrow['reteiva']);
+				$itreten    = floatval($rrow['reten']);
 				$arr_itimpuestos[$i]=round($itabono*$itimpuesto/$itmonto,2);
 
 				if($itabono+$itpppago > $itsaldo){
@@ -2780,7 +2782,7 @@ class Sprm extends Controller {
 
 				if($tipo_doc=='AB' && $itnoabonale>0){
 					$yaabonado=floatval($this->datasis->dameval("SELECT SUM(abono) AS val FROM itppro WHERE tipoppro='AB' AND tipo_doc=${dbittipo} AND numero=${dbitnumero} AND cod_prv=${dbcod_prv}"));
-					if($yaabonado+$itabono+$itpppago>$itmonto-$itnoabonale){
+					if($yaabonado+$itabono+$itpppago>$itmonto-$itnoabonale-$itreteiva-$itreten){
 						$do->error_message_ar['pre_ins']='El efecto '.$ittipo.$itnumero.' tiene un saldo bloqueado de '.nformat($itnoabonale).' que solo puede ser pagado con una NC';
 						return false;
 					}
