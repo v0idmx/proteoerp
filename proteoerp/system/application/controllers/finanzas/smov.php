@@ -1047,7 +1047,7 @@ class Smov extends Controller {
 
 		$cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM casi WHERE comprob=${dbtransac}"));
 		if($cana>0){
-			$do->error_message_ar['pre_del']='El efecto ya esta en contabilidad, no puede ser modificado ni eliminado.';
+			$do->error_message_ar['pre_del']='El efecto ya esta en contabilidad, no puede ser modificado ni eliminado (Asiento '.$transac.').';
 			return false;
 		}
 

@@ -1037,12 +1037,12 @@ class Ssal extends Controller {
 	function _pre_delete($do){
 		$transac   = $do->get('transac');
 		$dbtransac = $this->db->escape($transac);
-		 $cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM casi WHERE comprob=${dbtransac}"));
-        if($cana>0){
-            $do->error_message_ar['pre_del']='El efecto ya esta en contabilidad, no puede ser modificado ni eliminado.';
-            return false;
-        }
-        return true;
+		$cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM casi WHERE comprob=${dbtransac}"));
+		if($cana>0){
+			$do->error_message_ar['pre_del']='El efecto ya esta en contabilidad, no puede ser modificado ni eliminado (Asiento '.$transac.').';
+			return false;
+		}
+		return true;
 	}
 
 	function _post_insert($do) {
