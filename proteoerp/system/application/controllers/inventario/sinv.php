@@ -6208,6 +6208,12 @@ class Sinv extends Controller {
 			$this->db->query($mSQL);
 		}
 
+		if(!in_array('etiqueta',$campos)) {
+			$mSQL="ALTER TABLE sinv ADD COLUMN etiqueta CHAR(1) NULL DEFAULT 'N' COMMENT 'Emitir Etiqueta' ";
+			$this->db->query($mSQL);
+		}
+
+
 		if ( $this->datasis->traevalor('SUNDECOP') == 'S') {
 			if (!in_array('mpps',       $campos)) $this->db->simple_query("ALTER TABLE `sinv` ADD COLUMN `mpps`        VARCHAR(20) NULL  COMMENT 'Numero de Ministerior de Salud'");
 			if (!in_array('cpe',        $campos)) $this->db->simple_query("ALTER TABLE `sinv` ADD COLUMN `cpe`         VARCHAR(20) NULL  COMMENT 'Registro de CPE'");

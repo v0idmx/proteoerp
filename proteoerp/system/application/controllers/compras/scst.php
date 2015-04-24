@@ -380,6 +380,13 @@ class Scst extends Controller {
 				acturever();
 			});';
 
+		//Recargos
+		$bodyscript .= '
+			$("#recargos").click( function(){
+				alert("funcion no disponible");
+			});';
+
+
 		//Actualizar y Reversar
 		$bodyscript .= '
 			function acturever(){
@@ -391,13 +398,6 @@ class Scst extends Controller {
 					} else {
 					mid = id;
 					if(ret.actuali<ret.fecha){'."\n";
-
-		//Recargos
-		$bodyscript .= '
-			$("#recargos").click( function(){
-				alert("funcion no disponible");
-			});';
-
 
 		if($this->datasis->sidapuede('SCSTOTR','actualizar')){
 			//Revisa si puede Actualizar
@@ -2098,7 +2098,7 @@ class Scst extends Controller {
 		$edit->serie->autocomplete=false;
 		$edit->serie->rule = 'required';
 		$edit->serie->mode = 'autohide';
-		$edit->serie->maxlength=12;
+		$edit->serie->maxlength=20;
 
 		$edit->fafecta = new inputField('Fact.Afectada', 'fafecta');
 		$edit->fafecta->size = 15;
@@ -3681,7 +3681,7 @@ class Scst extends Controller {
 									margen2=ROUND(10000-('.$costo.'*10000/base2))/100,
 									margen3=ROUND(10000-('.$costo.'*10000/base3))/100,
 									margen4=ROUND(10000-('.$costo.'*10000/base4))/100,
-									activo="S"
+									activo="S", etiqueta="S"
 								WHERE codigo='.$dbcodigo;
 								$ban=$this->db->simple_query($mSQL);
 								if(!$ban){ memowrite($mSQL,'scst'); $error++; }
@@ -5516,13 +5516,21 @@ class Scst extends Controller {
 			ENGINE=MyISAM";
 			$this->db->query($mSQL);
 		}
-		$gcampos=$this->db->list_fields('gereten');
+		$gcampos = $this->db->list_fields('gereten');
 		if(!in_array('transac',$gcampos)){
 			$query="ALTER TABLE `gereten` ADD COLUMN `transac` VARCHAR(8) NULL DEFAULT NULL AFTER `monto`";
 			$this->db->query($query);
 			$query="ALTER TABLE `gereten` ADD INDEX `transac` (`transac`)";
 			$this->db->query($query);
 		}
+		
+		
+		$gcampos = $this->db->list_fields('sinv');
+		if(!in_array('etiqueta',$campos)) {
+			$mSQL="ALTER TABLE sinv ADD COLUMN etiqueta CHAR(1) NULL DEFAULT 'N' COMMENT 'Emitir Etiqueta' ";
+			$this->db->query($mSQL);
+		}
+
 
 	}
 }

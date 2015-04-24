@@ -4,7 +4,7 @@ $id   = $parametros[0];
 $dbid = $this->db->escape($id);
 $mSQL_1 = $this->db->query('SELECT
 	a.fecha,a.numero,TRIM(b.nomfis) nomfis, a.proveed, TRIM(a.nombre) nombre, a.breten,a.tipo_doc,a.reten,a.creten,a.nombre,
-	b.direc1,b.direc2,b.direc3,b.telefono,b.rif,c.activida,c.base1,c.tari1, a.ffactura
+	b.direc1,b.direc2,b.direc3,b.telefono,b.rif,c.activida,c.base1,c.tari1, a.ffactura, a.serie
 FROM gser AS a
 JOIN sprv AS b ON a.proveed=b.proveed
 LEFT JOIN rete AS c ON c.codigo=a.creten
@@ -15,7 +15,7 @@ $row = $mSQL_1->row();
 $fecha    = dbdate_to_human($row->fecha);
 $ffecha   = dbdate_to_human($row->ffactura);
 
-$numero   = trim($row->numero);
+$numero   = trim($row->serie);
 $proveed  = htmlspecialchars(trim($row->proveed));
 $tipo_doc = trim($row->tipo_doc);
 $breten   = $row->breten;

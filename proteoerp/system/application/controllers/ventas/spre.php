@@ -186,6 +186,40 @@ class Spre extends Controller {
 			} else { $.prompt("<h1>Por favor Seleccione un Presupuesto</h1>");}
 		});';
 
+/*
+		$bodyscript .= '
+		$("#bffact").click(function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			if(id){
+				var mgene = {
+				state0: {
+					html:"<h1>Enviar notificacion por email?</h1>",
+					buttons: { Cancelar: false, Aceptar: true },
+					focus: 1,
+					submit:function(e,v,m,f){
+						if(v){
+							e.preventDefault();
+							$.post("'.site_url('ventas/spre/notifica').'/"+id,
+								function(data){
+									$.prompt.goToState("state1");
+							});
+							return false;}}
+				},
+				state1: {
+					html:"<h2>Envio efectuado!</h2> ",
+					buttons: { Salir: 0 },
+					focus: 1,
+					submit:function(e,v,m,f){
+						e.preventDefault();
+						$.prompt.close();
+						grid.trigger("reloadGrid");
+					}
+				}};
+				$.prompt(mgene);
+			} else { $.prompt("<h1>Por favor Seleccione un Presupuesto</h1>");}
+		});';
+*/
+
 
 		$bodyscript .= '
 		$("#bcorreo").click(function(){
