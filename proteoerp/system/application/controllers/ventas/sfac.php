@@ -4576,7 +4576,7 @@ class Sfac extends Controller {
 					}
 
 					//Cierra o deja el pedido en backorder
-					$pfacresta = floatval($this->datasis->dameval("SELECT SUM(cana>entregado) AS saldo FROM itpfac WHERE numa=${dbpfac}"));
+					$pfacresta = floatval($this->datasis->dameval("SELECT SUM(a.cana>a.entregado) AS saldo FROM itpfac AS a JOIN sinv AS b ON a.codigoa=b.codigo WHERE a.numa=${dbpfac} AND b.activo='S'"));
 					if($pfacresta>0){
 						$pfacstatus='B';
 					}else{

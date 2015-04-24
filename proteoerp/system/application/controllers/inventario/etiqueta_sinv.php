@@ -10,6 +10,8 @@ require_once(APPPATH.'/controllers/inventario/consultas.php');
 
 class etiqueta_sinv extends Controller {
 
+	var $formato='ETIQUETA1';
+
 	function etiqueta_sinv(){
 		parent::Controller();
 		$this->load->library('rapyd');
@@ -25,7 +27,7 @@ class etiqueta_sinv extends Controller {
 		$html[]=anchor('inventario/etiqueta_sinv/lee_barras'  ,'Por c&oacute;digo de barras').': permite generar habladores por productos seleccionados';
 		$html[]=anchor('inventario/etiqueta_sinv/filteredgrid','Por filtro de productos'    ).': permite generar los habladores filtrandolos por cacter&iacute;sticas comunes';
 		$data['title']  = '<h1>Men&uacute; de Habladores</h1>';
-		$data['content']=$thtml.ul($html).'<p style="font-size:0.5em;text-align:center">Formato: <b>ETIQUETA1</b></p>';
+		$data['content']=$thtml.ul($html).'<p style="font-size:0.5em;text-align:center">Formato: <b>'.$this->formato.'</b></p>';
 		$this->load->view('view_ventanas', $data);
 	}
 
@@ -103,7 +105,8 @@ class etiqueta_sinv extends Controller {
 
 		$depto=$filter->getval('depto');
 		if($depto!==false){
-			$filter->linea2->options("SELECT linea, descrip FROM line WHERE depto='$depto' ORDER BY descrip");
+			$dbdepto=$this->db->escape($depto);
+			$filter->linea2->options("SELECT linea, descrip FROM line WHERE depto=${dbdepto} ORDER BY descrip");
 		}else{
 			$filter->linea2->option('','Seleccione un Departamento primero');
 		}
@@ -114,7 +117,8 @@ class etiqueta_sinv extends Controller {
 
 		$linea=$filter->getval('linea2');
 		if($linea!==false){
-			$filter->grupo->options("SELECT grupo, nom_grup FROM grup WHERE linea='$linea' ORDER BY nom_grup");
+			$dblinea=$this->db->escape($linea);
+			$filter->grupo->options("SELECT grupo, nom_grup FROM grup WHERE linea=${dblinea} ORDER BY nom_grup");
 		}else{
 			$filter->grupo->option('','Seleccione un Departamento primero');
 		}
@@ -132,13 +136,24 @@ class etiqueta_sinv extends Controller {
 		$filter->cant->rule='required|numeric';
 		$filter->cant->group='Configuraci&oacute;n';
 
+		$filter->salformat = new radiogroupField('Formato de salida','salformat');
+		$filter->salformat->options(array('pdf','txt'));
+		$filter->salformat->insertValue ='pdf';
+		$filter->salformat->clause = '';
+		$filter->salformat->group = 'Opciones';
+
 		$filter->button('btn_undo', 'Regresar', 'javascript:window.location=\''.site_url('inventario/etiqueta_sinv').'\'', 'BL');
 		$filter->buttons('reset','search');
 		$filter->build();
 
 
 		if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
-			$tabla=form_open('forma/ver/etiqueta1');
+			$formato = $filter->salformat->newValue;
+			if($formato=='txt'){
+				$tabla=form_open('formatos/descargartxt/'.$this->formato);
+			}else{
+				$tabla=form_open('forma/ver/'.$this->formato);
+			}
 
 			$select=array(
 				'a.tipo',
@@ -235,12 +250,18 @@ class etiqueta_sinv extends Controller {
 		$filter->cant->size=8;
 		$filter->cant->rule='required|numeric';
 
+		$filter->salformat = new radiogroupField('Formato de salida','salformat');
+		$filter->salformat->options(array('pdf'=>'pdf','txt'=>'txt'));
+		$filter->salformat->insertValue ='pdf';
+		$filter->salformat->clause = '';
+		$filter->salformat->group = 'Opciones';
+
 		$filter->button('btn_undo', 'Regresar', 'javascript:window.location=\''.site_url('inventario/etiqueta_sinv').'\'', 'BL');
 		$filter->submit('btnsubmit','Consultar');
 		$filter->build_form();
 
 		if ($filter->on_success()){
-			$tabla=$this->_num_compra($filter->control->newValue,$filter->cant->newValue);
+			$tabla=$this->_num_compra($filter->control->newValue,$filter->cant->newValue,$filter->salformat->newValue);
 		}else{
 			$tabla=$filter->output;
 		}
@@ -251,9 +272,13 @@ class etiqueta_sinv extends Controller {
 		$this->load->view('view_ventanas', $data);
 	}
 
-	function _num_compra($control){
+	function _num_compra($control,$cana,$formato){
 		$dbcontrol=$this->db->escape($control);
-		$tabla=form_open('forma/ver/etiqueta1');
+		if($formato=='txt'){
+			$tabla=form_open('formatos/descargartxt/'.$this->formato);
+		}else{
+			$tabla=form_open('forma/ver/'.$this->formato);
+		}
 
 		$sel=array(
 			'a.barras  AS barras' ,
@@ -285,8 +310,8 @@ class etiqueta_sinv extends Controller {
 
 		if($grid->recordCount>0){
 			$data = array(
-				'cant'  => $this->input->post('cant'),
-				'consul'=>$this->db->last_query()
+				'cant'  => $cana,
+				'consul'=> $this->db->last_query()
 			);
 
 			$tabla.=form_hidden($data);
@@ -348,8 +373,14 @@ class etiqueta_sinv extends Controller {
 		$this->load->view('view_ventanas', $data);
 	}
 
-	function cant(){
-		$tabla=form_open('forma/ver/etiqueta1');
+	function cant($formato='pdf'){
+
+		if($formato=='txt'){
+			$tabla=form_open('formatos/descargartxt/'.$this->formato);
+		}else{
+			$tabla=form_open('forma/ver/'.$this->formato);
+		}
+
 		$cbarra=$this->input->post('barras');
 
 		$regresa=HTML::button('btn_regresa', 'Regresar', 'javascript:window.location=\''.site_url('inventario/etiqueta_sinv/lee_barras').'\'','button','button');

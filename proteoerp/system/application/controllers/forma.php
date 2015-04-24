@@ -1,4 +1,10 @@
 <?php
+/**
+ * ProteoERP
+ *
+ * @autor    Andres Hocevar
+ * @license  GNU GPL v3
+*/
 class Forma extends Controller{
 
 	var $_direccion;
@@ -22,21 +28,20 @@ class Forma extends Controller{
 	}
 
 	function ver(){
-		$this->load->library("rapyd");
 		$this->parametros= func_get_args();
 		if (count($this->parametros)>0){
 			$_arch_nombre=implode('-',$this->parametros);
 			$_fnombre=array_shift($this->parametros);
-			$repo=$this->datasis->dameval("SELECT tcpdf FROM formatos WHERE nombre='$_fnombre'");
-				
+			$repo=$this->datasis->dameval("SELECT tcpdf FROM formatos WHERE nombre='${_fnombre}'");
+
 			if(!$repo){
-				echo "Formato No Existe";
+				echo 'Formato No Existe';
 				return false;
 			}
 
 			$captura=false;
 			$lineas=explode("\n",$repo);
-			foreach($lineas AS $linea){
+			foreach($lineas as $linea){
 				if(preg_match('/\/\/@(?P<funcion>\w+)/', $linea, $match)){
 					$func=$match['funcion'];
 					$captura=true;
@@ -52,15 +57,15 @@ class Forma extends Controller{
 				}
 			}
 		}
-			
-		$this->load->library("pdf");
+
+		$this->load->library('pdf');
 
 		$o = new pdf;
 		$t = new pdf;
 		$this->config($t);
 		$this->cuerpo($t,$o);
 	}
-	
+
 	function config($obj){
 		eval($this->codigo['config']);
 	}
@@ -96,8 +101,8 @@ class Forma extends Controller{
 	function cuerpo($objt,$pdf){
 		eval($this->codigo['cuerpo']);
 	}
-		
-	function enc_der($tipo,$numero,$fecha,$re,$pdf,$img=""){
+
+	function enc_der($tipo,$numero,$fecha,$re,$pdf,$img=''){
 		//$inicio = $this->infor_pdf->getY();
 		if($img!=""){
 			$pdf->Image(K_PATH_IMAGES.$img, 100, 4, 23);
@@ -112,5 +117,3 @@ class Forma extends Controller{
 	}
 
 }
-//////////////////////////
-?>

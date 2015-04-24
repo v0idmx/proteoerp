@@ -173,22 +173,13 @@ class Formatos extends Controller{
 $salida = '
 <html>
 <head>
-<meta http-equiv="Content-type" content="text/html; charset="'.$this->config->item("charset").'" >
-<title><?php echo $documento." ".$numero ?></title>
-<link rel="stylesheet" href="<?php echo $this->_direccion ?>/assets/default/css/formatos.css" type="text/css" >
+<meta http-equiv="Content-type" content="text/html; charset="'.$this->config->item('charset').'" >
+<title>Ver TXT '.$_fnombre.'</title>
 </head>
 <body style="margin-left: 30px;margin-right:30px;font-family: \'Courier New\', Courier, monospace;font-size:18px;">
 <style>
 span { font-size:11px; }
 </style>
-<script type="text/php">
-	if (isset($pdf)) {
-		$font = Font_Metrics::get_font("verdana");
-		$size = 6;
-		$color = array(0,0,0);
-		$text_height = Font_Metrics::get_font_height($font, $size);
-	}
-</script>
 ';
 
 					$_txt = str_replace("\n",'<br>',$_txt);
