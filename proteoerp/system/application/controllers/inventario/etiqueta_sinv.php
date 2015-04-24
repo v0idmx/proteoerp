@@ -143,7 +143,7 @@ class etiqueta_sinv extends Controller {
 		$filter->cant->group='Configuraci&oacute;n';
 
 		$filter->salformat = new radiogroupField('Formato de salida','salformat');
-		$filter->salformat->options(array('pdf','txt'));
+		$filter->salformat->options(array('pdf'=>'pdf','txt'=>'txt'));
 		$filter->salformat->insertValue ='pdf';
 		$filter->salformat->clause = '';
 		$filter->salformat->group = 'Opciones';
