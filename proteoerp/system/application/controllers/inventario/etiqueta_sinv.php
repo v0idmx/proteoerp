@@ -93,6 +93,8 @@ class etiqueta_sinv extends Controller {
 		$filter->codigo = new inputField('C&oacute;digo', 'codigo');
 		$filter->codigo->db_name='a.codigo';
 		$filter->codigo->size=20;
+		$filter->codigo->clause='where';
+		$filter->codigo->operator='=';
 
 		$filter->descrip = new inputField('Descripci&oacute;n', 'descrip');
 		$filter->descrip->db_name='CONCAT_WS(\' \',a.descrip,a.descrip2)';
