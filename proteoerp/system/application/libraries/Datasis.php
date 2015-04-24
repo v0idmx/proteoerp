@@ -1675,7 +1675,6 @@ class Datasis {
 			WHERE formcal='S' ";
 			if ( $mcodigo != '' ) $mSQL .= " AND codigo = ".$mcodigo." " ;
 			$CI->db->query($mSQL);
-
 		}
 	}
 
@@ -1692,7 +1691,7 @@ class Datasis {
 			precio1=TRUNCATE(precio1/100,0)*100 +IF(MOD(precio1,100)>70,100,IF(MOD(precio1,100)>30,50,0)),
 			precio2=TRUNCATE(precio2/100,0)*100 +IF(MOD(precio2,100)>70,100,IF(MOD(precio2,100)>30,50,0)),
 			precio3=TRUNCATE(precio3/100,0)*100 +IF(MOD(precio3,100)>70,100,IF(MOD(precio3,100)>30,50,0)),
-			precio4=TRUNCATE(precio4/100,0)*100 +IF(MOD(precio4,100)>70,100,IF(MOD(precio4,100)>30,50,0))
+			precio4=TRUNCATE(precio4/100,0)*100 +IF(MOD(precio4,100)>70,100,IF(MOD(precio4,100)>30,50,0)), etiqueta='S'
 		WHERE redecen='C' ";
 		if ($codigo <> '' ) $mSQL .= ' AND codigo='.$dbcodigo;
 		$CI->db->query($mSQL);
@@ -1702,7 +1701,7 @@ class Datasis {
 			precio1=TRUNCATE(precio1/10,0)*10 +IF(MOD(precio1,10)>7,10,IF(MOD(precio1,10)>3,5,0)),
 			precio2=TRUNCATE(precio2/10,0)*10 +IF(MOD(precio2,10)>7,10,IF(MOD(precio2,10)>3,5,0)),
 			precio3=TRUNCATE(precio3/10,0)*10 +IF(MOD(precio3,10)>7,10,IF(MOD(precio3,10)>3,5,0)),
-			precio4=TRUNCATE(precio4/10,0)*10 +IF(MOD(precio4,10)>7,10,IF(MOD(precio4,10)>3,5,0))
+			precio4=TRUNCATE(precio4/10,0)*10 +IF(MOD(precio4,10)>7,10,IF(MOD(precio4,10)>3,5,0)), etiqueta='S'
 		WHERE redecen='D' ";
 		if ($codigo <> '' ) $mSQL .= ' AND codigo='.$dbcodigo;
 		$CI->db->query($mSQL);
@@ -1712,7 +1711,7 @@ class Datasis {
 			precio1=ROUND(precio1,0),
 			precio2=ROUND(precio2,0),
 			precio3=ROUND(precio3,0),
-			precio4=ROUND(precio4,0)
+			precio4=ROUND(precio4,0), etiqueta='S'
 		WHERE redecen='F' ";
 		if ($codigo <> '' ) $mSQL .= ' AND codigo='.$dbcodigo;
 		$CI->db->query($mSQL);
@@ -1722,7 +1721,7 @@ class Datasis {
 			precio1=ROUND(precio1,1),
 			precio2=ROUND(precio2,1),
 			precio3=ROUND(precio3,1),
-			precio4=ROUND(precio4,1)
+			precio4=ROUND(precio4,1), etiqueta='S'
 		WHERE redecen='M' ";
 		if ($codigo <> '' ) $mSQL .= ' AND codigo='.$dbcodigo;
 		$CI->db->query($mSQL);
@@ -1732,7 +1731,7 @@ class Datasis {
 			base1=ROUND(precio1*100/(100+iva),2),
 			base2=ROUND(precio2*100/(100+iva),2),
 			base3=ROUND(precio3*100/(100+iva),2),
-			base4=ROUND(precio4*100/(100+iva),2) ";
+			base4=ROUND(precio4*100/(100+iva),2), etiqueta='S' ";
 		if ($codigo <> '' ) $mSQL .= ' WHERE codigo='.$dbcodigo;
 		$CI->db->query($mSQL);
 
@@ -1741,7 +1740,7 @@ class Datasis {
 			margen1=100-ROUND(pond*100/base1,2),
 			margen2=100-ROUND(pond*100/base2,2),
 			margen3=100-ROUND(pond*100/base3,2),
-			margen4=100-ROUND(pond*100/base4,2)
+			margen4=100-ROUND(pond*100/base4,2), etiqueta='S'
 		WHERE formcal='P' ";
 		if ($codigo <> '' ) $mSQL .= ' AND codigo='.$dbcodigo;
 		$CI->db->query($mSQL);
@@ -1751,7 +1750,7 @@ class Datasis {
 			margen1=100-ROUND(ultimo*100/base1,2),
 			margen2=100-ROUND(ultimo*100/base2,2),
 			margen3=100-ROUND(ultimo*100/base3,2),
-			margen4=100-ROUND(ultimo*100/base4,2)
+			margen4=100-ROUND(ultimo*100/base4,2), etiqueta='S'
 		WHERE formcal='U' ";
 		if ($codigo <> '' ) $mSQL .= ' AND codigo='.$dbcodigo;
 		$CI->db->query($mSQL);
@@ -1761,7 +1760,7 @@ class Datasis {
 			margen1=100-ROUND(GREATEST(ultimo,pond)*100/base1,2),
 			margen2=100-ROUND(GREATEST(ultimo,pond)*100/base2,2),
 			margen3=100-ROUND(GREATEST(ultimo,pond)*100/base3,2),
-			margen4=100-ROUND(GREATEST(ultimo,pond)*100/base4,2)
+			margen4=100-ROUND(GREATEST(ultimo,pond)*100/base4,2), etiqueta='S'
 		WHERE formcal='M' ";
 		if ($codigo <> '' ) $mSQL .= ' AND codigo='.$dbcodigo;
 		$CI->db->query($mSQL);
@@ -1771,7 +1770,7 @@ class Datasis {
 			margen1=100-ROUND(standard*100/base1,2),
 			margen2=100-ROUND(standard*100/base2,2),
 			margen3=100-ROUND(standard*100/base3,2),
-			margen4=100-ROUND(standard*100/base4,2)
+			margen4=100-ROUND(standard*100/base4,2), etiqueta='S'
 		WHERE formcal='S' ";
 		if ($codigo <> '' ) $mSQL .= ' AND codigo='.$dbcodigo;
 		$CI->db->query($mSQL);
