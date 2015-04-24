@@ -90,6 +90,10 @@ class etiqueta_sinv extends Controller {
 		$filter = new DataFilter2('Filtro por Producto');
 		$filter->script($script);
 
+		$filter->codigo = new inputField('C&oacute;digo', 'codigo');
+		$filter->codigo->db_name='a.codigo';
+		$filter->codigo->size=20;
+
 		$filter->descrip = new inputField('Descripci&oacute;n', 'descrip');
 		$filter->descrip->db_name='CONCAT_WS(\' \',a.descrip,a.descrip2)';
 		$filter->descrip->size=25;
