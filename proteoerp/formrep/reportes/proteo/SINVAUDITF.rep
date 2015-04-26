@@ -1,0 +1,121 @@
+/**
+ * ProteoERP
+ *
+ * @autor    Andres Hocevar
+ * @license  GNU GPL v3
+*/
+$mSPRV=array(
+	'tabla'   =>'sprv',
+	'columnas'=>array(
+		'proveed' =>'Código',
+		'nombre'=>'Nombre',
+		'contacto'=>'Contacto'),
+	'filtro'  =>array('proveed'=>'Código','nombre'=>'Nombre'),
+	'retornar'=>array('proveed'=>'proveed'),
+	'titulo'  =>'Buscar Proveedor');
+$bSPRV=$this->datasis->modbus($mSPRV);
+
+rapydlib('prototype');
+$ajax_onchange = '
+	function get_linea(){
+		var url = "'.site_url('reportes/sinvlineas').'";
+		var pars = "dpto="+$F("depto");
+		var myAjax = new Ajax.Updater("td_linea", url, { method: "post", parameters: pars });
+		get_grupo();
+	}
+
+	function get_grupo(){
+		var url = "'.site_url('reportes/sinvgrupos').'";
+		var pars = "dpto="+$F("depto")+"&linea="+$F("linea");
+		var myAjax = new Ajax.Updater("td_grupo", url, { method: "post", parameters: pars });
+	}';
+
+$filter = new DataFilter2('Filtro del Reporte');
+$filter->script($ajax_onchange);
+$filter->attributes=array('onsubmit'=>'is_loaded()');
+
+$select=array('a.codigo', 'a.descrip AS sinvdescrip','a.descrip2 AS sinvdescrip2', "a.unidad","a.barras","a.alterno","a.marca","precio1",
+"a.grupo","a.prov1","a.prov2","a.prov3","a.activo"," b.nom_grup", "c.descrip as nomlinea"
+,"c.linea","c.descrip as dlinea","c.depto","d.descrip",
+"c.descrip", "b.nom_grup","d.descrip","d.depto",'e.pendiente','e.existen','e.contado','e.existen-e.contado AS diff');
+
+$filter->db->select($select);
+$filter->db->from('sinv a');
+$filter->db->join('grup b','a.grupo=b.grupo','LEFT');
+$filter->db->join('line c','b.linea=c.linea','LEFT');
+$filter->db->join('dpto d','d.depto=c.depto','LEFT');
+$filter->db->join('sinvaudit e','e.codigo=a.codigo');
+$filter->db->orderby('c.depto, b.linea,a.grupo, sinvdescrip');
+$filter->db->where('e.status','F');
+
+$filter->corte = new  dropdownField ('Corte', 'corte');
+$filter->corte->options("SELECT corte,corte AS val FROM sinvaudit GROUP BY corte ORDER BY corte DESC LIMIT 10");
+$filter->corte->rule = 'required';
+$filter->corte->db_name='e.corte';
+
+$filter->ordenpor = new dropdownField('Ordenado por', 'orden');
+$filter->ordenpor->option('G','Grupo');
+$filter->ordenpor->option('D','Descripción');
+$filter->ordenpor->option('C','Código');
+$filter->ordenpor->clause ='';
+
+$filter->salformat = new radiogroupField('Formato de salida','salformat');
+$filter->salformat->options($this->opciones);
+$filter->salformat->insertValue ='PDF';
+$filter->salformat->clause = '';
+$filter->salformat->group  = 'Opciones';
+
+$filter->buttons('search');
+$filter->build();
+
+if($this->rapyd->uri->is_set('search')){
+
+if($filter->ordenpor->newValue=='G'){
+	$grupolabel='  <#nom_grup#>';
+	$orden='b.depto, b.linea, b.grupo, a.codigo';
+	$grupo='grupo';
+
+}elseif($filter->ordenpor->value=='D'){
+	$grupolabel='  <#dletra#>';
+	$orden='a.descrip';
+	$grupo='dletra';
+}else{
+	$grupolabel='Código  <#cletra#>';
+	$orden='a.codigo';
+	$grupo='cletra';
+}
+$filter->db->orderby($orden);
+
+$mSQL=$this->rapyd->db->_compile_select();
+//echo $mSQL;
+
+$sobretabla='';
+
+$pdf = new PDFReporte($mSQL);
+$pdf->setHeadValores('TITULO1');
+$pdf->setSubHeadValores('TITULO2','TITULO3');
+$pdf->setTitulo('Auditoria de inventario');
+$pdf->setSobreTabla($sobretabla,5);
+$pdf->AddPage();
+$pdf->setTableTitu(9,'Times');
+
+$pdf->AddCol('codigo'     ,28,'Codigo'     ,'L',6);
+$pdf->AddCol('sinvdescrip',85,'Descripcion','L',6);
+$pdf->AddCol('marca'      ,25,'Marca'      ,'L',7);
+$pdf->AddCol('existen'    ,15,'Existencia' ,'L',7);
+$pdf->AddCol('pendiente'  ,15,'Pendiente'  ,'R',7);
+$pdf->AddCol('contado'    ,15,'Contado'    ,'R',7);
+$pdf->AddCol('diff'       ,15,'Diferencia' ,'R',7);
+
+//$pdf->setTotalizar('precio1');
+
+
+$pdf->Table();
+$pdf->Output();
+
+}else{
+	$data['filtro'] = $filter->output;
+	$data['titulo'] = '<h2 class="mainheader">Resultado de Auditoria</h2>';
+	$data['head']   = $this->rapyd->get_head();
+	$this->load->view('view_freportes', $data);
+}

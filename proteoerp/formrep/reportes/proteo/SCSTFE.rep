@@ -1,0 +1,118 @@
+/**
+ * ProteoERP
+ *
+ * @autor    Andres Hocevar
+ * @license  GNU GPL v3
+*/
+$mSPRV=array(
+	'tabla'   =>'sprv',
+	'columnas'=>array(
+		'proveed' =>'Código',
+		'nombre'=>'Nombre',
+		'contacto'=>'Contacto'),
+	'filtro'  =>array('proveed'=>'Código','nombre'=>'Nombre'),
+	'retornar'=>array('proveed'=>'proveed'),
+	'titulo'  =>'Buscar Proveedor');
+
+$bSPRV=$this->datasis->modbus($mSPRV);
+
+$filter = new DataFilter('Filtro del Reporte');
+$filter->attributes=array('onsubmit'=>'is_loaded()');
+
+$select=array('a.fecha','a.recep','a.actuali','CONCAT(a.tipo_doc,a.numero) AS numero','a.nombre',
+'IF(a.tipo_doc="NC",-1,1)*a.montotot AS montotot',
+'IF(a.tipo_doc="NC",-1,1)*a.montoiva AS montoiva',
+'IF(a.tipo_doc="NC",-1,1)*a.montonet AS montonet',
+'IF(a.tipo_doc="NC",-1,1)*a.credito  AS credito',
+'IF(a.tipo_doc="NC",-1,1)*(a.montonet-a.credito) AS contado');
+
+$filter->db->select($select);
+$filter->db->from('scst AS a ');
+$filter->db->where_in('a.tipo_doc',array('FC','NC'));
+$filter->db->where('a.actuali > a.fecha');
+
+$filter->fechad = new dateField('Desde', 'fechad','d/m/Y');
+$filter->fechad->clause  ='where';
+$filter->fechad->db_name ='a.fecha';
+$filter->fechad->insertValue = date('Y-m-d',mktime(0, 0, 0, date('m'), date('d')-30, date('Y')));
+$filter->fechad->operator='>=';
+$filter->fechad->rule='required|chfecha';
+$filter->fechad->group='Fecha';
+
+$filter->fechah = new dateField('Hasta', 'fechah','d/m/Y');
+$filter->fechah->clause='where';
+$filter->fechah->db_name='a.fecha';
+$filter->fechah->rule='required|chfecha';
+$filter->fechah->insertValue = date('Y-m-d');
+$filter->fechah->operator='<=';
+$filter->fechah->group='Fecha';
+
+$filter->proveed = new inputField('Proveedor', 'proveed');
+$filter->proveed->clause  ='where';
+$filter->proveed->operator='=';
+$filter->proveed->db_name ='a.proveed';
+$filter->proveed->append($bSPRV);
+
+$tfecha=$this->input->post('tfecha');
+if($tfecha!==false){
+	if($tfecha=='a.fecha' || $tfecha=='a.actuali' || $tfecha=='a.recep'){
+		$filter->fechad->db_name=$this->input->post('tfecha');
+		$filter->fechah->db_name=$this->input->post('tfecha');
+	}
+}
+
+$filter->tfecha = new dropdownField('Tipo de Fecha','tfecha');
+$filter->tfecha->style='width:240px;';
+$filter->tfecha->option('a.fecha'  ,'Fecha de compra'   );
+$filter->tfecha->option('a.actuali','Fecha de actualizacion');
+$filter->tfecha->option('a.recep'  ,'Fecha de recepcion');
+$filter->tfecha->rule='required|enum[a.fecha,a.actuali,a.recep]';
+$filter->tfecha->clause='';
+$filter->tfecha->group='Fecha';
+
+$filter->ordenpor = new dropdownField('Ordenado por', 'orden');
+$filter->ordenpor->option('a.fecha'  ,'Fecha');
+$filter->ordenpor->option('a.proveed','Proveedor');
+$filter->ordenpor->rule = 'required|enum[a.fecha,a.proveed]';
+$filter->ordenpor->clause ='';
+
+$filter->salformat = new radiogroupField('Formato de salida','salformat');
+$filter->salformat->options($this->opciones);
+$filter->salformat->insertValue ='PDF';
+$filter->salformat->clause = '';
+
+$filter->buttons('search');
+$filter->build();
+
+if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
+	$mSQL=$this->rapyd->db->orderby($filter->ordenpor->newValue);
+	$mSQL=$this->rapyd->db->_compile_select();
+	//echo $mSQL; exit();
+
+	$pdf = new PDFReporte($mSQL);
+	$pdf->setHeadValores('TITULO1');
+	$pdf->setSubHeadValores('TITULO2','TITULO3');
+	$pdf->setTitulo('Listado de Compras por Fecha');
+ 	$pdf->setSubTitulo('Desde la fecha: '.$_POST['fechad'].' Hasta '.$_POST['fechah']);
+	$pdf->setSobreTabla('Por '.strtolower($filter->tfecha->description));
+	$pdf->AddPage();
+	$pdf->setTableTitu(10,'Times');
+
+	$fcol = preg_replace('/^[a-zA-Z]+\./', '', $filter->tfecha->newValue);
+	$pdf->AddCol($fcol     ,25,'Fecha'    ,'C',8);
+	$pdf->AddCol('numero'  ,20,'Número'   ,'L',8);
+	$pdf->AddCol('nombre'  ,55,'Proveedor','L',8);
+	$pdf->AddCol('montotot',20,'Subtotal' ,'R',8);
+	$pdf->AddCol('montoiva',20,'Impuesto' ,'R',8);
+	$pdf->AddCol('montonet',20,'Total'    ,'R',8);
+	$pdf->setTotalizar('montotot','montoiva','montonet');
+	$pdf->Table();
+	$pdf->Output();
+
+}else{
+	if (strlen($filter->error_string)) $data['error']=$filter->error_string;
+	$data['filtro'] = $filter->output;
+	$data['titulo'] = '<h2 class="mainheader">Lista de Compras por Fecha</h2>';
+	$data['head']   = $this->rapyd->get_head();
+	$this->load->view('view_freportes', $data);
+}

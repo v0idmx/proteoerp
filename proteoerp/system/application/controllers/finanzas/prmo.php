@@ -1016,7 +1016,7 @@ class Prmo extends Controller {
 		$edit->clipro->rule='';
 		$edit->clipro->size =7;
 		$edit->clipro->maxlength =15;
-		$edit->clipro->rule  = 'required';
+		$edit->clipro->rule  = 'required|existescli';
 
 		$this->dataedit($edit);
 	}
@@ -1049,7 +1049,7 @@ class Prmo extends Controller {
 		$edit->clipro->rule  = 'required';
 		$edit->clipro->size  = 7;
 		$edit->clipro->maxlength =15;
-		$edit->clipro->rule  = 'required';
+		$edit->clipro->rule  = 'required|existesprv';
 
 		$edit->tipo = new dropdownField('Tipo','tipo');
 		$edit->tipo->option('DE','Deposito');
@@ -1584,7 +1584,7 @@ class Prmo extends Controller {
 			$mSQL = "UPDATE bmov SET liable='S' WHERE tipo_op='CH' AND numero='".$reg['docum']."' AND codbanc=${codbancdb}";
 			$this->db->query($mSQL);
 
-			if (!EMPTY($mTRAN)){
+			if (!empty($mTRAN)){
 				$mSQL = "UPDATE bmov SET liable='S' WHERE transac='".$mTRAN."'";
 				$this->db->query($mSQL);
 				$mSQL = "SELECT monto FROM bmov WHERE transac='".$mTRAN."' AND MID(numero,1,3)='IDB'";
@@ -2152,9 +2152,11 @@ class Prmo extends Controller {
 				url:  "'.site_url('ajax/buscascli').'",
 				type: "POST",
 				dataType: "json",
-				data: "q="+req.term,
+				data: { "q" : req.term },
 				success:
 					function(data){
+						$("#nombre").val("");
+
 						var sugiere = [];
 						if(data.length==0){
 							$("#nombre").val("");
@@ -2195,9 +2197,11 @@ class Prmo extends Controller {
 					url:  "'.site_url('ajax/buscasprv').'",
 					type: "POST",
 					dataType: "json",
-					data: "q="+req.term,
+					data: { "q" : req.term },
 					success:
 						function(data){
+							$("#nombre").val("");
+
 							var sugiere = [];
 							if(data.length==0){
 								$("#nombre").val("");

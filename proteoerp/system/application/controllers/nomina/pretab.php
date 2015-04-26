@@ -954,6 +954,20 @@ class Pretab extends Controller {
 			}
 		}
 
+		$sql = 'SELECT GROUP_CONCAT( DISTINCT b.ctade) AS mgas, COUNT(*) AS cana
+		FROM prenom a
+		JOIN conc b ON a.concepto=b.concepto
+		JOIN pers c ON a.codigo=c.codigo
+		JOIN depa d ON c.depto=d.departa
+		LEFT JOIN mgas AS e ON b.ctade=e.codigo
+		WHERE a.valor<>0 AND b.tipod=\'G\' AND e.codigo IS NULL';
+		$row = $this->datasis->damerow($sql);
+		if(!empty($row)){
+			if(intval($row['cana'])>0){
+				echo 'Nomina no se pudo guardar, faltan los conceptos de gasto '.$row['mgas'];
+				return false;
+			}
+		}
 
 		$tipo       = $this->datasis->dameval("SELECT tipo FROM noco WHERE codigo=${dbcontrato}");
 		$existe     = $this->datasis->dameval("SELECT COUNT(*) AS cana FROM nomina WHERE contrato=${dbcontrato} AND fecha=${dbfecha} AND trabaja=${dbtrabaja}");

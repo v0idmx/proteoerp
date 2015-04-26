@@ -1,0 +1,83 @@
+/**
+ * ProteoERP
+ *
+ * @autor    Andres Hocevar
+ * @license  GNU GPL v3
+*/
+$mSPRV=array(
+	'tabla'   =>'sprv',
+	'columnas'=>array(
+		'proveed' =>' Código',
+		'nombre'=>'Nombre',
+		'contacto'=>'Contacto'),
+	'filtro'  =>array('proveed'=>'Código','nombre'=>'Nombre'),
+	'retornar'=>array('proveed'=>'proveed'),
+	'titulo'  =>'Buscar Proveedor');
+
+$bSPRV=$this->datasis->modbus($mSPRV);
+
+$filter = new DataFilter('Filtro del Reporte');
+$filter->attributes=array('onsubmit'=>'is_loaded()');
+
+$select=array('fecha', 'numero', 'nombre', 'totpre', 'totiva', 'totbruto','CONCAT_WS("-",codb1,tipo1,cheque1) AS pagado',);
+$filter->db->select($select);
+$filter->db->from('gser');
+$filter->db->where('tipo_doc !=','XX');
+$filter->db->orderby('fecha');
+
+$filter->fechad = new dateField('Desde', 'fechad','d/m/Y');
+$filter->fechah = new dateField('Hasta', 'fechah','d/m/Y');
+$filter->fechad->clause  =$filter->fechah->clause='where';
+$filter->fechad->db_name =$filter->fechah->db_name='fecha';
+$filter->fechad->operator='>=';
+$filter->fechah->operator='<=';
+$filter->fechad->insertValue = date('Y-m-d',mktime(0, 0, 0, date('m'), date('d')-30,date('Y')));
+$filter->fechah->insertValue = date('Y-m-d');
+$filter->fechad->group="Fecha";
+
+$filter->proveed = new inputField('Proveedor', 'proveed');
+$filter->proveed->clause='where';
+$filter->proveed->operator='=';
+$filter->proveed->db_name='proveed';
+$filter->proveed->append($bSPRV);
+
+$filter->salformat = new radiogroupField('Formato de salida','salformat');
+$filter->salformat->options($this->opciones);
+$filter->salformat->insertValue ='PDF';
+$filter->salformat->clause = '';
+
+$filter->buttons('search');
+$filter->build();
+
+if($this->rapyd->uri->is_set('search')){
+	$mSQL=$this->rapyd->db->_compile_select();
+	//echo $mSQL;
+
+	$subtitu='';
+	if(isset($_POST['fechad'])) $subtitu.=' Desde la fecha '.$_POST['fechad'];
+	if(isset($_POST['fechah'])) $subtitu.=' Hasta '.$_POST['fechah'];
+
+	$pdf = new PDFReporte($mSQL);
+	$pdf->setHeadValores('TITULO1');
+	$pdf->setSubHeadValores('TITULO2','TITULO3');
+	$pdf->setTitulo("Listado Gastos por Fecha");
+	$pdf->setSubTitulo($subtitu);
+	$pdf->AddPage();
+	$pdf->setTableTitu(10,'Times');
+	$pdf->AddCol('fecha'   ,16,'Fecha'           ,'C',8);
+	$pdf->AddCol('numero'  ,20,'Número'          ,'L',8);
+	$pdf->AddCol('nombre'  ,50,'Nombre Proveedor','L',8);
+	$pdf->AddCol('totpre'  ,28,'Sub-Total'       ,'R',8);
+	$pdf->AddCol('totiva'  ,28,'Impuesto'        ,'R',8);
+	$pdf->AddCol('totbruto',28,'Total'           ,'R',8);
+	$pdf->AddCol('pagado'  ,30,'Pagado con', 'R',8);
+
+	$pdf->setTotalizar('totpre','totiva','totbruto');
+	$pdf->Table();
+	$pdf->Output();
+}else{
+	$data['filtro'] = $filter->output;
+	$data['titulo'] = '<h2 class="mainheader">Gastos por Fecha</h2>';
+	$data['head'] = $this->rapyd->get_head();
+	$this->load->view('view_freportes', $data);
+}

@@ -828,6 +828,7 @@ function elminacenti(cual){
 		$grid->column('Ajustar Saldo'          ,'<descheck><#numero#>|<#cod_cli#>|<#tipo_doc#>|<#fecha#>|<#abonoreal#></descheck>',"align=center");
 
 		$grid->build();
+		//echo $this->db->last_query();
 
 		$script='';
 		$url=site_url('supervisor/mantenimiento/ajustesaldo');
