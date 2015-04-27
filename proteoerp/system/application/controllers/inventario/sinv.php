@@ -1308,6 +1308,22 @@ class Sinv extends Controller {
 			'editoptions'   => '{ value: '.$amarca.',  style:"width:200px"}',
 			'stype'         => "'text'",
 		));
+
+
+		$grid->addField('etiqueta');
+		$grid->label('Etiq');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => 'true',
+			'width'         => 40,
+			'edittype'      => "'select'",
+			'editrules'     => '{ required:false}',
+			'editoptions'   => '{ value: (),  style:"width:200px"}',
+			'stype'         => "'text'",
+		));
+
+
+
 /*
 		$grid->addField('descrip2');
 		$grid->label('Descripci&oacute;n 2');
@@ -5277,6 +5293,164 @@ class Sinv extends Controller {
 		$this->load->view('view_ventanas', $data);
 	}
 
+	//******************************************************************
+	// Emitir Etiquetas
+	//
+	function etiquetas(){
+		$mSQL  = 'SELECT * FROM sinv a WHERE etiqueta="S" AND activo="S" ORDER BY codigo ';
+		$query = $this->db->query($mSQL);
+		if ($query->num_rows() > 0){
+			$m = 1;
+			foreach ($query->result() as $row){
+				if($m == 1) { $mGrid2.='<tr id="firstTr">'; } else { $mGrid2.='<tr>'; };
+				$mGrid2.="
+				<tr>
+					<td>".$row->fecha."</td>
+					<td>".$row->usuario."</td>
+					<td>".$row->hora."</td>
+					<td>".$row->modulo."</td>
+					<td>".$row->comenta."</td>
+				</tr>";
+				$m++;
+			}
+			$mGrid2 .= "
+			</tbody>
+			</table>
+			</div>";
+		} else {
+			$mGrid2 = "NO SE ENCONTRO MOVIMIENTO";
+		}
+
+		$descrip = $this->datasis->dameval("SELECT descrip FROM sinv WHERE id=".$claves['id']." ");
+
+		/*mes, cventa, mventa, mpvp, ccompra, mcompra,util, margen, promedio*/
+		$script = "
+		<script type=\"text/javascript\" >
+
+		<!-- All the scripts will go here  -->
+		var dsOption= {
+			fields :[
+				{name : 'mes'},
+				{name : 'cventa',   type: 'float' },
+				{name : 'mventa',   type: 'float' },
+				{name : 'mpvp' ,    type: 'float' },
+				{name : 'ccompra',  type: 'float' },
+				{name : 'mcompra',  type: 'float' },
+				{name : 'util',     type: 'float' },
+				{name : 'margen',   type: 'float' },
+				{name : 'promedio', type: 'float' }
+			],
+			recordType : 'object'
+		}
+
+		var colsOption = [
+			{id: 'mes',      header: 'Mes',          width :60, frozen: true   },
+			{id: 'cventa' ,  header: 'Cant. Venta',  width :80, align: 'right' },
+			{id: 'mventa' ,  header: 'Costo Venta',  width :80, align: 'right' },
+			{id: 'mpvp' ,    header: 'Precio Venta', width :80, align: 'right' },
+			{id: 'ccompra' , header: 'Cant Compra',  width :80, align: 'right' },
+			{id: 'mcompra' , header: 'Monto Compra', width :80, align: 'right' },
+			{id: 'util' ,    header: 'Utilidad',     width :80, align: 'right' },
+			{id: 'margen' ,  header: 'Margen %',     width :80, align: 'right' },
+			{id: 'promedio', header: 'Costo Prom.',  width :80, align: 'right' }
+		];
+
+		var gridOption={
+			id : 'grid1',
+			loadURL : '/proteoerp/inventario/sinv/consulta_ventas/".$id."',
+			container : 'grid1_container',
+			dataset : dsOption ,
+			columns : colsOption,
+			allowCustomSkin: true,
+			skin: 'vista',
+			toolbarContent: 'pdf'
+		};
+
+		var dsOption1= {
+			fields :[
+				{name : 'fecha'   },
+				{name : 'usuario' },
+				{name : 'hora'    },
+				{name : 'modulo'  },
+				{name : 'comenta' }
+			],
+			recordType : 'object'
+		}
+
+		var colsOption1 = [
+			{id: 'fecha',   header: 'Fecha',      width :70, frozen: true },
+			{id: 'usuario', header: 'Usuario',    width :60 },
+			{id: 'hora' ,   header: 'Hora',       width :60 },
+			{id: 'modulo' , header: 'Modulo',     width :60 },
+			{id: 'comenta', header: 'Comentario', width :200 }
+		];
+
+		var gridOption1={
+			id : 'grid2',
+			loadURL : '/proteoerp/inventario/sinv/consulta_logusu/".$id."',
+			container : 'grid2_container',
+			dataset : dsOption1 ,
+			columns : colsOption1,
+			toolbarContent: 'pdf',
+			allowCustomSkin: true,
+			skin: 'vista'
+		};
+
+		var mygrid=new Sigma.Grid(gridOption);
+		Sigma.Util.onLoad( Sigma.Grid.render(mygrid) );
+
+		var mygrid1=new Sigma.Grid(gridOption1);
+		Sigma.Util.onLoad( Sigma.Grid.render(mygrid1) );
+		</script>";
+
+		$style = '';
+
+		$data['content'] = "
+		<table align='center' border='0' cellspacing='2' cellpadding='2' width='98%'>
+			<tr>
+				<td valign='top'>
+					<div style='border: 3px outset #EFEFEF;background: #EFEFFF '>
+					<div id='grid1_container' style='width:500px;height:250px'></div>
+					</div>
+				</td>
+				<td>".
+				open_flash_chart_object( 250,180, site_url("inventario/sinv/ventas/$id"))."
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div style='border: 3px outset #EFEFEF;background: #EFEFFF '>
+					<div id='grid2_container' style='width:500px;height:250px'></div>
+					</div>
+
+				</td>
+				<td>".
+				open_flash_chart_object( 250,180, site_url("inventario/sinv/compras/$id"))."
+				</td>
+			</tr>
+		</table>";
+
+		$data['title']    = '<h1>Consulta de Articulo de Inventario</h1>';
+
+		$data['script']   = script("plugins/jquery.numeric.pack.js");
+		$data['script']  .= script("plugins/jquery.floatnumber.js");
+		$data['script']  .= script("gt_msg_en.js");
+		$data['script']  .= script("gt_grid_all.js");
+		$data['script']  .= $script;
+
+		$data['style']    = style('gt_grid.css');
+		$data["subtitle"] = "
+			<div align='center' style='border: 2px outset #EFEFEF;background: #EFEFEF;font-size:18px'>
+				<a href='javascript:javascript:history.go(-1)'>(".addslashes($mCodigo).") ".$descrip."</a>
+			</div>";
+
+		$data['head']  = $this->rapyd->get_head();
+		$this->load->view('view_ventanas', $data);
+	}
+
+
+
+
 	function consulta_ventas() {
 		$id = $this->uri->segment($this->uri->total_segments());
 		$mCodigo = $this->datasis->dameval("SELECT codigo FROM sinv WHERE id=".$id."");
@@ -6362,7 +6536,8 @@ class Sinv extends Controller {
 		}
 
 		if(!$this->db->table_exists('sinvpitem')){
-			$mSQL="CREATE TABLE `sinvpitem` (
+			$mSQL="
+			CREATE TABLE `sinvpitem` (
 				`producto` VARCHAR(15) NULL DEFAULT NULL COMMENT 'codigo del prod terminado (sinv)',
 				`codigo` VARCHAR(15) NULL DEFAULT NULL COMMENT 'codigo del Insumo (sinv)',
 				`descrip` VARCHAR(40) NULL DEFAULT NULL,

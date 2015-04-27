@@ -5076,7 +5076,7 @@ class Sfac extends Controller {
 			$this->db->from('itspre AS a');
 			$this->db->join('sinv AS b','b.codigo=a.codigo');
 			$this->db->where('a.numero',$numero);
-			$this->db->where('a.activo','S');
+			$this->db->where('b.activo','S');
 			$this->db->where('a.cana >','0');
 			$qquery = $this->db->get();
 			$i=0;
