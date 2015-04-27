@@ -1,0 +1,70 @@
+/**
+ * ProteoERP
+ *
+ * @autor    Andres Hocevar
+ * @license  GNU GPL v3
+*/
+$filter = new DataFilter('Filtro del Reporte');
+$filter->attributes=array('onsubmit'=>'is_loaded()');
+
+$select=array('a.cod_cli', 'a.tipo_doc', 'a.numero', 'a.fecha', 'b.nombre', 'a.totals', 'a.iva', 'a.totalg', 'a.observa1');
+$filter->db->select($select);
+$filter->db->from('otin AS a');
+$filter->db->join('scli AS b','a.cod_cli=b.cliente');
+$filter->db->orderby('a.tipo_doc');
+
+$filter->fechad = new dateField('Desde', 'fechad');
+$filter->fechah = new dateField('Hasta', 'fechah');
+$filter->fechad->clause  =$filter->fechah->clause='where';
+$filter->fechad->db_name =$filter->fechah->db_name='a.fecha';
+$filter->fechad->rule  =$filter->fechah->rule='required|chfecha';
+$filter->fechad->insertValue = date('Y-m-d',mktime(0, 0, 0, date('m'), date('d')-30, date('Y')));
+$filter->fechah->insertValue = date('Y-m-d');
+$filter->fechad->operator='>=';
+$filter->fechah->operator='<=';
+
+$filter->salformat = new radiogroupField('Formato de salida','salformat');
+$filter->salformat->options($this->opciones);
+$filter->salformat->insertValue ='PDF';
+$filter->salformat->clause = '';
+
+$filter->buttons('search');
+$filter->build();
+
+if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
+	$mSQL=$this->rapyd->db->_compile_select();
+	//echo $mSQL; eit();
+
+	$sobretabla='';
+
+	$pdf = new PDFReporte($mSQL);
+	$pdf->setHeadValores('TITULO1');
+	$pdf->setSubHeadValores('TITULO2','TITULO3');
+	$pdf->setTitulo('Estado general de otros ingresos');
+	$pdf->setSubTitulo('Desde la fecha: '.$_POST['fechad'].' Hasta '.$_POST['fechah']);
+	$pdf->setSobreTabla($sobretabla);
+	$pdf->AddPage();
+	$pdf->setTableTitu(10,'Times');
+
+	$pdf->AddCol('tipo_doc',20,'Tipo'       ,'L',8);
+	$pdf->AddCol('numero'  ,20,'Numero'     ,'L',8);
+	$pdf->AddCol('fecha'   ,20,'Fecha'      ,'L',8);
+	$pdf->AddCol('nombre'  ,70,'Nombre '    ,'L',7);
+	$pdf->AddCol('totals'  ,23,'Subtotal'   ,'R',8);
+	$pdf->AddCol('iva'     ,23,'Impuesto'   ,'R',8);
+	$pdf->AddCol('totalg'  ,23,'Total'      ,'R',8);
+	$pdf->AddCol('observa1',23,'Observacon' ,'R',8);
+
+	$pdf->setGrupoLabel('Tipo documento: <#tipo_doc#>');
+	$pdf->setGrupo('tipo_doc');
+	$pdf->setTotalizar('totals','iva','totalg');
+	$pdf->Table();
+	$pdf->Output();
+
+}else{
+	if(strlen($filter->error_string)) $data['error']=$filter->error_string;
+	$data['filtro'] = $filter->output;
+	$data['titulo'] = '<h2 class="mainheader">Estado general de otros ingresos</h2>';
+	$data['head']   = $this->rapyd->get_head();
+	$this->load->view('view_freportes', $data);
+}
