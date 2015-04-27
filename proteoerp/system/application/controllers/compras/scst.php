@@ -5526,7 +5526,7 @@ class Scst extends Controller {
 		
 		
 		$gcampos = $this->db->list_fields('sinv');
-		if(!in_array('etiqueta',$campos)) {
+		if(!in_array('etiqueta',$gcampos)) {
 			$mSQL="ALTER TABLE sinv ADD COLUMN etiqueta CHAR(1) NULL DEFAULT 'N' COMMENT 'Emitir Etiqueta' ";
 			$this->db->query($mSQL);
 		}
