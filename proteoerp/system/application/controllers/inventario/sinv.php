@@ -1318,7 +1318,7 @@ class Sinv extends Controller {
 			'width'         => 40,
 			'edittype'      => "'select'",
 			'editrules'     => '{ required:false}',
-//			'editoptions'   => '{ value: (),  style:"width:200px"}',
+			'editoptions'   => '{ value: { "N":"No","S":"Si"},  style:"width:200px"}',
 			'stype'         => "'text'",
 		));
 
