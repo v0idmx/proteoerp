@@ -2174,20 +2174,16 @@ class Scst extends Controller {
 		$edit->credito->when=array('show');
 
 		$edit->montotot  = new inputField('Subtotal', 'montotot');
-		//$edit->montotot->onkeyup='cmontotot()';
 		$edit->montotot->size = 12;
 		$edit->montotot->autocomplete=false;
 		$edit->montotot->css_class='inputnum';
 
 		$edit->montoiva  = new inputField('IVA', 'montoiva');
-		//$edit->montoiva->onkeyup='cmontoiva()';
 		$edit->montoiva->size = 12;
 		$edit->montoiva->autocomplete=false;
 		$edit->montoiva->css_class='inputnum';
 
 		$edit->montonet  = new hiddenField('Total', 'montonet');
-		//$edit->montonet->size = 20;
-		//$edit->montonet->css_class='inputnum';
 
 		$edit->anticipo  = new inputField('Anticipo', 'anticipo');
 		$edit->anticipo->size = 12;
@@ -2207,7 +2203,6 @@ class Scst extends Controller {
 		$edit->riva  = new inputField('Retenci&oacute;n IVA', 'reteiva');
 		$edit->riva->size = 11;
 		$edit->riva->css_class='inputnum';
-		//$edit->riva->when=array('show');
 
 		$edit->mdolar  = new inputField('Monto US $', 'mdolar');
 		$edit->mdolar->size = 12;
@@ -2228,7 +2223,7 @@ class Scst extends Controller {
 
 		//****************************
 		//Campos para el detalle
-		//****************************
+		//
 		$edit->codigo = new inputField('C&oacute;digo', 'codigo_<#i#>');
 		$edit->codigo->size=12;
 		$edit->codigo->autocomplete=false;
@@ -2305,7 +2300,7 @@ class Scst extends Controller {
 
 		//*****************************
 		//Campos para el detalle reten
-		//****************************
+		//
 		$edit->codigorete = new dropdownField('','codigorete_<#i#>');
 		$edit->codigorete->option('','Seleccionar');
 		$edit->codigorete->options('SELECT TRIM(codigo) AS codigo,TRIM(CONCAT_WS("-",tipo,codigo,activida)) AS activida FROM rete ORDER BY tipo,codigo');
@@ -2347,17 +2342,17 @@ class Scst extends Controller {
 		$edit->monto->maxlength =8;
 		$edit->monto->showformat ='decimal';
 		$edit->monto->type='inputhidden';
-		//*****************************
+		//
 		//Fin de campos para detalle
 		//*****************************
 
 		//*****************************
 		//Campos relacionados con ordc
-		//*****************************
+		//
 		$edit->ordc = new hiddenField('', 'ordc_<#i#>');
 		$edit->ordc->db_name  ='orden';
 		$edit->ordc->rel_id   ='scstordc';
-		//*****************************
+		//
 		//Fin de campos ordc
 		//*****************************
 
@@ -2921,6 +2916,9 @@ class Scst extends Controller {
 		}
 	}
 
+	//******************************************************************
+	// Actualizar
+	//
 	function actualizar($control){
 		$this->rapyd->load('dataform');
 		$dbcontrol = $this->db->escape($control);
@@ -2979,8 +2977,10 @@ class Scst extends Controller {
 			if( in_array($scstrow['tipo_doc'], array('FC','NE') )){
 				$opt_arr=array(
 					'D' => 'Dejar el precio mayor',
+					'M' => 'Obliga Margen',
 					'N' => 'No',
 					'S' => 'Si'
+
 				);
 
 				$optstr  = $this->datasis->traevalor('SCSTACTUALIOPT','Fija las opciones para actualizar compras Ej SND');
@@ -3001,15 +3001,16 @@ class Scst extends Controller {
 				$form->cprecio->append(' <sup>1</sup>');
 				$form->cprecio->title ='Ver nota 1';
 				$form->cprecio->style = 'width:170px;';
-				$form->cprecio->rule  = 'required|enum[D,N,S]';
+				$form->cprecio->rule  = 'required|enum[D,N,S,M]';
 
 				$htmltabla='
 				<div  style="background-color:#9D9FFF;font-size:1.2em">
 				<span style="font-size:1.2em"><sup>1</sup> Opciones para <b>cambio de precios</b>:</span>
 				<ul style="padding: 0px;margin: 0px 0px 0px 20px;">
-					<li><b>Dejar mayor</b>: Coloca el precio mayor entre el precio en inventario y el nuevo precio seg&uacute;n compra.</li>
 					<li><b>No</b>:Respeta los precios de los productos en inventario e ignora los provenientes de la compra.</li>
 					<li><b>Si</b>:Coloca los precios provenientes de la compra reemplazando los del inventario exepto los productos marcados con la opci&oacute;n de repetar margen a los cuales se les calculara el precio sin modificar sus margenes.</li>
+					<li><b>Dejar mayor</b>: Coloca el precio mayor entre el precio en inventario y el nuevo precio seg&uacute;n compra.</li>
+					<li><b>Obligar margen</b>: Calcula el precio a partir del costo nuevo aplicando el margen suministrado.</li>
 				</ul>
 				</div>';
 			}else{
@@ -3061,6 +3062,13 @@ class Scst extends Controller {
 			}
 			//Fin precios S
 
+			$form->margens = new inputField('Obligar Margen', 'margens');
+			$form->margens->css_class    = 'inputnum';
+			$form->margens->size         = 10;
+			$form->margens->maxlength    = 13;
+			$form->margens->autocomplete = false;
+			$form->margens->insertValue = 30.00;
+
 			//Advertencia cambio de precios N
 			$mSQL = "SELECT GROUP_CONCAT(DISTINCT TRIM(a.codigo)) AS codigos
 				FROM itscst AS a
@@ -3085,7 +3093,7 @@ class Scst extends Controller {
 				GREATEST((b.precio4/(1+(b.iva/100))),(a.precio4/(1+(b.iva/100)))) < a.costo   ) AND a.control=${dbcontrol}";
 			$codigos=trim($this->datasis->dameval($mSQL));
 			if(!empty($codigos)){
-				$form->advd = new containerField('advd','<div id="advd" '.$style.'>Los productos <b>'.$codigos.'</b> van a quedar en perdida si  procede con esta operaci&oacute;n.</div>');
+				$form->advd = new containerField('advd','<div id="advd" '.$style.'>Los productos <b>'.$codigos.'</b> van a quedar en perdida si procede con esta operaci&oacute;n.</div>');
 			}
 			//Fin de advertencia cambio de precios D
 
@@ -3096,9 +3104,22 @@ class Scst extends Controller {
 			if($form->on_success()){
 				$cprecio   = $form->cprecio->newValue;
 				$actualiza = $form->fecha->newValue;
+				$margens   = intval($form->margens->newValue);
 				$cambio    = $cprecio;
 				$dbcontrol = $this->db->escape($control);
 				$id = $this->datasis->dameval("SELECT id FROM scst WHERE control=${dbcontrol}");
+
+				if($cprecio == 'M'){
+					if( $margens <= 0 ){
+						$rt=array(
+							'status' =>'B',
+							'mensaje'=>'El margen debe ser mayor que cero.',
+							'pk'     =>array('id'=>$id)
+						);
+						echo json_encode($rt);
+						return false;
+					}
+				}
 
 				//Valida que si cambia los precios estos no esten por debajo del costo
 				if($cprecio!='N'){
@@ -3127,7 +3148,7 @@ class Scst extends Controller {
 					$tordc=null;
 				}
 
-				$rt = $this->_actualizar($id,$cambio,$actualiza,$tordc);
+				$rt = $this->_actualizar($id,$cambio,$actualiza,$tordc,$margens);
 				if($rt === false){
 					$rt=array(
 						'status' =>'B',
@@ -3475,7 +3496,7 @@ class Scst extends Controller {
 		}
 	}
 
-	function _actualizar($id, $cprecio, $actuali=null,$tordc=null){
+	function _actualizar($id, $cprecio, $actuali=null,$tordc=null, $margens = 0){
 		$error = 0;
 		$pasa  = $this->datasis->dameval('SELECT COUNT(*) AS cana FROM scst WHERE actuali>=fecha AND id= '.$id);
 
@@ -3570,9 +3591,8 @@ class Scst extends Controller {
 									'precio4' => $itrow->precio4
 								);
 								$mSQL = $this->db->update_string('itscst', $data, 'id = '.$this->db->escape($itrow->id));
-								$ban=$this->db->simple_query($mSQL);
+								$ban  = $this->db->simple_query($mSQL);
 								if(!$ban){ memowrite($mSQL,'scst'); $error++; }
-
 							}
 							//Fin modalidad de bulto
 							$dfaltante+=round($itrow->devcant*$itrow->costo*(1+($itrow->iva/100)),2);
@@ -3591,9 +3611,8 @@ class Scst extends Controller {
 								pfecha1='.$this->db->escape($fecha).',
 								activo="S"
 								WHERE codigo='.$dbcodigo;
-							$ban=$this->db->simple_query($mSQL);
+							$ban = $this->db->simple_query($mSQL);
 							if(!$ban){ memowrite($mSQL,'scst'); $error++; }
-
 
 							//Chequea que no este in inventario fisico antes de cargar cantidades y que no venga de una NE
 							$nentrega = trim($itrow->nentrega);
@@ -3664,6 +3683,25 @@ class Scst extends Controller {
 											$ban =$this->db->simple_query($mSQL);
 											if(!$ban){ memowrite($mSQL,'scst'); $error++; }
 										}
+									}elseif($cprecio=='M'){  // Fija un Margen
+										$mSQL='UPDATE sinv SET
+											margen1='.$margens.',
+											margen2='.$margens.',
+											margen3='.$margens.',
+											margen4='.$margens.'-1,
+											base1=ROUND('.$costo.'*100/(100-'.$margens.'),2),
+											base2=ROUND('.$costo.'*100/(100-'.$margens.'),2),
+											base3=ROUND('.$costo.'*100/(100-'.$margens.'),2),
+											base4=ROUND('.$costo.'*100/(101-'.$margens.'),2),
+											precio1=ROUND(('.$costo.'*100/(100-'.$margens.'))*(1+(iva/100)),2),
+											precio2=ROUND(('.$costo.'*100/(100-'.$margens.'))*(1+(iva/100)),2),
+											precio3=ROUND(('.$costo.'*100/(100-'.$margens.'))*(1+(iva/100)),2),
+											precio4=ROUND(('.$costo.'*100/(101-'.$margens.'))*(1+(iva/100)),2),
+											activo="S"
+										WHERE codigo='.$dbcodigo;
+										$ban=$this->db->simple_query($mSQL);
+										memowrite($mSQL,'scst');
+										if(!$ban){ memowrite($mSQL,'scst'); $error++; }
 									}
 								}
 								//Fin del cambio de precios
@@ -5472,28 +5510,31 @@ class Scst extends Controller {
 			COMMENT='Vehiculos a la venta'
 			COLLATE='latin1_swedish_ci'
 			ENGINE=MyISAM";
-			$this->db->simple_query($mSQL);
+			$this->db->query($mSQL);
 		}
 
 		if(!$this->datasis->iscampo('scst','id') ) {
-			$this->db->simple_query('ALTER TABLE scst DROP PRIMARY KEY');
-			$this->db->simple_query('ALTER TABLE scst ADD UNIQUE INDEX control (control)');
-			$this->db->simple_query('ALTER TABLE scst ADD COLUMN id INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
-
-			$this->db->simple_query("UPDATE tmenus SET secu=1 WHERE titulo='Incluye'");
-			$this->db->simple_query("UPDATE tmenus SET secu=2 WHERE titulo='Modifica'");
-			$this->db->simple_query("UPDATE tmenus SET secu=3 WHERE titulo='Prox'");
-			$this->db->simple_query("UPDATE tmenus SET secu=4 WHERE titulo='Ante'");
-			$this->db->simple_query("UPDATE tmenus SET secu=5 WHERE titulo='Elimina'");
-			$this->db->simple_query("UPDATE tmenus SET secu=6 WHERE titulo='Busca'");
-			$this->db->simple_query("UPDATE tmenus SET secu=7 WHERE titulo='Tabla'");
-			$this->db->simple_query("UPDATE tmenus SET secu=8 WHERE titulo='Lista'");
-			$this->db->simple_query("UPDATE tmenus SET secu=9 WHERE titulo='Otros'");
+			$this->db->query('ALTER TABLE scst DROP PRIMARY KEY');
+			$this->db->query('ALTER TABLE scst ADD UNIQUE INDEX control (control)');
+			$this->db->query('ALTER TABLE scst ADD COLUMN id INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
+			$this->db->query("UPDATE tmenus SET secu=1 WHERE titulo='Incluye'");
+			$this->db->query("UPDATE tmenus SET secu=2 WHERE titulo='Modifica'");
+			$this->db->query("UPDATE tmenus SET secu=3 WHERE titulo='Prox'");
+			$this->db->query("UPDATE tmenus SET secu=4 WHERE titulo='Ante'");
+			$this->db->query("UPDATE tmenus SET secu=5 WHERE titulo='Elimina'");
+			$this->db->query("UPDATE tmenus SET secu=6 WHERE titulo='Busca'");
+			$this->db->query("UPDATE tmenus SET secu=7 WHERE titulo='Tabla'");
+			$this->db->query("UPDATE tmenus SET secu=8 WHERE titulo='Lista'");
+			$this->db->query("UPDATE tmenus SET secu=9 WHERE titulo='Otros'");
 		}
+
+		$campos=$this->db->list_fields('scst');
+		if(!in_array('margens', $campos)) $this->db->query('ALTER TABLE scst ADD COLUMN margens  DECIMAL(10,2) NULL DEFAULT "0.00" COMMENT "Margen Sugerido" AFTER cimpuesto');
+
 
 		$campos=$this->db->list_fields('itscst');
 		if(!in_array('id',      $campos)) $this->db->query('ALTER TABLE itscst ADD COLUMN id       INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
-		if(!in_array('rmargen', $campos)) $this->db->query("ALTER TABLE itscst ADD COLUMN rmargen  CHAR(1) NULL DEFAULT 'N'  COMMENT 'Respeta el margen al actualizar' AFTER `usuario`");
+		if(!in_array('rmargen', $campos)) $this->db->query("ALTER TABLE itscst ADD COLUMN rmargen  CHAR(1) NULL DEFAULT 'N'  COMMENT 'Respeta el margen al actualizar' AFTER usuario");
 		if(!in_array('nentrega',$campos)) $this->db->query("ALTER TABLE itscst ADD COLUMN nentrega CHAR(8) NULL DEFAULT NULL COMMENT 'Nota de entrega' AFTER `usuario`");
 
 		//Para islr
