@@ -733,6 +733,8 @@ class Sfac extends Controller {
 						tips = "Factura Anulada";
 					}else if(aData.numero.substr(0, 1) == "_"){
 						tips = "Factura Pendiente";
+					} else if(aData.tipo_doc=="D"){
+						tips = "Devolucion";
 					}else{
 						tips = "Factura Guardada";
 					}
@@ -804,7 +806,6 @@ class Sfac extends Controller {
 			'editoptions'   => '{ size:30, maxlength: 5 }',
 		));
 
-
 		$grid->addField('rifci');
 		$grid->label('RIF/CI');
 		$grid->params(array(
@@ -815,7 +816,6 @@ class Sfac extends Controller {
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:30, maxlength: 13 }',
 		));
-
 
 		$grid->addField('nombre');
 		$grid->label('Nombre');

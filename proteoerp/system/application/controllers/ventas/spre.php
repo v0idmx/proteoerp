@@ -878,13 +878,13 @@ datos vía telefónica.";
 
 
 		$grid->addField('cana');
-		$grid->label('Cantidad');
+		$grid->label('Cant.');
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
 			'align'         => "'right'",
 			'edittype'      => "'text'",
-			'width'         => 60,
+			'width'         => 50,
 			'editrules'     => '{ required:true }',
 			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
 			'formatter'     => "'number'",
@@ -1126,6 +1126,32 @@ datos vía telefónica.";
 		));
 */
 
+
+		$grid->setAfterInsertRow('
+			function( rid, aData, rowe){
+				if(aData.activo !== undefined){
+					if(aData.activo == "N"){
+						$(this).jqGrid( "setCell", rid, "activo","", {color:"#FFFFFF", background:"#C90623" });
+					}else {
+						$(this).jqGrid( "setCell", rid, "activo","", {color:"#FFFFFF", background:"#0A9810" });
+					}
+
+					if(aData.saldo < 0 ){
+						$(this).jqGrid( "setCell", rid, "saldo","", {color:"#FFFFFF", background:"#C90623" });
+					}else if(aData.saldo == 0 ) {
+						$(this).jqGrid( "setCell", rid, "saldo","", {color:"#000000", background:"#FFA500" });
+					}else {
+						$(this).jqGrid( "setCell", rid, "saldo","", {color:"#FFFFFF", background:"#0A9810" });
+					}
+
+
+				}
+				
+				
+				
+			}
+		');
+
 		$grid->showpager(true);
 		$grid->setWidth('');
 		$grid->setHeight('190');
@@ -1139,6 +1165,7 @@ datos vía telefónica.";
 		$grid->setSearch( $this->datasis->sidapuede('SPRE','BUSQUEDA%'));
 		$grid->setRowNum(180);
 		$grid->setShrinkToFit('false');
+
 
 		#Set url
 		$grid->setUrlput(site_url($this->url.'setdatait/'));
