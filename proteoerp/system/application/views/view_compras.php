@@ -1040,6 +1040,7 @@ if (!$solo){
 	</tr>
 </table>
 </div>
+
 </td><td valign='top'>
 	<fieldset  style='border: 1px outset #FEB404;background:#FFFCE8;'>
 	<table style="width:100%">
@@ -1052,6 +1053,7 @@ if (!$solo){
 	</fieldset>
 	<div id='idcodesta'></div>
 </td>
+
 </tr>
 </table>
 <?php

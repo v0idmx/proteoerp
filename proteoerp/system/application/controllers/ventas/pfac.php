@@ -85,9 +85,9 @@ class Pfac extends Controller {
 
 	}
 
-	//***************************
+	//******************************************************************
 	//Funciones de los Botones
-	//***************************
+	//
 	function bodyscript( $grid0, $grid1 ){
 		$bodyscript = '<script type="text/javascript">'."\n";
 
@@ -526,19 +526,6 @@ class Pfac extends Controller {
 			'editoptions'   => '{ size:5, maxlength: 5 }',
 		));
 
-/*
-		$grid->addField('rifci');
-		$grid->label('RIF/CI');
-		$grid->params(array(
-			'search'        => 'true',
-			'editable'      => $editar,
-			'width'         => 80,
-			'edittype'      => "'text'",
-			'editrules'     => '{ required:true}',
-			'editoptions'   => '{ size:13, maxlength: 13 }',
-		));
-
-*/
 		$grid->addField('nombre');
 		$grid->label('Nombre');
 		$grid->params(array(
@@ -643,31 +630,6 @@ class Pfac extends Controller {
 			'editoptions'   => '{ size:12, maxlength: 12 }',
 		));
 
-/*
-		$grid->addField('vence');
-		$grid->label('Vence');
-		$grid->params(array(
-			'search'        => 'true',
-			'editable'      => $editar,
-			'width'         => 80,
-			'align'         => "'center'",
-			'edittype'      => "'text'",
-			'editrules'     => '{ required:true,date:true}',
-			'formoptions'   => '{ label:"Fecha" }'
-		));
-
-		$grid->addField('cajero');
-		$grid->label('Cajero');
-		$grid->params(array(
-			'search'        => 'true',
-			'editable'      => $editar,
-			'width'         => 50,
-			'edittype'      => "'text'",
-			'editrules'     => '{ required:true}',
-			'editoptions'   => '{ size:5, maxlength: 5 }',
-		));
-
-*/
 		$grid->addField('peso');
 		$grid->label('Peso');
 		$grid->params(array(
@@ -802,32 +764,6 @@ class Pfac extends Controller {
 			'formoptions'   => '{ label:"Fecha" }'
 		));
 
-
-		/*$grid->addField('numant');
-		$grid->label('Numant');
-		$grid->params(array(
-			'search'        => 'true',
-			'editable'      => $editar,
-			'width'         => 80,
-			'edittype'      => "'text'",
-			'editrules'     => '{ required:true}',
-			'editoptions'   => '{ size:8, maxlength: 8 }',
-		));
-
-
-		$grid->addField('ftoma');
-		$grid->label('Ftoma');
-		$grid->params(array(
-			'search'        => 'true',
-			'editable'      => $editar,
-			'width'         => 80,
-			'align'         => "'center'",
-			'edittype'      => "'text'",
-			'editrules'     => '{ required:true,date:true}',
-			'formoptions'   => '{ label:"Fecha" }'
-		));*/
-
-
 		$grid->addField('modificado');
 		$grid->label('Modificado');
 		$grid->params(array(
@@ -839,33 +775,6 @@ class Pfac extends Controller {
 			'editrules'     => '{ required:true,date:true}',
 			'formoptions'   => '{ label:"Fecha" }'
 		));
-
-
-		/*$grid->addField('fenvia');
-		$grid->label('Fenvia');
-		$grid->params(array(
-			'search'        => 'true',
-			'editable'      => $editar,
-			'width'         => 80,
-			'align'         => "'center'",
-			'edittype'      => "'text'",
-			'editrules'     => '{ required:true,date:true}',
-			'formoptions'   => '{ label:"Fecha" }'
-		));
-
-
-		$grid->addField('faplica');
-		$grid->label('Faplica');
-		$grid->params(array(
-			'search'        => 'true',
-			'editable'      => $editar,
-			'width'         => 80,
-			'align'         => "'center'",
-			'edittype'      => "'text'",
-			'editrules'     => '{ required:true,date:true}',
-			'formoptions'   => '{ label:"Fecha" }'
-		));*/
-
 
 		$grid->addField('id');
 		$grid->label('Id');
@@ -885,31 +794,6 @@ class Pfac extends Controller {
 		$grid->setfilterToolbar(true);
 		$grid->setToolbar('false', '"top"');
 
-
-/*
-		$grid->setOnSelectRow('
-		function(id){
-			if (id){
-				var ret = jQuery(gridId1).jqGrid(\'getRowData\',id);
-				$(gridId1).jqGrid("setCaption", ret.nombre+" U. Venta "+ret.fecha1);
-				$.ajax({
-					url: "'.base_url().$this->url.'resumen/"+id,
-					success: function(msg){
-						msg += "<center><img src=\''.site_url($this->url.'vcard').'/'.'"+id+"\' alt=\'vCard\' height=\'160\' width=\'160\'></center>";
-						$("#ladicional").html(msg);
-					}
-				});
-			}
-		},
-		afterInsertRow: function( rid, aData, rowe){
-			if ( aData.tipo == "0" ){
-				$(this).jqGrid( "setCell", rid, "cliente","", {color:"#FFFFFF", \'background-color\':"#AF1001" });
-				$(this).jqGrid( "setCell", rid, "nombre", "", {color:"#FFFFFF", \'background-color\':"#AF1001" });
-			}
-		}'
-		);
-*/
-
 		$grid->setOnSelectRow('
 			function(id){
 				if (id){
@@ -922,9 +806,6 @@ class Pfac extends Controller {
 							$("#ladicional").html(ret.observa+ret.observ1+msg);
 						}
 					});
-					//$("#ladicional").text(ret.observa+ret.observ1);
-
-
 				}
 			},
 			afterInsertRow:

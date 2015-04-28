@@ -165,10 +165,10 @@ class Spre extends Controller {
 			';
 
 		$bodyscript .= '
-		jQuery("#boton1").click(function(){
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#boton1").click(function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id)	{
-				var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 				'.$this->datasis->jwinopen(site_url('formatos/ver/PRESUP').'/\'+id+\'/id\'').';
 			} else { $.prompt("<h1>Por favor Seleccione un Presupuesto</h1>");}
 		});';
@@ -185,41 +185,6 @@ class Spre extends Controller {
 				});
 			} else { $.prompt("<h1>Por favor Seleccione un Presupuesto</h1>");}
 		});';
-
-/*
-		$bodyscript .= '
-		$("#bffact").click(function(){
-			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
-			if(id){
-				var mgene = {
-				state0: {
-					html:"<h1>Enviar notificacion por email?</h1>",
-					buttons: { Cancelar: false, Aceptar: true },
-					focus: 1,
-					submit:function(e,v,m,f){
-						if(v){
-							e.preventDefault();
-							$.post("'.site_url('ventas/spre/notifica').'/"+id,
-								function(data){
-									$.prompt.goToState("state1");
-							});
-							return false;}}
-				},
-				state1: {
-					html:"<h2>Envio efectuado!</h2> ",
-					buttons: { Salir: 0 },
-					focus: 1,
-					submit:function(e,v,m,f){
-						e.preventDefault();
-						$.prompt.close();
-						grid.trigger("reloadGrid");
-					}
-				}};
-				$.prompt(mgene);
-			} else { $.prompt("<h1>Por favor Seleccione un Presupuesto</h1>");}
-		});';
-*/
-
 
 		$bodyscript .= '
 		$("#bcorreo").click(function(){
@@ -730,7 +695,7 @@ datos vía telefónica.";
 					jQuery(gridId2).jqGrid(\'setGridParam\',{url:"'.site_url($this->url.'getdatait/').'/"+id+"/", page:1});
 					jQuery(gridId2).trigger("reloadGrid");
 					$.ajax({
-						url: "'.base_url().$this->url.'tabla/"+id,
+						url: "'.site_url('ventas/scli/respres/').'/"+id,
 						success: function(msg){
 							$("#ladicional").html(msg);
 						}
@@ -738,6 +703,19 @@ datos vía telefónica.";
 				}
 			}'
 		);
+
+
+/*
+					$.ajax({
+						url: "'.base_url().$this->url.'tabla/"+id,
+						success: function(msg){
+							var meco;
+							meco = $("#ladicional").html();
+							$("#ladicional").html(meco+"<br>"+msg);
+						}
+					});
+*/
+
 
 		$grid->setFormOptionsE('closeAfterEdit:true, mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
 		$grid->setFormOptionsA('closeAfterAdd:true,  mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
@@ -867,7 +845,7 @@ datos vía telefónica.";
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
-			'width'         => 110,
+			'width'         => 100,
 			'edittype'      => "'text'",
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:15, maxlength: 15 }',
@@ -879,10 +857,23 @@ datos vía telefónica.";
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
-			'width'         => 200,
+			'width'         => 180,
 			'edittype'      => "'text'",
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:40, maxlength: 40 }',
+		));
+
+
+		$grid->addField('activo');
+		$grid->label('Actv');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 30,
+			'align'         => "'center'",
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:15, maxlength: 15 }',
 		));
 
 
@@ -893,7 +884,21 @@ datos vía telefónica.";
 			'editable'      => $editar,
 			'align'         => "'right'",
 			'edittype'      => "'text'",
-			'width'         => 100,
+			'width'         => 60,
+			'editrules'     => '{ required:true }',
+			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
+			'formatter'     => "'number'",
+			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }'
+		));
+
+		$grid->addField('saldo');
+		$grid->label('Saldo');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'align'         => "'right'",
+			'edittype'      => "'text'",
+			'width'         => 60,
 			'editrules'     => '{ required:true }',
 			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
 			'formatter'     => "'number'",
@@ -908,7 +913,7 @@ datos vía telefónica.";
 			'editable'      => $editar,
 			'align'         => "'right'",
 			'edittype'      => "'text'",
-			'width'         => 100,
+			'width'         => 70,
 			'editrules'     => '{ required:true }',
 			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
 			'formatter'     => "'number'",
@@ -923,14 +928,14 @@ datos vía telefónica.";
 			'editable'      => $editar,
 			'align'         => "'right'",
 			'edittype'      => "'text'",
-			'width'         => 100,
+			'width'         => 70,
 			'editrules'     => '{ required:true }',
 			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
 			'formatter'     => "'number'",
 			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }'
 		));
 
-
+/*
 		$grid->addField('vendedor');
 		$grid->label('Vendedor');
 		$grid->params(array(
@@ -941,7 +946,7 @@ datos vía telefónica.";
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:5, maxlength: 5 }',
 		));
-
+*/
 
 		$grid->addField('iva');
 		$grid->label('IVA');
@@ -950,14 +955,14 @@ datos vía telefónica.";
 			'editable'      => $editar,
 			'align'         => "'right'",
 			'edittype'      => "'text'",
-			'width'         => 100,
+			'width'         => 50,
 			'editrules'     => '{ required:true }',
 			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
 			'formatter'     => "'number'",
 			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }'
 		));
 
-
+/*
 		$grid->addField('fecha');
 		$grid->label('Fecha');
 		$grid->params(array(
@@ -1060,7 +1065,7 @@ datos vía telefónica.";
 			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }'
 		));
 
-/*
+
 		$grid->addField('detalle');
 		$grid->label('Detalle');
 		$grid->params(array(
@@ -1100,6 +1105,7 @@ datos vía telefónica.";
 		$grid->label('Id');
 		$grid->params(array(
 			'align'         => "'center'",
+			'hidden'        => 'true',
 			'frozen'        => 'true',
 			'width'         => 40,
 			'editable'      => 'false',
@@ -1171,7 +1177,8 @@ datos vía telefónica.";
 		}
 
 		$grid    = $this->jqdatagrid;
-		$mSQL    = "SELECT * FROM itspre WHERE numero=${dbnumero} ${orderby}";
+		$mSQL    = "SELECT a.*, b.existen, b.activo, b.existen-a.cana saldo ";
+		$mSQL   .= "FROM itspre a JOIN sinv b ON a.codigo=b.codigo WHERE numero=${dbnumero} ${orderby}";
 		$response   = $grid->getDataSimple($mSQL);
 		$rs = $grid->jsonresult( $response);
 		echo $rs;
@@ -1777,6 +1784,82 @@ datos vía telefónica.";
 			echo $edit->output;
 		}
 	}
+
+	//******************************************************************
+	// Revisa si se puede facturar
+	//
+	function puedefac($manual,$numero,$status=null){
+
+		$sel=array('a.cod_cli','b.nombre','b.tipo','b.rifci','b.dire11 AS direc'
+		,'a.totals','a.iva','a.totalg');
+		$this->db->select($sel);
+		$this->db->from('spre AS a');
+		$this->db->join('scli AS b','a.cod_cli=b.cliente','left');
+		$this->db->where('a.numero',$numero);
+		$query = $this->db->get();
+
+		if ($query->num_rows() > 0 && $status=='create'){
+			$row = $query->row();
+
+			$_POST=array(
+				'btn_submit' => 'Guardar',
+				'fecha'      => inputDateFromTimestamp(mktime(0,0,0)),
+				'cajero'     => $this->secu->getcajero(),
+				'vd'         => $this->secu->getvendedor(),
+				'almacen'    => $this->secu->getalmacen(),
+				'tipo_doc'   => 'F',
+				'factura'    => '',
+				'cod_cli'    => $row->cod_cli,
+				'sclitipo'   => $row->tipo,
+				'nombre'     => rtrim($row->nombre),
+				'rifci'      => $row->rifci,
+				'direc'      => rtrim($row->direc),
+				'totals'     => $row->totals,
+				'iva'        => $row->iva,
+				'totalg'     => $row->totalg,
+				'pfac'       => $numero,
+				'bultos'     => 0,
+			);
+
+			$itsel=array('a.codigo', 'b.descrip desca', 'a.cana', 'b.existen', 'b.existen-a.cana saldo', 'b.activo');
+			$this->db->select($itsel);
+			$this->db->from('itspre AS a');
+			$this->db->join('sinv AS b','b.codigo=a.codigo');
+			$this->db->where('a.numero',$numero);
+			//$this->db->where('b.activo','S');
+			//$this->db->where('a.cana >','0');
+			$qquery = $this->db->get();
+			$i=0;
+			$tabla1 = '<table>';
+			$tabla1 .= '<tr>';
+			$tabla  .= '<td>Activo</td>';
+			$tabla  .= '<td>Codigo</td>';
+			$tabla  .= '<td>Descripcion</td>';
+			$tabla  .= '<td>Presupuestado</td>';
+			$tabla  .= '<td>Existencia</td>';
+			$tabla  .= '<td>Saldo</td>';
+			$tabla1 .= '</tr>';
+
+			foreach ($qquery->result() as $itrow){
+				$tabla1 .= '<tr>';
+				$tabla  .= '<td>'.$itrow->activo.'</td>';
+				$tabla  .= '<td>'.rtrim($itrow->codigo).'</td>';
+				$tabla  .= '<td>'.rtrim($itrow->desca).'</td>';
+				$tabla  .= '<td>'.$itrow->cana.'</td>';
+				$tabla  .= '<td>'.$itrow->existen.'</td>';
+				$tabla  .= '<td>'.$itrow->saldo.'</td>';
+				$tabla1 .= '</tr>';
+				$i++;
+			}
+			$tabla1 = '</table>';
+
+		}else{
+			echo 'Presupuesto no existe';
+		}
+	}
+
+
+
 
 	function _pre_insertc($do){
 		$do->error_message_ar['pre_ins']='';

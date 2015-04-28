@@ -1339,6 +1339,17 @@ class Scli extends validaciones {
 		echo $salida;
 	}
 
+	//******************************************************************
+	//  Resumen rapido desde Presupuesto spre
+	//
+	function respres() {
+		$id    = $this->uri->segment($this->uri->total_segments());
+		$dbid  = $this->db->escape($id);
+		$idcli = $this->datasis->dameval("SELECT b.id FROM spre a JOIN scli b ON a.cod_cli=b.cliente WHERE a.id=${dbid}");
+		$salida = $this->_resumen($idcli);
+		echo $salida;
+	}
+
 
 	//******************************************************************
 	//  Resumen rapido desde Pedidos pfac
