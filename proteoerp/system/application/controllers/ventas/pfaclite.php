@@ -333,12 +333,12 @@ class pfaclite extends validaciones{
 				FROM sitems AS a
 				JOIN sfac AS b ON a.numa=b.numero AND a.tipoa=b.tipo_doc
 				JOIN sinv AS c ON a.codigoa=c.codigo
-				WHERE b.vd = ${dbvd} AND a.tipoa<>'X' AND b.fecha>=${dbfini} AND b.entregable='S' AND MID(b.numero,1,1) <> '_'";
+				WHERE b.vd = ${dbvd} AND a.tipoa<>'X' AND b.fecha>=${dbfini} AND MID(b.numero,1,1) <> '_'";
 			$ttpeso=nformat(floatval($this->datasis->dameval($mSQL))/1000,3);
 
 			$vmonto=$this->datasis->traevalor('PFACLITEMONTO','Muestra o no el monto que ha facturado el vendedor');
 			if($vmonto=='S'){
-				$mSQL="SELECT SUM(totals*IF(tipo_doc='F',1,-1)) AS total FROM sfac WHERE vd = ${dbvd} AND fecha>=${dbfini} AND tipo_doc<>'X' AND entregable='S' AND MID(numero,1,1) <> '_'";
+				$mSQL="SELECT SUM(totals*IF(tipo_doc='F',1,-1)) AS total FROM sfac WHERE vd = ${dbvd} AND fecha>=${dbfini} AND tipo_doc<>'X' AND MID(numero,1,1) <> '_'";
 				$monto=nformat(floatval($this->datasis->dameval($mSQL)));
 				$smonto = "Monto: ${monto}";
 			}else{
