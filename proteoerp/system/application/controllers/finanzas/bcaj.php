@@ -1402,7 +1402,7 @@ class Bcaj extends Controller {
 
 				//cierra el deposito incial
 				$mSQL = "UPDATE bcaj SET status='C' WHERE numero='$numbcaj'";
-				$this->db->simple_query($mSQL);
+				$this->db->query($mSQL);
 
 				logusu('BCAJ',"Cierre de Deposito de cheques de caja Nro. $numero creada");
 
@@ -1528,7 +1528,6 @@ class Bcaj extends Controller {
 		}
 	}
 
-
 	//******************************************************************
 	// Elimina Movimiento
 	//
@@ -1536,14 +1535,31 @@ class Bcaj extends Controller {
 		$id   = $this->uri->segment($this->uri->total_segments());
 		$dbid = $this->db->escape($id);
 
-		$drow    = $this->datasis->damerow('SELECT transac,status,numero FROM bcaj WHERE id='.$dbid);
+		$drow    = $this->datasis->damerow('SELECT transac,status,numero, comprob FROM bcaj WHERE id='.$dbid);
 		$transac = $drow['transac'];
 		$status  = $drow['status'];
 		$numero  = $drow['numero'];
-
+		$comprob = $drow['comprob'];
 		$dbtransac = $this->db->escape($transac);
-		$cana      = intval($this->datasis->dameval('SELECT COUNT(*) AS cana FROM bmov WHERE transac='.$dbtransac));
 
+		// Evalua si puede eliminarse
+		$mSQL = 'SELECT count(*) cana FROM bmov WHERE liable="S" AND concilia>=fecha AND transac='.$dbtransac;
+		$cana = $this->datasis->dameval($mSQL);
+		if ( $cana > 0 ) {
+			$rt=array('status' => 'B','mensaje' => 'Movimiento ya fue conciliado.','pk' => null);
+			echo json_encode($rt);
+			return true;
+		}
+
+		$cana = intval($this->datasis->dameval('SELECT COUNT(*) FROM smov WHERE abonos>0 AND transac='.$dbtransac));
+		if($cana>0){
+			$rt=array('status' => 'B', 'mensaje' => 'Movimiento tiene efectos abonados.', 'pk' => null);
+			echo json_encode($rt);
+			return true;
+		}
+		// Termina la evaluacion
+
+		$cana      = intval($this->datasis->dameval('SELECT COUNT(*) AS cana FROM bmov WHERE transac='.$dbtransac));
 		if($cana > 0){
 			$mSQL = 'SELECT codbanc, fecha, monto*IF(tipo_op IN (\'CH\',\'ND\'),1,-1) monto FROM bmov WHERE transac='.$dbtransac;
 			$query = $this->db->query($mSQL);
@@ -1554,35 +1570,6 @@ class Bcaj extends Controller {
 			}
 		}
 
-		$fla=false;
-		$query = $this->db->query('SELECT concilia FROM bmov WHERE liable="S" AND transac='.$dbtransac);
-		foreach ($query->result() as $row){
-			if($row->concilia!='0000-00-00' || !empty($row->concilia)){
-				$fla=true;
-			}
-		}
-
-		if($fla){
-			$rt=array(
-				'status' =>'B',
-				'mensaje'=>'Movimiento ya fue conciliado.',
-				'pk'     => null
-			);
-			echo json_encode($rt);
-			return true;
-		}
-
-		$cana = intval($this->datasis->dameval('SELECT COUNT(*) FROM smov WHERE abonos>0 AND transac='.$dbtransac));
-		if($cana>0){
-			$rt=array(
-				'status' =>'B',
-				'mensaje'=>'Movimiento tiene efectos abonados.',
-				'pk'     => null
-			);
-			echo json_encode($rt);
-			return true;
-		}
-
 		$this->db->query("DELETE FROM bcaj   WHERE transac=?", array($transac));
 		$this->db->query("DELETE FROM bmov   WHERE transac=?", array($transac));
 		$this->db->query("DELETE FROM gser   WHERE transac=?", array($transac));
@@ -1591,14 +1578,12 @@ class Bcaj extends Controller {
 		$this->db->query("DELETE FROM gitser WHERE transac=?", array($transac));
 
 		// LIBERA LOS CHEQUES SI ES DEPOSITO
-		$this->db->query('UPDATE sfpa SET status=\'\' AND deposito=\'\' WHERE deposito=?"', array($numero));
+		$this->db->query('UPDATE sfpa SET status=\'P\', deposito=? WHERE deposito=?', array($comprob, $numero));
+		// Cambia el estatus del original
+		$this->db->query('UPDATE bcaj SET status=\'P\' WHERE numero=?', array($comprob));
 		logusu('BCAJ',"MOVIMIENTO DE CAJA ${numero} Transaccion ${transac} ELIMINADO");
 
-		$rt=array(
-			'status' =>'A',
-			'mensaje'=>'Movimiento eliminado',
-			'pk'     => null
-		);
+		$rt=array('status' =>'A', 'mensaje'=>'Movimiento eliminado','pk' => null);
 		echo json_encode($rt);
 	}
 

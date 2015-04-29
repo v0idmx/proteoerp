@@ -928,7 +928,7 @@ class Pfac extends Controller {
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
-			'width'         => 100,
+			'width'         => 70,
 			'edittype'      => "'text'",
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:15, maxlength: 15 }',
@@ -939,7 +939,7 @@ class Pfac extends Controller {
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
-			'width'         => 250,
+			'width'         => 200,
 			'edittype'      => "'text'",
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:40, maxlength: 40 }',
@@ -947,7 +947,7 @@ class Pfac extends Controller {
 
 
 		$grid->addField('cana');
-		$grid->label('Cantidad');
+		$grid->label('Cant.');
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
@@ -967,7 +967,7 @@ class Pfac extends Controller {
 			'editable'      => $editar,
 			'align'         => "'right'",
 			'edittype'      => "'text'",
-			'width'         => 100,
+			'width'         => 80,
 			'editrules'     => '{ required:true }',
 			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
 			'formatter'     => "'number'",
@@ -981,7 +981,7 @@ class Pfac extends Controller {
 			'editable'      => $editar,
 			'align'         => "'right'",
 			'edittype'      => "'text'",
-			'width'         => 100,
+			'width'         => 80,
 			'editrules'     => '{ required:true }',
 			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
 			'formatter'     => "'number'",
@@ -995,7 +995,7 @@ class Pfac extends Controller {
 			'editable'      => $editar,
 			'align'         => "'right'",
 			'edittype'      => "'text'",
-			'width'         => 60,
+			'width'         => 50,
 			'editrules'     => '{ required:true }',
 			'editoptions'   => '{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }',
 			'formatter'     => "'number'",
