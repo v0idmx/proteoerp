@@ -311,7 +311,9 @@ class pfaclite extends validaciones{
 				WHERE ( vendedor = ${dbvd} OR cobrador=${dbvd} OR d.vende=${dbvd}) AND a.tipo<>0";
 			$clientes=intval($this->datasis->dameval($mSQL));
 
-			$mSQL="SELECT COUNT(*) AS cana FROM sfac WHERE vd = ${dbvd} AND fecha>=${dbfini} AND referen<>'P' AND tipo_doc<>'X' AND tipo_doc='F'";
+			$mSQL="SELECT COUNT(*) AS cana
+				FROM sfac
+				WHERE vd = ${dbvd} AND fecha>=${dbfini} AND referen<>'P' AND tipo_doc<>'X' AND tipo_doc='F' AND entregable='S' AND MID(numero,1,1) <> '_'";
 			$facturas=intval($this->datasis->dameval($mSQL));
 
 			$mSQL="SELECT SUM(aa.cana) AS cca FROM (
@@ -322,7 +324,7 @@ class pfaclite extends validaciones{
 				LEFT JOIN sclitrut AS d ON a.cliente=d.cliente
 				LEFT JOIN sclirut  AS e ON d.ruta=e.ruta
 				WHERE b.fecha>=${dbfini} AND b.vd=${dbvd} AND (a.vendedor=b.vd OR a.cobrador=b.vd OR e.vende=b.vd)
-					AND b.tipo_doc='F' AND b.entregable='S'
+					AND b.tipo_doc='F' AND b.entregable='S' AND MID(b.numero,1,1) <> '_'
 				GROUP BY a.cliente
 			) AS aa";
 			$atendidos=intval($this->datasis->dameval($mSQL));
@@ -331,12 +333,12 @@ class pfaclite extends validaciones{
 				FROM sitems AS a
 				JOIN sfac AS b ON a.numa=b.numero AND a.tipoa=b.tipo_doc
 				JOIN sinv AS c ON a.codigoa=c.codigo
-				WHERE b.vd = ${dbvd} AND a.tipoa<>'X' AND b.fecha>=${dbfini}";
+				WHERE b.vd = ${dbvd} AND a.tipoa<>'X' AND b.fecha>=${dbfini} AND b.entregable='S' AND MID(b.numero,1,1) <> '_'";
 			$ttpeso=nformat(floatval($this->datasis->dameval($mSQL))/1000,3);
 
 			$vmonto=$this->datasis->traevalor('PFACLITEMONTO','Muestra o no el monto que ha facturado el vendedor');
 			if($vmonto=='S'){
-				$mSQL="SELECT SUM(totals*IF(tipo_doc='F',1,-1)) AS total FROM sfac WHERE vd = ${dbvd} AND fecha>=${dbfini} AND tipo_doc<>'X'";
+				$mSQL="SELECT SUM(totals*IF(tipo_doc='F',1,-1)) AS total FROM sfac WHERE vd = ${dbvd} AND fecha>=${dbfini} AND tipo_doc<>'X' AND entregable='S' AND MID(numero,1,1) <> '_'";
 				$monto=nformat(floatval($this->datasis->dameval($mSQL)));
 				$smonto = "Monto: ${monto}";
 			}else{
