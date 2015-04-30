@@ -316,14 +316,13 @@ class pfaclite extends validaciones{
 				WHERE vd = ${dbvd} AND fecha>=${dbfini} AND referen<>'P' AND tipo_doc<>'X' AND tipo_doc='F' AND entregable='S' AND MID(numero,1,1) <> '_'";
 			$facturas=intval($this->datasis->dameval($mSQL));
 
-			$mSQL="SELECT SUM(aa.cana) AS cca FROM (
-				SELECT IF(b.tipo_doc='F',1,IF(b.totals=c.totals,-1,0)) AS cana
+			$mSQL="SELECT COUNT(DISTINCT aa.cliente) AS cca FROM (
+				SELECT a.cliente
 				FROM scli AS a
 				JOIN sfac AS b ON b.cod_cli=a.cliente
-				LEFT JOIN sfac AS c ON b.factura=c.numero AND c.tipo_doc='F'
 				LEFT JOIN sclitrut AS d ON a.cliente=d.cliente
-				LEFT JOIN sclirut  AS e ON d.ruta=e.ruta
-				WHERE b.fecha>=${dbfini} AND b.vd=${dbvd} AND (a.vendedor=b.vd OR a.cobrador=b.vd OR e.vende=b.vd)
+				LEFT JOIN sclirut  AS e ON d.ruta=e.ruta AND e.vende=b.vd
+				WHERE b.fecha>=${dbfini} AND b.vd=${dbvd} AND (b.vd IN (a.vendedor,a.cobrador) OR e.ruta IS NOT NULL)
 					AND b.tipo_doc='F' AND b.entregable='S' AND MID(b.numero,1,1) <> '_'
 				GROUP BY a.cliente
 			) AS aa";
