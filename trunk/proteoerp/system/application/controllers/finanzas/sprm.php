@@ -2782,7 +2782,9 @@ class Sprm extends Controller {
 
 				if($tipo_doc=='AB' && $itnoabonale>0){
 					$yaabonado=floatval($this->datasis->dameval("SELECT SUM(abono) AS val FROM itppro WHERE tipoppro='AB' AND tipo_doc=${dbittipo} AND numero=${dbitnumero} AND cod_prv=${dbcod_prv}"));
-					if($yaabonado+$itabono+$itpppago>$itmonto-$itnoabonale-$itreteiva-$itreten){
+
+					$ddif=($yaabonado+$itabono+$itpppago)-($itmonto-$itnoabonale-$itreteiva-$itreten)
+					if($ddif > $itmonto*0.001){
 						$do->error_message_ar['pre_ins']='El efecto '.$ittipo.$itnumero.' tiene un saldo bloqueado de '.nformat($itnoabonale).' que solo puede ser pagado con una NC';
 						return false;
 					}
