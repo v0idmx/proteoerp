@@ -143,7 +143,8 @@ class Sfacfiscal extends Controller{
 		$filter->build();
 
 		if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
-			$fecha=$filter->fecha->newValue;
+			$fecha  =$filter->fecha->newValue;
+			$dbfecha=$this->db->escape($fecha);
 
 			$fields = $this->db->field_data('sfac');
 			$ppk=array();
@@ -178,11 +179,11 @@ class Sfacfiscal extends Controller{
 			$monto=$this->datasis->dameval($mSQL);
 
 			$tabla='Monto: '.nformat($monto).$grid->output;
-			$mSQL='SELECT serial, MAX(factura) AS factura,MAX(ncnumero) AS ncnumero,SUM(exento+base+iva+base1+iva1+base2+iva2-ncexento-ncbase-nciva-ncbase1-nciva1-ncbase2-nciva2) AS total FROM fiscalz WHERE fecha="'.$fecha.'" GROUP BY serial';
+			$mSQL='SELECT COUNT(*) AS cana,serial, MAX(factura) AS factura,MAX(ncnumero) AS ncnumero,SUM(exento+base+iva+base1+iva1+base2+iva2-ncexento-ncbase-nciva-ncbase1-nciva1-ncbase2-nciva2) AS total FROM fiscalz WHERE fecha='.$dbfecha.' GROUP BY serial';
 			$query = $this->db->query($mSQL);
 
 			foreach ($query->result() as $row){
-				$tabla .= $row->serial.' - F'.$row->factura.' - D'.$row->ncnumero.' - '.nformat($row->total).br();
+				$tabla .= $row->serial.' x'.$row->cana.' - F'.$row->factura.' - D'.$row->ncnumero.' - '.nformat($row->total).br();
 			}
 		}else{
 			$tabla='<div class="alert">'.$filter->error_string.'</div>';
