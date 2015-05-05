@@ -91,6 +91,13 @@ $filter->tipo->option('Consumo'  ,'Consumo'  );
 $filter->tipo->option('Descartar','Descartar');
 $filter->tipo->option('Fraccion' ,'Fracción' );
 
+$filter->clase= new dropdownField('Clase','clase');
+$filter->clase->db_name='a.clase';
+$filter->clase->clause='where';
+$filter->clase->operator='=';
+$filter->clase->option('','Todas');
+$filter->clase->options('SELECT codigo,CONCAT_WS("-",codigo,descrip) AS val FROM sinvclase ORDER BY codigo');
+
 $filter->activo = new dropdownField('Activo', 'activo');
 $filter->activo->option( '','Todos');
 $filter->activo->option('S','Si');
@@ -158,7 +165,7 @@ if($this->rapyd->uri->is_set('search')){
 
 }else{
 	$data['filtro'] = $filter->output;
-	$data['titulo'] = '<h2 class="mainheader">Listado de existencias</h2>';
+	$data['titulo'] = '<h2 class="mainheader">Listado de existencias y precios</h2>';
 	$data['head'] = $this->rapyd->get_head();
 	$this->load->view('view_freportes', $data);
 }
