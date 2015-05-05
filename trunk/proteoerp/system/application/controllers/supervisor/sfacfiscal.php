@@ -21,7 +21,7 @@ class Sfacfiscal extends Controller{
 					resp=0;
 				else
 					resp=1;
-				$.post("'.$link.'",{ cajero:$("#cajero").val(),fecha:$("#fecha").val(), serial:id ,noresp:resp, nulos:$("#nulos").val()},
+				$.post("'.$link.'",{ cajero:$("#cajero").val(),fecha:$("#fecha").val(), serial:id ,noresp:resp, nulos:$("#nulos").val(),usuario:$("#usuario").val()},
 				function(data){
 					alert(data);
 				});
@@ -34,7 +34,7 @@ class Sfacfiscal extends Controller{
 					resp=0;
 				else
 					resp=1;
-				$.post("'.$linkd.'",{ cajero:$("#cajero").val(),fecha:$("#fecha").val(), serial:id ,noresp:resp, nulos:$("#nulos").val()},
+				$.post("'.$linkd.'",{ cajero:$("#cajero").val(),fecha:$("#fecha").val(), serial:id ,noresp:resp, nulos:$("#nulos").val(),usuario:$("#usuario").val()},
 				function(data){
 					alert(data);
 				});
@@ -47,7 +47,7 @@ class Sfacfiscal extends Controller{
 					resp=0;
 				else
 					resp=1;
-				$.post("'.$link2.'",{ cajero:$("#cajero").val(),fecha:$("#fecha").val(), numero:id ,noresp:resp, nulos:$("#nulos").val()},
+				$.post("'.$link2.'",{ cajero:$("#cajero").val(),fecha:$("#fecha").val(), numero:id ,noresp:resp, nulos:$("#nulos").val(),usuario:$("#usuario").val()},
 				function(data){
 					alert(data);
 				});
@@ -60,7 +60,7 @@ class Sfacfiscal extends Controller{
 					resp=0;
 				else
 					resp=1;
-				$.post("'.$link4.'",{ cajero:$("#cajero").val(),fecha:$("#fecha").val(), numero:id ,noresp:resp, nulos:$("#nulos").val()},
+				$.post("'.$link4.'",{ cajero:$("#cajero").val(),fecha:$("#fecha").val(), numero:id ,noresp:resp, nulos:$("#nulos").val(),usuario:$("#usuario").val()},
 				function(data){
 					alert(data);
 				});
@@ -255,7 +255,7 @@ class Sfacfiscal extends Controller{
 		$fecha =$this->input->post('fecha');
 		$serial=$this->input->post('serial');
 		$usr   =$this->input->post('usuario');
-		if($cajero===false || $fecha===false || $serial===false) {
+		if($cajero===false || $fecha===false || $serial===false || $usr===false) {
 			echo 'Error en los parametros';
 			return false;
 		}
