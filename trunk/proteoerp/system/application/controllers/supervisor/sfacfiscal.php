@@ -260,7 +260,7 @@ class Sfacfiscal extends Controller{
 			return false;
 		}
 		if(!$this->input->post('noresp')){
-			$and=' AND LENGTH(TRIM(maqfiscal))=0';
+			$and=' AND LENGTH(TRIM(COALESCE(maqfiscal,"")))=0';
 		}else{
 			$and='';
 		}
@@ -360,7 +360,7 @@ class Sfacfiscal extends Controller{
 			return false;
 		}
 		if(!$this->input->post('noresp')){
-			$and=' AND LENGTH(TRIM(maqfiscal))=0';
+			$and=' AND LENGTH(TRIM(COALESCE(maqfiscal,"")))=0';
 		}else{
 			$and='';
 		}
