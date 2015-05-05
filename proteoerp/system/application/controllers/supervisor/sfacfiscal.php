@@ -178,11 +178,11 @@ class Sfacfiscal extends Controller{
 			$monto=$this->datasis->dameval($mSQL);
 
 			$tabla='Monto: '.nformat($monto).$grid->output;
-			$mSQL='SELECT serial, MAX(factura) AS factura,SUM(exento+base+iva+base1+iva1+base2+iva2-ncexento-ncbase-nciva-ncbase1-nciva1-ncbase2-nciva2) AS total FROM fiscalz WHERE fecha="'.$fecha.'" GROUP BY serial';
+			$mSQL='SELECT serial, MAX(factura) AS factura,MAX(ncnumero) AS ncnumero,SUM(exento+base+iva+base1+iva1+base2+iva2-ncexento-ncbase-nciva-ncbase1-nciva1-ncbase2-nciva2) AS total FROM fiscalz WHERE fecha="'.$fecha.'" GROUP BY serial';
 			$query = $this->db->query($mSQL);
 
 			foreach ($query->result() as $row){
-				$tabla .= $row->serial.' - '.$row->factura.' - '.nformat($row->total).br();
+				$tabla .= $row->serial.' - F'.$row->factura.' - D'.$row->ncnumero.' - '.nformat($row->total).br();
 			}
 		}else{
 			$tabla='<div class="alert">'.$filter->error_string.'</div>';

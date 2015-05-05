@@ -3018,12 +3018,13 @@ class Sinv extends Controller {
 		$edit->modelo->maxlength=20;
 		$edit->modelo->rule = 'trim|strtoupper';
 
-		$edit->clase= new dropdownField('Clase', 'clase');
+		$edit->clase= new dropdownField('Clase','clase');
 		$edit->clase->style='width:100px;';
-		$edit->clase->option('A','Alta Rotacion');
-		$edit->clase->option('B','Media Rotacion');
-		$edit->clase->option('C','Baja Rotacion');
-		$edit->clase->option('I','Importacion Propia');
+		$edit->clase->db_name='a.clase';
+		$edit->clase->clause='where';
+		$edit->clase->operator='=';
+		$edit->clase->option('','Seleccionar');
+		$edit->clase->options('SELECT codigo,CONCAT_WS("-",codigo,descrip) AS val FROM sinvclase ORDER BY codigo');
 
 		$ivas=$this->datasis->ivaplica();
 		$edit->iva = new dropdownField('IVA %', 'iva');
