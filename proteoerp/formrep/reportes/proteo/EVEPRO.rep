@@ -285,32 +285,32 @@ $filter->vendedor->group = 'Producto';
 
 $filter->cod_cli = new inputField('Cliente', 'cod_cli');
 $filter->cod_cli->clause='where';
-$filter->cod_cli->db_name='cod_cli';
+$filter->cod_cli->db_name='a.cod_cli';
 $filter->cod_cli->operator='=';
 $filter->cod_cli->append($cboton);
 
 $filter->socio = new inputField('Socio', 'socio');
 $filter->socio->clause ='in';
-$filter->socio->db_name='(socio,cod_cli) ';
+$filter->socio->db_name='(a.socio, a.cod_cli) ';
 $filter->socio->append($bsocio.' No se tomar&aacute; en cuenta el cliente');
 
 $filter->grupocli = new dropdownField('Grupo de Cliente', 'grupocli');
 $filter->grupocli->clause='where';
-$filter->grupocli->db_name='grupocli';
+$filter->grupocli->db_name='a.grupocli';
 $filter->grupocli->operator='=';
 $filter->grupocli->option('','Todos');
 $filter->grupocli->options('SELECT TRIM(grupo) AS grupo, gr_desc FROM grcl ORDER BY gr_desc');
 
 $filter->ciudad = new dropdownField('Ciudad', 'ciudad');
 $filter->ciudad->clause='where';
-$filter->ciudad->db_name='ciudad';
+$filter->ciudad->db_name='a.ciudad';
 $filter->ciudad->operator='=';
 $filter->ciudad->option('','Todos');
 $filter->ciudad->options("SELECT TRIM(ciudad) AS codigo, ciudad FROM ciud ORDER BY ciudad");
 
 $filter->zona = new dropdownField('Zona', 'zona');
 $filter->zona->clause='where';
-$filter->zona->db_name='zona';
+$filter->zona->db_name='a.zona';
 $filter->zona->operator='=';
 $filter->zona->option('','Todos');
 $filter->zona->options('SELECT TRIM(codigo) AS codigo, nombre FROM zona ORDER BY nombre');
@@ -322,7 +322,7 @@ $filter->proveed->db_name='( s.prov1, s.prov2, s.prov3 )';
 
 $filter->marca = new dropdownField('Marca', 'marca');
 $filter->marca->clause ='where';
-$filter->marca->db_name='marca';
+$filter->marca->db_name='s.marca';
 $filter->marca->operator='=';
 $filter->marca->option('','Todas');
 $filter->marca->options('SELECT TRIM(marca) AS codigo, marca FROM marc ORDER BY marca');

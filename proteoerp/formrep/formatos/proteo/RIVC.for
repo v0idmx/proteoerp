@@ -6,10 +6,7 @@ $dbid=$id;
 $mSQL_1 = $this->db->query("SELECT LPAD(id,8,'0') numero, nrocomp, emision, periodo, fecha, cod_cli, nombre, rif, exento, tasa, general, geneimpu, tasaadic, adicional, adicimpu, tasaredu, reducida, reduimpu, stotal, impuesto, gtotal, reiva, estampa, hora, usuario, modificado, transac, sprmreinte, operacion,codbanc FROM rivc WHERE id=${dbid}");
 if($mSQL_1->num_rows()==0) show_error('Registro no encontrado');
 $mSQL_2 = $this->db->query("SELECT tipo_doc,fecha,numero,nfiscal,exento,tasa,general,geneimpu,tasaadic,adicional,adicimpu,tasaredu,reducida,reduimpu,stotal,impuesto,gtotal,reiva,transac,estampa,hora,usuario,ffactura,modificado FROM itrivc WHERE idrivc=${dbid}");
-
-/*$mSQL = "SELECT b.numero, b.monto, CONCAT('(',b.codbanc,') ', TRIM(d.banco),' ', d.numcuent) codbanc,    CONCAT('(',b.usuario,') ', c.us_nombre) usuario
-FROM rivc a JOIN bmov b ON a.codbanc=b.codbanc AND a.numche=b.numero JOIN usuario c ON b.usuario=c.us_codigo JOIN banc d ON b.codbanc=d.codbanc
-WHERE a.id=$dbid";*/
+if($mSQL_2->num_rows()==0) show_error('Retencion sin facturas afectadas');
 
 $row = $mSQL_1->row();
 $fecha      = dbdate_to_human($row->fecha);
@@ -20,55 +17,65 @@ $cod_cli    = $this->us_ascii2html($row->cod_cli);
 $codbanc    = $this->us_ascii2html($row->codbanc);
 $rif        = $this->us_ascii2html($row->rif);
 $periodo    = $this->us_ascii2html($row->periodo);
-$stotal     = $row->stotal;
-$gtotal     = $row->gtotal;
-$reiva      = $row->reiva;
+$stotal     = floatval($row->stotal);
+$gtotal     = floatval($row->gtotal);
+$reiva      = floatval($row->reiva);
 $transac    = $row->transac;
-$sprmreinte = $row->sprmreinte;
-$operacion  = $row->operacion;
+$operacion  = strtoupper(trim($row->operacion));
+$numero     = $row->numero;
 
+$dbtransac  = $this->db->escape($transac);
+$dbcodbanc  = $this->db->escape($codbanc);
+$dbcod_cli  = $this->db->escape($cod_cli);
 
-$mSQL="SELECT b.numero, b.monto, CONCAT('(',b.codbanc,') ', TRIM(d.banco),' ', d.numcuent) AS codbanc,    CONCAT('(',b.usuario,') ', c.us_nombre) usuario,b.negreso
-FROM bmov AS b
-JOIN banc AS d ON b.codbanc=d.codbanc
-JOIN usuario AS c ON b.usuario=c.us_codigo
-WHERE b.codbanc=".$this->db->escape($codbanc).' AND b.transac='.$this->db->escape($transac);
+$negreso = $sbmov = $egreso = $codbanc = $usuario = $anticnum = $sprmreinte ='';
+$monto=$anticipo=$reintemon= 0;
+if($operacion=='R'){
 
-$bmov=$this->datasis->damereg($mSQL);
+	$mSQL="SELECT b.numero, b.monto, CONCAT('(',b.codbanc,') ', TRIM(d.banco),' ', d.numcuent) AS codbanc, b.usuario, c.us_nombre, b.negreso
+	FROM bmov    AS b
+	JOIN banc    AS d ON b.codbanc=d.codbanc
+	LEFT JOIN usuario AS c ON b.usuario=c.us_codigo
+	WHERE b.codbanc=${dbcodbanc} AND b.transac=${dbtransac}";
 
-if (count($bmov) > 0) {
-	$negreso=$bmov['negreso'];
-	if($bmov['numero']>0){
-		$sbmov   = "Egreso numero ".$bmov['numero']."  de la Caja ".$bmov['codbanc']." por Bolivares ".nformat($bmov['monto']);
-		$egreso  = $bmov['numero'];
-		$codbanc = $bmov['codbanc'];
-		$monto   = $bmov['monto'];
-		$usuario = $bmov['usuario'];
-	} else {
-		$sbmov   = '';
-		$egreso  = '';
-		$codbanc = '';
-		$monto   = 0;
-		$usuario = '';
+	$bmov=$this->datasis->damereg($mSQL);
+
+	if(count($bmov) > 0){
+		$negreso=$bmov['negreso'];
+		if(!empty($bmov['numero'])){
+			$sbmov   = 'Egreso numero '.$bmov['numero'].' de la Caja '.$bmov['codbanc'].' por Bs. '.nformat($bmov['monto']);
+			$egreso  = $bmov['numero'];
+			$codbanc = $bmov['codbanc'];
+			$monto   = floatval($bmov['monto']);
+			if(empty($bmov['us_nombre'])){
+				$usuario = $bmov['usuario'];
+			}else{
+				$usuario = '('.$bmov['usuario'].') '.$bmov['us_nombre'];
+			}
+		}
 	}
-} else {
-	$negreso='';
-	$sbmov   = '';
-	$egreso  = '';
-	$codbanc = '';
-	$monto   = 0;
-	$usuario = '';
+
+}elseif($operacion=='A'){
+	$mSQL="SELECT SUM(monto*IF(tipo_doc IN ('AN','NC'),1,-1)) AS anticipo,GROUP_CONCAT(numero) AS numero
+	FROM smov
+	WHERE transac=${dbtransac} AND tipo_doc IN ('AN','ND') AND cod_cli=${dbcod_cli}";
+	$mSQL_3 = $this->db->query($mSQL);
+	$rrow = $mSQL_3->row();
+	$anticipo = floatval($rrow->anticipo);
+	$anticnum = $rrow->numero;
+}elseif($operacion=='P'){
+	$sprmreinte   = trim($row->sprmreinte);
+	$dbsprmreinte = $this->db->escape($sprmreinte);
+
+	$mSQL="SELECT monto
+	FROM sprm
+	WHERE transac=${dbtransac} AND tipo_doc='ND' AND numero=${dbsprmreinte}";
+	$mSQL_3 = $this->db->query($mSQL);
+	$rrow = $mSQL_3->row();
+	$reintemon = floatval($rrow->monto);
 }
-//print_r($bmov);
-//print_r($sbmov);
 
 $detalle =$mSQL_2->result();
-$numero  =$row->numero;
-
-$mSQL_3 = $this->db->query("SELECT SUM(monto*IF(tipo_doc IN ('AN','NC'),1,-1)) AS anticipo,GROUP_CONCAT(numero) AS numero FROM smov WHERE transac='$transac' AND tipo_doc IN ('AN','ND') AND cod_cli=".$this->db->escape($cod_cli));
-$rrow = $mSQL_3->row();
-$anticipo =$rrow->anticipo;
-$anticnum =$rrow->numero;
 ?>
 <html>
 <head>
@@ -80,7 +87,7 @@ $anticnum =$rrow->numero;
 <script type="text/php">
 if ( isset($pdf) ) {
 
-	$font = Font_Metrics::get_font("verdana");
+	$font = Font_Metrics::get_font('verdana');
 	$size = 6;
 	$color = array(0,0,0);
 	$text_height = Font_Metrics::get_font_height($font, $size);
@@ -123,7 +130,7 @@ if ( isset($pdf) ) {
 		</div></td>
 	</tr>
 	<tr>
-		<td style="text-align:center;">Hemos recibido del Agente de Retencion de IVA el documento especificado a continuaci&oacute;n</td>
+		<td style="text-align:center;">Hemos recibido del Agente de Retenci&oacute;n de IVA el documento especificado a continuaci&oacute;n</td>
 	</tr>
 	<tr>
 		<td>
@@ -156,8 +163,8 @@ if ( isset($pdf) ) {
 		</tr>
 		</thead>
 		<tbody>
-			<?php $treiva=0;  $mod=FALSE; $i=0; foreach ($detalle AS $items){ $i++;?>
-			<?php $treiva+=$items->reiva?>
+			<?php $treiva=0;  $mod=false; $i=0; foreach ($detalle as $items){ $i++;?>
+			<?php $treiva+=floatval($items->reiva); ?>
 		<tr class="<?php if(!$mod) echo 'even_row'; else  echo 'odd_row'; ?>">
 			<td style="text-align: center"><?php echo $items->tipo_doc.$items->numero ?></td>
 			<td style="text-align: center"><?php echo dbdate_to_human($items->fecha); ?></td>
@@ -165,7 +172,6 @@ if ( isset($pdf) ) {
 			<td style="text-align: right" ><?php echo nformat($items->impuesto);      ?></td>
 			<td style="text-align: right" ><?php echo nformat($items->reiva);         ?></td>
 		</tr>
-			<?php //if($i%10==0) echo "<p STYLE='page-break-after: always'></p>"; ?>
 			<?php $mod = ! $mod; } ?>
 		</tbody>
 		<tfoot>
@@ -189,20 +195,20 @@ if ( isset($pdf) ) {
 
 <?php
 $tabla = '';
-if ( $monto > 0 ){
+if($monto>0){
 	// reintegrado por caja
 	$tabla = "
 	<table width='100%'>
 		<tr>
 			<td><h3>SALDO REINTEGRADO AL AGENTE DESDE CAJA</h3></td>
-			<td align='right'><h3>EGRESO $negreso</h3></td>
+			<td align='right'><h3>EGRESO ${negreso}</h3></td>
 		</tr>
 	</table>
 	<p>Segun el recibo de caja siguiente:</p>
 	<table class='change_order_items'>
 	<thead>
 	<tr>
-		<th style='border-style:solid; border-width:1px;' align='center'>DÉBIDO No.</th>
+		<th style='border-style:solid; border-width:1px;' align='center'>D&Eacute;BIDO No.</th>
 		<th style='border-style:solid; border-width:1px;' align='center'>CAJA</th>
 		<th style='border-style:solid; border-width:1px;' align='center'>MONTO</th>
 		<th style='border-style:solid; border-width:1px;' align='center'>USUARIO</th>
@@ -210,31 +216,29 @@ if ( $monto > 0 ){
 	</thead>
 	<tbody>
 	<tr>
-		<td align='center'>$egreso</td>
-		<td align='center'>$codbanc</td>
+		<td align='center'>${egreso}</td>
+		<td align='center'>${codbanc}</td>
 		<td align='center'>Bs.".nformat($monto)."</td>
-		<td align='center'>$usuario</td>
+		<td align='center'>${usuario}</td>
 	</tr>
 	</tbody>";
 
 	$tabla .="
 	</table>
-	<p style=\"font-size: 12pt;text-align: center;\">El Agente de Retencion recibe a su entera conformidad el monto reintegrable producto de las retenciones de IVA consignadas.</p>
+	<p style=\"font-size: 12pt;text-align: center;\">El Agente de Retenci&oacute;n recibe a su entera conformidad el monto reintegrable producto de las retenciones de IVA consignadas.</p>
 ";
-} else {
-	if ( empty($sprmreinte) ) {
-		$tabla  = '<br><br><p style="font-size: 12pt;text-align: center;">';
-		if($anticipo>0){
-			$tabla .= 'El monto de las retenciones consignadas fueron canceladas en su totalidad por lo tanto se creo el anticipo '.$anticnum.'.';
-		}else{
-			$tabla .= 'El monto de las retenciones consignadas fueron reintegradas al cliente.';
-		}
-		$tabla .= '</p><br><br>';
-	} else {
-		$tabla  = '<br><br><br><p style="font-size: 12pt;text-align: center;">';
-		$tabla .= 'El monto de las retenciones consignadas estan por pagar con el Nro. '.$sprmreinte;
-		$tabla .= '</p><br><br><br>';
+}else{
+	$tabla  = '<br><br><p style="font-size: 12pt;text-align: center;">';
+	if($reintemon>0){
+		$tabla .= 'El monto sobrante de las retenciones consignadas estan por pagar con el Nro. '.$sprmreinte;
+	}elseif($anticipo>0){
+		$tabla .= 'Con el monto sobrante de las retenciones consignadas se creo el anticipo Nro. '.$anticnum.'.';
+	}elseif($monto>0){
+		$tabla .= 'El monto sobrante de las retenciones consignadas fueron reintegradas al cliente.';
+	}else{
+		$tabla .= 'El monto de las retenciones consignadas fueron cruzadas con la deuda cliente.';
 	}
+	$tabla .= '</p><br><br>';
 }
 
 echo $tabla;

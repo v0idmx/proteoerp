@@ -776,6 +776,23 @@ class Prmo extends Controller {
 		}
 	}
 
+	function chdocum($numche){
+		$cod_cli  = $this->input->post('clipro');
+		$dbcod_cli= $this->db->escape($cod_cli);
+		$dbnumche = intval(preg_replace('/^0+/', '',trim($numche)));
+
+		$mSQL="SELECT COUNT(*) AS cana
+			FROM sfpa AS a
+		WHERE a.cod_cli=${dbcod_cli} AND a.tipo='CH' AND
+		a.num_ref REGEXP '^0*${dbnumche} *$'";
+		$cana = $this->datasis->dameval($mSQL);
+		if($cana>0){
+			return true;
+		}
+		$this->validation->set_message('chdocum', 'No existe el cheque '.$numche.' relacionado al cliente');
+		return false;
+	}
+
 
 	function prmoprint($id){
 		$dbid = $this->db->escape($id);
@@ -856,6 +873,7 @@ class Prmo extends Controller {
 		$edit->nombre->size =40;
 		$edit->nombre->maxlength =40;
 		$edit->nombre->readonly = true;
+		$edit->nombre->type  = 'inputhidden';
 
 		$edit->fecha = new dateonlyField('Fecha','fecha');
 		$edit->fecha->rule='chfecha';
@@ -1113,7 +1131,7 @@ class Prmo extends Controller {
 		$edit->tipop->insertValue = '3';
 
 		$edit->clipro = new inputField('Cliente','clipro');
-		$edit->clipro->rule  = 'required';
+		$edit->clipro->rule  = 'required|existescli';
 		$edit->clipro->size =7;
 		$edit->clipro->maxlength =15;
 
@@ -1122,11 +1140,13 @@ class Prmo extends Controller {
 
 		$edit->numche->label  = 'Nota Debito';
 		$edit->docum->label   = 'Nro de Cheque';
+		$edit->docum->rule    = 'required|callback_chdocum';
 
 		$edit->codban = new dropdownField('Depositado en','codban');
 		$edit->codban->option('','Seleccionar');
 		$edit->codban->options("SELECT codbanc, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE activo='S' AND codbanc>'00' AND tbanco!='CAJ' ORDER BY codbanc");
-		$edit->codban->style = "width:210px;";
+		$edit->codban->style = 'width:210px;';
+		$edit->codban->rule  = 'required';
 
 		$this->dataedit($edit);
 	}
@@ -1184,7 +1204,7 @@ class Prmo extends Controller {
 		$edit->tipop->insertValue = '4';
 
 		$edit->clipro = new inputField('Proveedor','clipro');
-		$edit->clipro->rule  = 'required';
+		$edit->clipro->rule  = 'required|existesprv';
 		$edit->clipro->size =7;
 		$edit->clipro->maxlength =15;
 
@@ -1225,7 +1245,7 @@ class Prmo extends Controller {
 		$edit->tipop->insertValue = '5';
 
 		$edit->clipro = new inputField('Proveedor','clipro');
-		$edit->clipro->rule  = '';
+		$edit->clipro->rule  = 'required||existesprv';
 		$edit->clipro->size =7;
 		$edit->clipro->maxlength =15;
 
@@ -1267,7 +1287,7 @@ class Prmo extends Controller {
 		$edit->tipop->insertValue = '6';
 
 		$edit->clipro = new inputField('Cliente','clipro');
-		$edit->clipro->rule  = 'required';
+		$edit->clipro->rule  = 'required|existesprv';
 		$edit->clipro->size =7;
 		$edit->clipro->maxlength =15;
 
@@ -1304,13 +1324,15 @@ class Prmo extends Controller {
 
 	function _pre_insert($do){
 
-		$numche = $do->get('numche');
-		$monto  = $do->get('monto');
-		$tipop  = $do->get('tipop');
-		$docum  = $do->get('docum');
-		$codban = trim($do->get('codban'));
+		$numche  = $do->get('numche');
+		$monto   = $do->get('monto');
+		$tipop   = $do->get('tipop');
+		$docum   = $do->get('docum');
+		$codban  = trim($do->get('codban'));
 
-		$escaja = $this->datasis->dameval("SELECT tbanco FROM banc WHERE codbanc=".$this->db->escape($codban));
+		$dbcodban= $this->db->escape($codban);
+
+		$escaja = $this->datasis->dameval("SELECT tbanco FROM banc WHERE codbanc=".$dbcodban);
 
 		$atipop = array('1','2','3','4','5','6');
 		if(!in_array($tipop, $atipop)){
@@ -1462,12 +1484,12 @@ class Prmo extends Controller {
 			}
 
 			// revisa si el bco tiene proveedor
-			$clipro = $this->datasis->dameval("SELECT a.codprv FROM banc a JOIN sprv b ON a.codprv=b.proveed WHERE a.codbanc=".$this->db->escape($codban));
+			$clipro = $this->datasis->dameval("SELECT a.codprv FROM banc a JOIN sprv b ON a.codprv=b.proveed WHERE a.codbanc=".$dbcodban);
 			if(empty($clipro)){
 				$do->error_message_ar['pre_ins']='El Banco no tiene asignado proveedor';
 				return false;
 			}
-			$nombre = $this->datasis->dameval("SELECT b.nombre FROM banc a JOIN sprv b ON a.codprv=b.proveed WHERE a.codbanc=".$this->db->escape($codban));
+			$nombre = $this->datasis->dameval("SELECT b.nombre FROM banc a JOIN sprv b ON a.codprv=b.proveed WHERE a.codbanc=".$dbcodban);
 
 			$numero  = $this->datasis->fprox_numero('nprmo');
 			$transac = $this->datasis->fprox_numero('ntransa');
@@ -1541,7 +1563,17 @@ class Prmo extends Controller {
 		$transac   = $do->get('transac');
 		$transacdb = $this->db->escape($transac);
 
+		$cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM casi WHERE comprob=${transacdb}"));
+		if($cana>0){
+			$do->error_message_ar['pre_del']='El efecto ya esta en contabilidad, no puede ser modificado ni eliminado (Asiento '.$transac.').';
+			return false;
+		}
+
 		$reg = $this->datasis->damereg("SELECT * FROM prmo WHERE transac=${transacdb}");
+		if(empty($reg)){
+			$do->error_message_ar['pre_del'] = 'Transaccion no valida '.$transac;
+			return false;
+		}
 
 		$codban    = $reg['codban'];
 		$codbancdb = $this->db->escape($codban);
@@ -1549,14 +1581,16 @@ class Prmo extends Controller {
 		$fecha     = $reg['fecha'];
 		$tipo      = $reg['fecha'];
 
-		$mSQL = "SELECT COUNT(*) FROM sprm WHERE transac=${transacdb} AND abonos>0";
-		IF ( $this->datasis->dameval($mSQL) > 0 ){
+		$mSQL = "SELECT COUNT(*) AS cana FROM sprm WHERE transac=${transacdb} AND abonos>0";
+		$cana = intval($this->datasis->dameval($mSQL));
+		if($cana > 0){
 			$do->error_message_ar['pre_del'] = 'Registros relacionados tienen movimientos posteriores (CxP)';
 			return false;
 		}
 
-		$mSQL = "SELECT count(*) FROM smov WHERE transac=${transacdb} AND abonos>0";
-		if ($this->datasis->dameval($mSQL) > 0){
+		$mSQL = "SELECT COUNT(*) AS cana FROM smov WHERE transac=${transacdb} AND abonos>0";
+		$cana = intval($this->datasis->dameval($mSQL));
+		if($cana > 0){
 			$do->error_message_ar['pre_del'] = 'Registros relacionados tienen ;movimientos posteriores (CxC)';
 			return false;
 		}
@@ -1577,17 +1611,19 @@ class Prmo extends Controller {
 		$mSQL = "DELETE FROM bmov WHERE transac=${transacdb}";
 		$this->db->query($mSQL);
 
-		if ( $reg['tipop'] == "4" ){   // CHEQUE DEVUELTO A PROVEEDOR
-			$mSQL  = "SELECT transac FROM bmov WHERE tipo_op='CH' AND numero='".$reg['docum']."' AND codbanc=${codbancdb}";
+		if ( $reg['tipop'] == '4' ){   // CHEQUE DEVUELTO A PROVEEDOR
+			$dbdocum=$this->db->escape($reg['docum']);
+			$mSQL  = "SELECT transac FROM bmov WHERE tipo_op='CH' AND numero=${dbdocum} AND codbanc=${codbancdb}";
 			$mTRAN = $this->datasis->dameval($mSQL);
 
-			$mSQL = "UPDATE bmov SET liable='S' WHERE tipo_op='CH' AND numero='".$reg['docum']."' AND codbanc=${codbancdb}";
+			$mSQL = "UPDATE bmov SET liable='S' WHERE tipo_op='CH' AND numero=${dbdocum} AND codbanc=${codbancdb}";
 			$this->db->query($mSQL);
 
 			if (!empty($mTRAN)){
-				$mSQL = "UPDATE bmov SET liable='S' WHERE transac='".$mTRAN."'";
+				$dbmTRAN=$this->db->escape($mTRAN);
+				$mSQL = "UPDATE bmov SET liable='S' WHERE transac=${dbmTRAN}";
 				$this->db->query($mSQL);
-				$mSQL = "SELECT monto FROM bmov WHERE transac='".$mTRAN."' AND MID(numero,1,3)='IDB'";
+				$mSQL = "SELECT monto FROM bmov WHERE transac=${dbmTRAN} AND MID(numero,1,3)='IDB'";
 				$mIDB = $this->datasis->dameval($mSQL);
 				$mIDB = floatval($mIDB);
 				// DEVUELVE EL IDB
@@ -1610,7 +1646,7 @@ class Prmo extends Controller {
 		}
 
 		// DEBITO BANCARIO
-		if ( $mTBANCO != 'CAJ' && $reg['tipop'] == "1" ){
+		if ( $mTBANCO != 'CAJ' && $reg['tipop'] == '1' ){
 			// QUITA IDB
 			$mSQL = "DELETE FROM gser WHERE transac=${transacdb}";
 			$this->db->query($mSQL);
@@ -1634,7 +1670,6 @@ class Prmo extends Controller {
 		$mSQL = "DELETE FROM prmo WHERE transac=${transacdb}";
 		$this->db->query($mSQL);
 
-		//$do->error_message_ar['pre_del']='Registro no se puede elimnar';
 		return true;
 	}
 
@@ -1647,12 +1682,17 @@ class Prmo extends Controller {
 		$fecha   = $do->get('fecha');
 		$negreso = $do->get('negreso');
 		$tipo    = $do->get('tipo');
+		$docum   = $do->get('docum');
+
+
+		$dbcodban= $this->db->escape($codban);
+		$dbdocum = $this->db->escape($docum);
 
 		//GUARDA PRESTAMO OTORGADO
 		if($tipop == '1'){
 			// Crea bmov egreso
 			$this->datasis->actusal($codban, $fecha, -1*$monto );
-			$dbcodban = $this->db->escape($codban);
+
 
 			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc=${dbcodban}");
 
@@ -1693,14 +1733,15 @@ class Prmo extends Controller {
 
 			// Crea smov el pasivo
 			//$mNUMERO   = $this->datasis->fprox_numero('ndcli');
-			$mNUMERO = 'P'.str_pad($do->get('numero'), 7, "0", STR_PAD_LEFT);
-
-			$dbmNUMERO = $this->db->escape($mNUMERO);
-			$mSQL = "SELECT COUNT(*) AS val FROM smov WHERE tipo_doc='ND' AND numero=${dbmNUMERO}";
-
-			while(intval($this->datasis->dameval($mSQL)) > 0){
-				$mNUMERO  = $this->datasis->fprox_numero('ndcli');
-				$mSQL = "SELECT COUNT(*) AS val FROM smov WHERE tipo_doc='ND' AND numero=${dbmNUMERO}";
+			$cana    = 1;
+			$mNUMERO = 'P'.str_pad(substr($do->get('numero'),(-1)*($this->datasis->long-1)), $this->datasis->long-1, '0', STR_PAD_LEFT);
+			while($cana > 0){
+				$dbmNUMERO = $this->db->escape($mNUMERO);
+				$mSQL      = "SELECT COUNT(*) AS cana FROM smov WHERE tipo_doc='ND' AND numero=${dbmNUMERO}";
+				$cana      = intval($this->datasis->dameval($mSQL));
+				if($cana==0) break;
+				$mNUMERO   = $this->datasis->fprox_numero('ndprmo');
+				$mNUMERO   = 'P'.substr($mNUMERO,1);
 			}
 
 			$data = array();
@@ -1736,7 +1777,7 @@ class Prmo extends Controller {
 			// Crea bmov ingreso
 			$this->datasis->actusal($codban, $fecha, $monto );
 
-			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc='".$codban."'");
+			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc=${dbcodban}");
 			$mCUENTA  = $mREG['numcuent'];
 			$mBANCO   = $mREG['banco'];
 			$mSALDO   = $mREG['saldo'];
@@ -1772,12 +1813,11 @@ class Prmo extends Controller {
 			if( $ban == false ){ memowrite($mSQL,'bmov');}
 
 			// Crea sprm CxP
-			$mNUMERO  = $this->datasis->fprox_numero('num_nd');
-			$mSQL = "SELECT count(*) FROM sprm WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
-
-			while ( $this->datasis->dameval($mSQL) > 0 ) {
+			$cana = 1;
+			while($cana > 0){
 				$mNUMERO  = $this->datasis->fprox_numero('num_nd');
-				$mSQL = "SELECT count(*) FROM sprm WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
+				$mSQL = "SELECT COUNT(*) AS cana FROM sprm WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
+				$cana = intval($this->datasis->dameval($mSQL));
 			}
 
 			$data = array();
@@ -1812,7 +1852,7 @@ class Prmo extends Controller {
 			// Crea bmov egreso
 			$this->datasis->actusal($codban, $fecha, -1*$monto );
 
-			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc='".$codban."'");
+			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc=${dbcodban}");
 
 			$mCUENTA  = $mREG['numcuent'];
 			$mBANCO   = $mREG['banco'];
@@ -1849,16 +1889,17 @@ class Prmo extends Controller {
 			$ban = $this->db->simple_query($mSQL);
 			if($ban==false){ memowrite($mSQL,'bmov');}
 
-
 			// Crea smov CxC
 			//$mNUMERO  = $this->datasis->fprox_numero('ndcli');
-			$mNUMERO = 'P'.str_pad($do->get('numero'), 7, "0", STR_PAD_LEFT);
-
-			$mSQL = "SELECT COUNT(*) FROM smov WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
-
-			while ( $this->datasis->dameval($mSQL) > 0 ) {
-				$mNUMERO  = $this->datasis->fprox_numero('ndcli');
-				$mSQL = "SELECT COUNT(*) FROM smov WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
+			$cana    = 1;
+			$mNUMERO = 'P'.str_pad(substr($do->get('numero'),(-1)*($this->datasis->long-1)), $this->datasis->long-1, '0', STR_PAD_LEFT);
+			while($cana > 0){
+				$dbmNUMERO = $this->db->escape($mNUMERO);
+				$mSQL      = "SELECT COUNT(*) AS cana FROM smov WHERE tipo_doc='ND' AND numero=${dbmNUMERO}";
+				$cana      = intval($this->datasis->dameval($mSQL));
+				if($cana==0) break;
+				$mNUMERO   = $this->datasis->fprox_numero('ndprmo');
+				$mNUMERO   = 'P'.substr($mNUMERO,1);
 			}
 
 			$data = array();
@@ -1893,7 +1934,7 @@ class Prmo extends Controller {
 			// Crea bmov egreso
 			$this->datasis->actusal($codban, $fecha, $monto );
 
-			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc='".$codban."'");
+			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc=${dbcodban}");
 			$mCUENTA  = $mREG['numcuent'];
 			$mBANCO   = $mREG['banco'];
 			$mSALDO   = $mREG['saldo'];
@@ -1930,12 +1971,11 @@ class Prmo extends Controller {
 			if( $ban == false ){ memowrite($mSQL,'bmov');}
 
 			// Crea sprm CxP
-			$mNUMERO  = $this->datasis->fprox_numero('num_nd');
-			$mSQL = "SELECT COUNT(*) FROM sprm WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
-
-			while ( $this->datasis->dameval($mSQL) > 0 ) {
+			$cana = 1;
+			while($cana > 0){
 				$mNUMERO  = $this->datasis->fprox_numero('num_nd');
-				$mSQL = "SELECT COUNT(*) FROM sprm WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
+				$mSQL = "SELECT COUNT(*) AS cana FROM sprm WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
+				$cana = intval($this->datasis->dameval($mSQL));
 			}
 
 			$data = array();
@@ -1964,8 +2004,8 @@ class Prmo extends Controller {
 			$ban = $this->db->simple_query($mSQL);
 			if( $ban == false ){ memowrite($mSQL,'sprm');}
 
-			$mTRAN = $this->datasis->dameval("SELECT transac FROM bmov WHERE tipo_op='CH' AND numero='".$do->get('docum')."' AND codbanc='".$codban."'");
-			$this->db->simple_query("UPDATE bmov SET liable='N' WHERE tipo_op='CH' AND numero='".$do->get('docum')."' AND codbanc='".$codban."'");
+			$mTRAN = $this->datasis->dameval("SELECT transac FROM bmov WHERE tipo_op='CH' AND numero=${dbdocum} AND codbanc=${dbcodban}");
+			$this->db->simple_query("UPDATE bmov SET liable='N' WHERE tipo_op='CH' AND numero=${dbdocum} AND codbanc=${dbcodban}");
 
 
 		//GUARDA DEPOSITO POR ANALIZAR
@@ -1974,7 +2014,7 @@ class Prmo extends Controller {
 			// Crea bmov ingreso
 			$this->datasis->actusal($codban, $fecha, $monto );
 
-			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc='".$codban."'");
+			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc=${dbcodban}");
 			$mCUENTA  = $mREG['numcuent'];
 			$mBANCO   = $mREG['banco'];
 			$mSALDO   = $mREG['saldo'];
@@ -2010,12 +2050,11 @@ class Prmo extends Controller {
 			if( $ban == false ){ memowrite($mSQL,'bmov');}
 
 			// Crea sprm CxP
-			$mNUMERO  = $this->datasis->fprox_numero('num_nd');
-			$mSQL = "SELECT COUNT(*) FROM sprm WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
-
-			while ( $this->datasis->dameval($mSQL) > 0 ) {
+			$cana = 1;
+			while($cana > 0){
 				$mNUMERO  = $this->datasis->fprox_numero('num_nd');
-				$mSQL = "SELECT COUNT(*) FROM sprm WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
+				$mSQL = "SELECT COUNT(*) AS cana FROM sprm WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
+				$cana = intval($this->datasis->dameval($mSQL));
 			}
 
 			$data = array();
@@ -2050,7 +2089,7 @@ class Prmo extends Controller {
 			// Crea bmov egreso
 			$this->datasis->actusal($codban, $fecha, -1*$monto );
 
-			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc='".$codban."'");
+			$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc=${dbcodban}");
 			$mCUENTA  = $mREG['numcuent'];
 			$mBANCO   = $mREG['banco'];
 			$mSALDO   = $mREG['saldo'];
@@ -2086,12 +2125,15 @@ class Prmo extends Controller {
 			if( $ban == false ){ memowrite($mSQL,'bmov');}
 
 			//$mNUMERO  = $this->datasis->fprox_numero('ndcli');
-			$mNUMERO = 'P'.str_pad($do->get('numero'), 7, "0", STR_PAD_LEFT);
-
-			$mSQL = "SELECT COUNT(*) FROM smov WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
-			while ( $this->datasis->dameval($mSQL) > 0 ) {
-				$mNUMERO  = $this->datasis->fprox_numero('ndcli');
-				$mSQL = "SELECT COUNT(*) FROM smov WHERE tipo_doc='ND' AND numero='".$mNUMERO."' ";
+			$cana    = 1;
+			$mNUMERO = 'P'.str_pad(substr($do->get('numero'),(-1)*($this->datasis->long-1)), $this->datasis->long-1, '0', STR_PAD_LEFT);
+			while($cana > 0){
+				$dbmNUMERO = $this->db->escape($mNUMERO);
+				$mSQL      = "SELECT COUNT(*) AS cana FROM smov WHERE tipo_doc='ND' AND numero=${dbmNUMERO}";
+				$cana      = intval($this->datasis->dameval($mSQL));
+				if($cana==0) break;
+				$mNUMERO   = $this->datasis->fprox_numero('ndprmo');
+				$mNUMERO   = 'P'.substr($mNUMERO,1);
 			}
 
 			$data = array();
@@ -2160,6 +2202,7 @@ class Prmo extends Controller {
 						var sugiere = [];
 						if(data.length==0){
 							$("#nombre").val("");
+							$("#nombre_val").text("");
 						}else{
 							$.each(data, function(i, val){ sugiere.push( val );});
 						}
@@ -2171,6 +2214,7 @@ class Prmo extends Controller {
 			select: function( event, ui ) {
 				$("#clipro").attr("readonly", "readonly");
 				$("#nombre").val(ui.item.nombre);
+				$("#nombre_val").text(ui.item.nombre);
 				$("#clipro").val(ui.item.cod_cli);
 				setTimeout(function() {  $("#clipro").removeAttr("readonly"); }, 1500);
 			}
@@ -2205,6 +2249,7 @@ class Prmo extends Controller {
 							var sugiere = [];
 							if(data.length==0){
 								$("#nombre").val("");
+								$("#nombre_val").text("");
 							}else{
 								$.each(data, function(i, val){ sugiere.push( val );});
 							}
@@ -2216,6 +2261,7 @@ class Prmo extends Controller {
 			select: function( event, ui ) {
 				$("#clipro").attr("readonly", "readonly");
 				$("#nombre").val(ui.item.nombre);
+				$("#nombre_val").text(ui.item.nombre);
 				$("#clipro").val(ui.item.proveed);
 				setTimeout(function() {  $("#clipro").removeAttr("readonly"); }, 1500);
 			}
@@ -2249,9 +2295,10 @@ class Prmo extends Controller {
 		$XVENCE    = date('Y/m/d');
 		$XFECHA    = date('Y/m/d');
 		$XCODBAN   = $reg['codban'];
-		$mTBANCO   = $this->datasis->dameval("SELECT tbanco FROM banc WHERE codbanc='${XCODBAN}'");
+		$mTBANCO   = $this->datasis->dameval("SELECT tbanco FROM banc WHERE codbanc=${dbXCODBAN}");
 		$XNUMERO   = $this->datasis->fprox_numero('nprmo');
-		$XNOMBRE   = $this->datasis->dameval("SELECT nombre FROM scli WHERE cliente='".$reg['cod_cli']."'");
+		$XNOMBRE   = $this->datasis->dameval("SELECT nombre FROM scli WHERE cliente=".$this->db->escape($reg['cod_cli']));
+		$dbXCODBAN = $this->db->escape($reg['codban']);
 
 		// Guarda en PRMO
 		$aLISTA['tipop']    = '3';
@@ -2287,13 +2334,13 @@ class Prmo extends Controller {
   		// GUARDA EN BANCO
 
 		//ACTUSAL(XCODBAN, XFECHA, XMONTO*IF(XTIPO$'CH,ND',-1,1) )
-		$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc='$XCODBAN'");
+		$mREG = $this->datasis->damereg("SELECT numcuent, banco, saldo, tbanco FROM banc WHERE codbanc=${dbXCODBAN}");
 
 		$mCUENTA   = $mREG['numcuent'];
 		$mBANCO    = $mREG['banco'];
 		$mSALDO    = $mREG['saldo'];
 		$mTBANCO   = $mREG['tbanco'];
-		$XCOMPROB  = $this->datasis->fprox_numero("ncomprob");
+		$XCOMPROB  = $this->datasis->fprox_numero('ncomprob');
 
 		$aLISTA = array();
 		$aLISTA['codbanc']  = $XCODBAN;
@@ -2318,16 +2365,16 @@ class Prmo extends Controller {
 
 		$aLISTA['usuario']   = $this->secu->usuario() ;
 		$aLISTA['transac']   = $transac ;
-		$aLISTA['estampa']   = date('Y/m/d') ;
-		$aLISTA['hora']      = date('H:i:s') ;
+		$aLISTA['estampa']   = date('Y/m/d');
+		$aLISTA['hora']      = date('H:i:s');
 
 		$this->db->insert('bmov', $aLISTA);
 
 		$i = 0;
-		while ( $i == 0 ){
-			$mNUMERO = $this->datasis->fprox_numero('ndcli');
-			$mSQL    = "SELECT count(*) FROM smov WHERE tipo_doc='ND' AND numero='$mNUMERO' ";
-			$i       = $this->datasis->dameval($mSQL);
+		while($i > 0){
+			$mNUMERO = $this->datasis->fprox_numero('ndprmo');
+			$mSQL    = "SELECT COUNT(*) AS cana FROM smov WHERE tipo_doc='ND' AND numero='${mNUMERO}' ";
+			$i       = intval($this->datasis->dameval($mSQL));
 		}
 
 		$aLISTA = array();

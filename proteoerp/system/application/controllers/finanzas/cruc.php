@@ -1784,7 +1784,7 @@ class Cruc extends Controller {
 		if($tipo == 'P-C'){
 			// PROVEEDOR ----> CLIENTE
 			//$mNUMERO = $this->datasis->fprox_numero('nccli');
-			$mNUMERO = 'C'.substr($do->get('numero'), -7); //  CAMBIO # DE NC
+			$mNUMERO = 'C'.str_pad(substr($do->get('numero'),(-1)*($this->datasis->long-1)), $this->datasis->long-1, '0', STR_PAD_LEFT);
 			$data = array();
 			$data['cod_cli']  = $cliente;
 			$data['nombre']   = $do->get('nomcli');
@@ -1866,7 +1866,7 @@ class Cruc extends Controller {
 		}elseif($tipo == 'C-P'){
 			// CLIENTE ----> PROVEEDOR
 			//$mNUMERO = $this->datasis->fprox_numero('num_nc');
-			$mNUMERO = 'C'.substr($do->get('numero'), -7); //  CAMBIO # DE NC
+			$mNUMERO = 'C'.str_pad(substr($do->get('numero'),(-1)*($this->datasis->long-1)), $this->datasis->long-1, '0', STR_PAD_LEFT);
 
 			$data['cod_prv']  = $cliente;
 			$data['nombre']   = $do->get('nomcli');
@@ -1905,7 +1905,6 @@ class Cruc extends Controller {
 			}
 
 			//$mNUMERO = $this->datasis->fprox_numero('nccli');
-			//$mNUMERO = 'C'.substr($do->get('numero'), -7); //  CAMBIO # DE NC
 			$data = array();
 			$data['cod_cli']  = $proveed;
 			$data['nombre']   = $do->get('nombre');
@@ -1933,9 +1932,9 @@ class Cruc extends Controller {
 			$cana = $do->count_rel('itcruc');
 			for( $i = 0; $i < $cana; $i++ ){
 				$onumero = $do->get_rel('itcruc', 'onumero', $i);
-				$montoit = $do->get_rel('itcruc', 'monto',   $i);
-				$fechait = $do->get_rel('itcruc', 'ofecha',  $i);
-				$tipoit  = $do->get_rel('itcruc', 'tipo',    $i);
+				$montoit = $do->get_rel('itcruc', 'monto'  , $i);
+				$fechait = $do->get_rel('itcruc', 'ofecha' , $i);
+				$tipoit  = $do->get_rel('itcruc', 'tipo'   , $i);
 
 				if($tipoit == 'ADE'){
 					$mSQL = "UPDATE smov SET abonos=abonos+".$montoit." WHERE tipo_doc='".substr($onumero,0,2)."'
@@ -1949,7 +1948,7 @@ class Cruc extends Controller {
 			// CLIENTE ----> CLIENTE
 			//$mNUMERO = $this->datasis->fprox_numero('nccli');
 
-			$mNUMERO = 'C'.substr($do->get('numero'), -7); //  CAMBIO # DE NC
+			$mNUMERO = 'C'.str_pad(substr($do->get('numero'),(-1)*($this->datasis->long-1)), $this->datasis->long-1, '0', STR_PAD_LEFT);
 			$data = array();
 			$data['cod_cli']  = $proveed;
 			$data['nombre']   = $do->get('nombre');
@@ -2019,7 +2018,7 @@ class Cruc extends Controller {
 			// PROVEEDOR ----> PROVEEDOR
 			// $mNUMERO = $this->datasis->fprox_numero('num_nc');
 
-			$mNUMERO = 'C'.substr($do->get('numero'), -7); //  CAMBIO # DE NC
+			$mNUMERO = 'C'.str_pad(substr($do->get('numero'),(-1)*($this->datasis->long-1)), $this->datasis->long-1, '0', STR_PAD_LEFT);
 			$data['cod_prv']  = $proveed;
 			$data['nombre']   = $do->get('nombre');
 			$data['tipo_doc'] = 'NC';
@@ -2057,7 +2056,7 @@ class Cruc extends Controller {
 			}
 
 
-			$mNUMERO = $this->datasis->fprox_numero('num_nd');
+			//$mNUMERO = $this->datasis->fprox_numero('num_nd');
 			$data = array();
 			$data['cod_prv']  = $cliente;
 			$data['nombre']   = $do->get('nomcli');

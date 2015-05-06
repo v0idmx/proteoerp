@@ -10,8 +10,8 @@ include('common.php');
 
 class Retc extends Controller {
 	var $mModulo = 'RETC';
-	var $titp    = 'Modulo de Retenciones ISLR de clientes';
-	var $tits    = 'Modulo de Retenciones ISLR de clientes';
+	var $titp    = 'Retenciones ISLR de clientes';
+	var $tits    = 'Retenciones ISLR de clientes';
 	var $url     = 'finanzas/retc/';
 
 	function Retc(){
@@ -721,7 +721,7 @@ class Retc extends Controller {
 
 
 		$grid->addField('codigorete');
-		$grid->label('Codigo Ret.');
+		$grid->label('C&oacute;digo Ret.');
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
@@ -1641,7 +1641,7 @@ class Retc extends Controller {
 
 					// Abona la factura
 					$tiposfac = ($ittipo_doc=='F')? 'FC':'ND';
-					$mSQL = "UPDATE smov SET abonos=abonos+$itmonto WHERE numero='$itnumero' AND cod_cli='$cod_cli' AND tipo_doc='$tiposfac'";
+					$mSQL = "UPDATE smov SET abonos=abonos+${itmonto} WHERE numero='${itnumero}' AND cod_cli='${cod_cli}' AND tipo_doc='${tiposfac}'";
 					$ban=$this->db->simple_query($mSQL);
 					if($ban==false){ memowrite($mSQL,'retc'); }
 				}

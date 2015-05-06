@@ -29,8 +29,8 @@ if($form->_status <> 'show'){ ?>
 		<fieldset  style='border: 1px outset #FEB404; background: #EFECDA;'>
 		<table width='100%'>
 			<tr>
-				<td class="littletablerowth"><?php echo $form->clipro->label;  ?></td>
-				<td class="littletablerow"  ><?php echo $form->clipro->output; ?></td>
+				<td class="littletablerowth" style='width:5em'><?php echo $form->clipro->label;  ?></td>
+				<td class="littletablerow"   style='width:7em'><?php echo $form->clipro->output; ?></td>
 				<td class="littletablerowth"><?php echo $form->nombre->label;  ?></td>
 				<td class="littletablerow"  ><?php echo $form->nombre->output; ?></td>
 			</tr>
@@ -109,8 +109,8 @@ if($form->_status <> 'show'){ ?>
 		<fieldset  style='border: 1px outset #919994; background: #D5E0D9;'>
 		<table width='100%'>
 			<tr>
-				<td class="littletablerowth"><?php echo $form->clipro->label;  ?></td>
-				<td class="littletablerow"  ><?php echo $form->clipro->output; ?></td>
+				<td class="littletablerowth" style='width:5em'><?php echo $form->clipro->label;  ?></td>
+				<td class="littletablerow"   style='width:7em'><?php echo $form->clipro->output; ?></td>
 				<td class="littletablerowth"><?php echo $form->nombre->label;  ?></td>
 				<td class="littletablerow"  ><?php echo $form->nombre->output; ?></td>
 			</tr>
@@ -185,8 +185,8 @@ if($form->_status <> 'show'){ ?>
 		<fieldset  style='border: 1px outset #FEB404; background: #EFECDA;'>
 		<table width='100%'>
 			<tr>
-				<td class="littletablerowth"><?php echo $form->clipro->label;  ?></td>
-				<td class="littletablerow"  ><?php echo $form->clipro->output; ?></td>
+				<td class="littletablerowth" style='width:5em'><?php echo $form->clipro->label;  ?></td>
+				<td class="littletablerow"   style='width:7em'><?php echo $form->clipro->output; ?></td>
 				<td class="littletablerowth"><?php echo $form->nombre->label;  ?></td>
 				<td class="littletablerow"  ><?php echo $form->nombre->output; ?></td>
 			</tr>
@@ -263,8 +263,8 @@ if($form->_status <> 'show'){ ?>
 		<fieldset  style='border: 1px outset #919994; background: #D5E0D9;'>
 		<table width='100%'>
 			<tr>
-				<td class="littletablerowth"><?php echo $form->clipro->label;  ?></td>
-				<td class="littletablerow"  ><?php echo $form->clipro->output; ?></td>
+				<td class="littletablerowth" style='width:5em'><?php echo $form->clipro->label;  ?></td>
+				<td class="littletablerow"   style='width:7em'><?php echo $form->clipro->output; ?></td>
 				<td class="littletablerowth"><?php echo $form->nombre->label;  ?></td>
 				<td class="littletablerow"  ><?php echo $form->nombre->output; ?></td>
 			</tr>
@@ -340,8 +340,8 @@ if($form->_status <> 'show'){ ?>
 		<fieldset  style='border: 1px outset #FEB404;background: #EFECDA;'>
 		<table width='100%'>
 			<tr>
-				<td class="littletablerowth"><?php echo $form->codban->label;  ?></td>
-				<td class="littletablerow"  ><?php echo $form->codban->output; ?></td>
+				<td class="littletablerowth" style='width:5em'><?php echo $form->codban->label;  ?></td>
+				<td class="littletablerow"   style='width:7em'><?php echo $form->codban->output; ?></td>
 				<td class="littletablerowth"><?php echo $form->tipo->label;  ?></td>
 				<td class="littletablerow"  ><?php echo $form->tipo->output; ?></td>
 			</tr>
@@ -431,8 +431,8 @@ if($form->_status <> 'show'){ ?>
 		<fieldset  style='border: 1px outset #919994; background: #D5E0D9;'>
 		<table width='100%'>
 			<tr>
-				<td class="littletablerowth"><?php echo $form->clipro->label;  ?></td>
-				<td class="littletablerow"  ><?php echo $form->clipro->output; ?></td>
+				<td class="littletablerowth" style='width:5em'><?php echo $form->clipro->label;  ?></td>
+				<td class="littletablerow"   style='width:7em'><?php echo $form->clipro->output; ?></td>
 				<td class="littletablerowth"><?php echo $form->nombre->label;  ?></td>
 				<td class="littletablerow"  ><?php echo $form->nombre->output; ?></td>
 			</tr>
