@@ -25,6 +25,7 @@ $campos.=' <td class="littletablerow" align="right">'.$ccampos['iva']['field'].'
 $campos.=' <td class="littletablerow" align="right">'.$ccampos['importe']['field'].'</td>';
 $campos.=' <td class="littletablerow">'.$ccampos['departa']['field'].'</td>';
 $campos.=' <td class="littletablerow">'.$ccampos['sucursal']['field'].'</td>';
+$campos.=' <td class="littletablerow">'.$ccampos['gcargo']['field'].'</td>';
 $campos.=' <td class="littletablerow" align="center"><a href=\'#\' onclick="del_gitser(<#i#>);return false;">'.img("images/delete.jpg").'</a></td></tr>';
 $campos=$form->js_escape($campos);
 
@@ -72,6 +73,8 @@ var gereten_cont=<?php echo $form->max_rel_count['gereten'];?>;
 
 var departa  = '';
 var sucursal = '';
+var gcargo   = '';
+
 var comis    = <?php echo $json_comis; ?>;
 var rete     = <?php echo $json_rete;  ?>;
 
@@ -240,6 +243,11 @@ function gdeparta(val){
 //Para que el proximo registro tenga la misma sucursal
 function gsucursal(val){
 	sucursal=val;
+}
+
+//Para que el proximo registro tenga el mismo cargo
+function gcargo(val){
+	gcargo=val;
 }
 
 //Calcula la retencion del iva
@@ -424,8 +432,10 @@ function add_gitser(){
 	$("#__PTPL__").after(htm);
 	$("#departa_"+can).val(departa);
 	$("#sucursal_"+can).val(sucursal);
+	$("#gcargo_"+can).val(gcargo);
+
 	autocod(gitser_cont);
-	gitser_cont=gitser_cont+1;
+	gitser_cont = gitser_cont+1;
 }
 
 function importerete(nind){
@@ -600,9 +610,9 @@ function toggle() {
 		<td>
 <?php if( !$solo) {?>
 		<fieldset style='border: 1px outset #9AC8DA;background: #EFEFFF;'>
-		<legend class="titulofieldset" style='color: #114411;'>Detalle</legend>
+		<!--legend class="titulofieldset" style='color: #114411;'>Detalle</legend-->
 <?php } else { ?>
-		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;height:160px'>
+		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;height:160px;'>
 <?php } ?>
 		<table style="width:100%;border-collapse:collapse;padding:0px;">
 			<tr id='__PTPL__'>
@@ -614,6 +624,7 @@ function toggle() {
 				<td class="littletableheaderdet" align="right" width="110px">Importe</td>
 				<td class="littletableheaderdet"              >Depto.</td>
 				<td class="littletableheaderdet"              >Suc.</td>
+				<td class="littletableheaderdet"              >Cargo</td>
 				<?php if($form->_status!='show') {?>
 					<td class="littletableheaderdet"><a href='#' onclick="add_gitser()" title='Agregar una linea'><?php echo img(array('src' =>"images/agrega4.png", 'height' => 16, 'alt'=>'Agregar otra linea', 'title' => 'Agregar otra linea', 'border'=>'0')); ?></a></td>
 				<?php } ?>
@@ -626,6 +637,7 @@ function toggle() {
 				$obj5 ="importe_$i";
 				$obj7 ="departa_$i";
 				$obj8 ="sucursal_$i";
+				$obj9 ="gcargo_$i";
 				$obj11="tasaiva_$i";
 
 				if($form->_status=='show'){
@@ -643,6 +655,7 @@ function toggle() {
 				<td class="littletablerow" align="right"><?php echo $form->$obj5->output; ?></td>
 				<td class="littletablerow"              ><?php echo $form->$obj7->output; ?></td>
 				<td class="littletablerow"              ><?php echo $form->$obj8->output; ?></td>
+				<td class="littletablerow"              ><?php echo $form->$obj9->output; ?></td>
 				<?php if($form->_status!='show') { ?>
 					<td class="littletablerow" align="center"><a href='#' onclick='del_gitser(<?php echo $i; ?>);return false;'><?php echo img("images/delete.jpg"); ?></a></td>
 				<?php }?>

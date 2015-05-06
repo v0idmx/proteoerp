@@ -90,7 +90,6 @@ class Scli extends validaciones {
 
 		$grid->setWpAdicional($WpAdic);
 
-
 		$WestPanel = $grid->deploywestp();
 
 		$adic = array(
@@ -3110,7 +3109,7 @@ function chrif(rif){
 		{name:'rifci',   index:'rifci',   label:'RIF/CI',  width:80 },
 		{name:'nombre',  index:'nombre',  label:'Nombre',  width:250},
 		{name:'eli',     index:'eli',     label:' ',       width: 25, formatter: fsele },
-		{name:'id', index:'id', label:'id', hidden:'true'} ";
+		{name:'id',      index:'id',      label:'id', hidden:'true'} ";
 
 		$Salida  = '<script>';
 		$Salida .= '
@@ -3132,7 +3131,7 @@ function chrif(rif){
 		';
 
 			$Salida .= '
-		function fsele(el, val, opts){
+		function fsele( el, val, opts ){
 			var meco=\'<div><a onclick="quitaruta(\\\''.$ruta.'\\\',\'+el+\')">'.img(array('src'=>"images/elimina4.png", 'height'=> 20, 'alt'=>'Elimina el cliente de la ruta', 'title'=>'Elimina el cliente de la ruta', 'border'=>'0')).'</a></div>\';
 			return meco;
 		}
