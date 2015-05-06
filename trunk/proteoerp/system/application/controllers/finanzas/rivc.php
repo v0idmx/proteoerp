@@ -10,8 +10,8 @@ include('common.php');
 
 class Rivc extends Controller {
 	var $mModulo = 'RIVC';
-	var $titp    = 'Modulo de Retenciones a clientes';
-	var $tits    = 'Modulo de Retenciones a clientes';
+	var $titp    = 'Retenciones de clientes';
+	var $tits    = 'Retenciones de clientes';
 	var $url     = 'finanzas/rivc/';
 
 	function Rivc(){
@@ -1258,7 +1258,7 @@ class Rivc extends Controller {
 
 		$edit->operacion = new radiogroupField('Operaci&oacute;n', 'operacion', array('R'=>'Reintegrar','A'=>'Crear anticipo','P'=>'Crear CxP'));
 		$edit->operacion->insertValue='A';
-		$edit->operacion->rule='required';
+		$edit->operacion->rule='required|enum[R,A,P]';
 
 		$edit->exento = new inputField('Monto Exento','exento');
 		$edit->exento->rule='max_length[15]|numeric';
@@ -2019,14 +2019,14 @@ class Rivc extends Controller {
 			$nrocomp = $do->get('nrocomp');
 
 			$primary =implode(',',$do->pk);
-			logusu($do->table,"Anulo Retencion de cliente id: ${primary}  ${periodo }${nrocomp}");
+			logusu($do->table,"Anulo Retencion de cliente id: ${primary}  ${periodo}${nrocomp}");
 			$do->error_message_ar['pre_del'] = $do->error_message_ar['delete']='Retencion anulada';
 		}
 		return false;
 	}
 
 	function _post_insert($do){
-		$primary = implode(',',$do->pk);
+		$primary = $do->get('id');
 		$error   = 0;
 		$montan  = 0; //Monto para anticipar
 		$sobrante= 0; //Monto sobrante para anticipar, reitegrar o pagar
@@ -2052,7 +2052,7 @@ class Rivc extends Controller {
 		$ex_fecha = explode('-',$fecha);
 		$vence    = $ex_fecha[0].$ex_fecha[1].days_in_month($ex_fecha[1],$ex_fecha[0]);
 
-		$mNUMERO = 'R'.str_pad($primary, 7, "0", STR_PAD_LEFT);
+		$mNUMERO = 'R'.str_pad($primary, $this->datasis->long-1, '0', STR_PAD_LEFT);
 
 		$mSQL = "DELETE FROM smov WHERE transac='${transac}'";
 		$ban=$this->db->simple_query($mSQL);
@@ -2196,7 +2196,7 @@ class Rivc extends Controller {
 
 					// Abona la factura
 					$tiposfac = ($ittipo_doc=='F')? 'FC':'ND';
-					$mSQL = "UPDATE smov SET abonos=abonos+$itmonto WHERE numero='$itnumero' AND cod_cli='$cod_cli' AND tipo_doc='$tiposfac'";
+					$mSQL = "UPDATE smov SET abonos=abonos+${itmonto} WHERE numero='${itnumero}' AND cod_cli='${cod_cli}' AND tipo_doc='${tiposfac}'";
 					$ban=$this->db->simple_query($mSQL);
 					if($ban==false){ memowrite($mSQL,'rivc'); }
 				}

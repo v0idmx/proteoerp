@@ -33,7 +33,26 @@ $banco    = $this->us_ascii2html(trim($row->banco));
 $nombre   = $this->us_ascii2html(trim($row->nombre));
 $observa  = wordwrap(trim(str_replace(',',', ',$row->observa)), 90, '<br>');
 $transac  = $row->transac;
-$prmobanco= $this->us_ascii2html(trim($row->prmobanco));
+$prmobanco= trim($row->prmobanco);
+
+if(empty($prmobanco)){
+	$dbnumche = intval(preg_replace('/^0+/', '',trim($row->numche)));
+	$dbclipro = $this->db->escape($clipro);
+
+	$mSQL="SELECT b.nomb_banc
+	FROM sfpa AS a
+	JOIN tban AS b ON b.cod_banc=a.banco
+	WHERE a.cod_cli=${dbclipro} AND a.tipo='CH' AND
+	a.num_ref REGEXP '^0*${dbnumche} *$'";
+	$nbanco = $this->datasis->dameval($mSQL);
+	if(!empty($nbanco)){
+		$tprmobanco= '<b>del banco: </b> '.$this->us_ascii2html($nbanco);
+	}else{
+		$tprmobanco='';
+	}
+}else{
+	$tprmobanco= '<b>del banco: </b> '.$this->us_ascii2html($prmobanco);
+}
 
 $lineas=0;
 ?><html>
@@ -81,7 +100,7 @@ $lineas=0;
 						<td style="text-align: center;" ><b>Nota: </b><br><?php echo $numche; ?></td>
 					</tr>
 					<tr>
-						<td style="text-align: center;" colspan='3'><b>Cheque devuelto nro.: </b> <?php echo $numche; ?> <b>del banco: </b><?php echo $prmobanco; ?></td>
+						<td style="text-align: center;" colspan='3'><b>Cheque devuelto nro.: </b> <?php echo $numche; ?> <?php echo $tprmobanco; ?></td>
 					</tr>
 				</table>
 			</td>

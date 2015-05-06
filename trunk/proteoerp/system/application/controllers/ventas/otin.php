@@ -1214,7 +1214,7 @@ class Otin extends Controller {
 		$edit->tipo_doc->option('OT','Otro Ingreso');
 		$edit->tipo_doc->option('OC','Otro Ingreso a Cr&eacute;dito');
 		$edit->tipo_doc->option('ND','Nota de D&eacute;bito');
-		$edit->tipo_doc->rule ='enum[ND,FC,OT]|required';
+		$edit->tipo_doc->rule ='enum[ND,OC,OT]|required';
 		$edit->tipo_doc->style='width:170px;';
 
 		$edit->cajero= new dropdownField('Cajero', 'cajero');
@@ -1596,7 +1596,7 @@ class Otin extends Controller {
 
 			//Valida que el cajero no este cerrado para la fecha
 			$dbfecha = $this->db->escape($fecha);
-			$mSQL = "SELECT COUNT(*) FROM rcaj WHERE fecha=${dbfecha} AND cajero=".$this->db->escape($cajero);
+			$mSQL = "SELECT COUNT(*) AS cana FROM rcaj WHERE fecha=${dbfecha} AND cajero=".$this->db->escape($cajero);
 			$cana = $this->datasis->dameval($mSQL);
 			if(!empty($cana)){
 				$do->error_message_ar['pre_ins']="El cajero ${cajero} ya fue cerrado para la fecha en que se esta registrando este ingreso";
@@ -1608,10 +1608,10 @@ class Otin extends Controller {
 		}
 
 		if($tipo_doc=='ND'){
-			$numero = $this->datasis->fprox_numero('notind');
+			$numero = $this->datasis->fprox_numero('ndcli');
 		}elseif($tipo_doc=='OC'){
-			$numero = $this->datasis->fprox_numero('notif');
-		}else{
+			$numero = $this->datasis->fprox_numero('notinf');
+		}elseif($tipo_doc=='OT'){{
 			$numero = $this->datasis->fprox_numero('notiot');
 		}
 

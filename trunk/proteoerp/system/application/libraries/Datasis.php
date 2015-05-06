@@ -83,9 +83,12 @@ funciones
 **/
 
 class Datasis {
+	var $valores;
+	var $long;   //Longitud de los contadores
 
 	function Datasis(){
 		$this->valores=array();
+		$this->long=8;
 	}
 // FUNCIONES DE BD
 
@@ -195,15 +198,16 @@ class Datasis {
 	}
 
 	// TRAE EL SIGUIENTE NUMERO FORMATEADO A 8 DIGITOS
-	function fprox_numero($mcontador,$long=8){
+	function fprox_numero($mcontador,$long=0){
+		if($long==0) $long=$this->long;
 		$numero=$this->prox_numero($mcontador);
-		return str_pad($numero, $long, "0", STR_PAD_LEFT);
+		return str_pad($numero, $long, '0', STR_PAD_LEFT);
 	}
 
 	// TRAE EL SIGUIENTE NUMERO DEL CONTADOR FORMATEADO A $pad DIGITOS
 	function prox_sql($mcontador, $pad=0){
 		$aa = $this->prox_numero($mcontador);
-		if ( $pad > 0) $aa = str_pad($aa, $pad, "0", STR_PAD_LEFT);
+		if ( $pad > 0) $aa = str_pad($aa, $pad, '0', STR_PAD_LEFT);
 		return $aa;
 	}
 
@@ -906,7 +910,7 @@ class Datasis {
 	function controladores(){
 		$CI =& get_instance();
 		$CI->load->helper('directory');
-		$map = directory_map('./system/application/controllers/', FALSE);
+		$map = directory_map('./system/application/controllers/', false);
 		return $map;
 
 	}
