@@ -3564,7 +3564,7 @@ class Scst extends Controller {
 					$sql='SELECT a.codigo,IF(a.devcant<=a.cantidad, a.cantidad-a.devcant,a.cantidad) AS cantidad,
 						a.importe,a.importe/a.cantidad AS costo,a.id,
 						a.precio1,a.precio2,a.precio3,a.precio4,b.formcal,b.ultimo,b.standard,b.pond,b.existen,b.fracci,
-						a.rmargen,b.margen1,b.margen2,b.margen3,b.margen4,a.devcant,a.nentrega,a.iva
+						a.rmargen,b.margen1,b.margen2,b.margen3,b.margen4,a.devcant,a.nentrega,a.iva,b.redecen
 						FROM itscst AS a JOIN sinv AS b ON a.codigo=b.codigo WHERE a.control=?';
 					$qquery=$this->db->query($sql,array($control));
 					if($qquery->num_rows()>0){
@@ -3661,6 +3661,7 @@ class Scst extends Controller {
 											WHERE codigo='.$dbcodigo;
 											$ban=$this->db->simple_query($mSQL);
 											if(!$ban){ memowrite($mSQL,'scst'); $error++; }
+
 										}else{
 											$data  = array();
 											for($i=1;$i<5;$i++){
@@ -3675,6 +3676,10 @@ class Scst extends Controller {
 											$ban=$this->db->simple_query($mSQL);
 											if(!$ban){ memowrite($mSQL,'scst'); $error++; }
 										}
+
+										if($itrow->redecen!='N'){
+											$this->datasis->sinvredondear($itrow->codigo);
+										}
 									}elseif($cprecio=='D'){
 										$pps=array('precio1','precio2','precio3','precio4');
 										foreach($pps as $obj){
@@ -3682,6 +3687,9 @@ class Scst extends Controller {
 											$mSQL="UPDATE sinv SET ${obj}=${pp} WHERE ${pp}>${obj} AND codigo=${dbcodigo}";
 											$ban =$this->db->simple_query($mSQL);
 											if(!$ban){ memowrite($mSQL,'scst'); $error++; }
+										}
+										if($itrow->redecen!='N'){
+											$this->datasis->sinvredondear($itrow->codigo);
 										}
 									}elseif($cprecio=='M'){  // Fija un Margen
 										$mSQL='UPDATE sinv SET
@@ -3702,6 +3710,9 @@ class Scst extends Controller {
 										$ban=$this->db->simple_query($mSQL);
 										memowrite($mSQL,'scst');
 										if(!$ban){ memowrite($mSQL,'scst'); $error++; }
+										if($itrow->redecen!='N'){
+											$this->datasis->sinvredondear($itrow->codigo);
+										}
 									}
 								}
 								//Fin del cambio de precios
@@ -5564,8 +5575,8 @@ class Scst extends Controller {
 			$query="ALTER TABLE `gereten` ADD INDEX `transac` (`transac`)";
 			$this->db->query($query);
 		}
-		
-		
+
+
 		$gcampos = $this->db->list_fields('sinv');
 		if(!in_array('etiqueta',$gcampos)) {
 			$mSQL="ALTER TABLE sinv ADD COLUMN etiqueta CHAR(1) NULL DEFAULT 'N' COMMENT 'Emitir Etiqueta' ";

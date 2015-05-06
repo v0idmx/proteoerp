@@ -7,25 +7,26 @@
 // dec: 0=decimal, 1 = unidades, 2 =decenas, 3=centenas
 //
 function roundSup(num, dec) {
-	num=num-0.01;
+	//num=num-0.01;
 	num=roundNumber(num,2);
 
-	if(dec==0)
+	if(dec==0){
 		result = Math.ceil(num);
-	else{
+	}else{
 		result = num.toString();
 		elemento=result.length-3-dec;
 		previo="";
-		for (i=elemento;i<result.length;i++)
-		 previo=previo+result[i];
+		for (i=elemento;i<result.length;i++){
+			previo=previo+result[i];
+		}
 		factor=5*(Math.pow(10,dec)/10);
 		previo=parseFloat(previo);
 
-		if(previo<=factor)
+		if(previo<=factor){
 			diferencia=factor-previo;
-		else
+		}else{
 			diferencia=(2*factor)-previo;
-
+		}
 		result=num+diferencia
 	}
 	return result;
@@ -130,57 +131,42 @@ function redon(pertenece){
 		if(redondeo=="D"){
 			for(i=1;i<5;i++){
 				precio=parseFloat($("#precio"+i).val());
-				base=parseFloat($("#base"+i).val());
-				margen=parseFloat($("#margen"+i).val());
 				if (precio >10){
 					nprecio=roundSup(precio,2);
-					//nprecio=Math.ceil(precio);
 					nprecio=roundNumber(nprecio,2);
-			     	base=nprecio*100/(100+iva);
-			     	nbase=roundNumber(base,2);
-			     	margen=100-(costo*100/nbase);
-			     	nmargen=roundNumber(margen,2);
-					$("#base" + i).val(nbase);
 					$("#precio" + i).val(nprecio);
-					$("#margen" + i).val(nmargen);
 				}
 			}
+			cambioprecio(pertenece);
 		}else if(redondeo=="F"){
 			for(i=1;i<5;i++){
 				precio=parseFloat($("#precio"+i).val());
-				base=parseFloat($("#base"+i).val());
-				margen=parseFloat($("#margen"+i).val());
 				if (precio!=0){
 					nprecio=Math.round(precio);
 					nprecio=roundNumber(nprecio,2);
-					base=nprecio*100/(100+iva);
-					nbase=roundNumber(base,2);
-					margen=100-(costo*100/nbase);
-					nmargen=roundNumber(margen,2);
-					$("#base" + i).val(nbase);
 					$("#precio" + i).val(nprecio);
-					$("#margen" + i).val(nmargen);
 				}
 			}
-		}else {
+			cambioprecio(pertenece);
+		}else if(redondeo=="C"){
 			for(i=1;i<5;i++){
 				precio=parseFloat($("#precio"+i).val());
-				base=parseFloat($("#base"+i).val());
-				margen=parseFloat($("#margen"+i).val());
 				if (precio >100){
 					nprecio= roundSup(precio,3);
-					//nprecio=roundNumber(nprecio,2);
-					base=nprecio*100/(100+iva);
-					nbase=roundNumber(base,2);
-					margen=100-(costo*100/nbase);
-					nmargen=roundNumber(margen,2);
-					$("#base" + i).val(nbase);
 					$("#precio" + i).val(nprecio);
-					$("#margen" + i).val(nmargen);
+				}
+			}
+		}else if(redondeo=="M"){
+			for(i=1;i<5;i++){
+				precio=parseFloat($("#precio"+i).val());
+				if (precio >100){
+					nprecio=roundNumber(nprecio,1);
+					$("#precio" + i).val(nprecio);
 				}
 			}
 		}
 	}
+	cambioprecio(pertenece);
 }
 
 function redonde(pertenece){

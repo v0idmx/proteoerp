@@ -61,7 +61,7 @@ foreach($ocultos2 as $obj){
 	$scampos2.=$campos2[$obj2]['field'];
 }
 $scampos2 .='</td>';
-$scampos2 .='<td class="littletablerow"  align="center"><a href=# onclick="del_sinvpitem(<#i#>);return false;">'.img("images/delete.jpg").'</a></td></tr>';
+$scampos2 .='<td class="littletablerow"  align="center"><a href=# onclick="del_sinvpitem(<#i#>);return false;">'.img('images/delete.jpg').'</a></td></tr>';
 $campos2=$form->js_escape($scampos2);
 
 
@@ -71,7 +71,7 @@ $scampos3 .='<td class="littletablerow" align="left" >'.$campos3['it3estacion'][
 $scampos3 .='<td class="littletablerow" align="left" >'.$campos3['it3actividad']['field'].'</td>';
 $scampos3 .='<td class="littletablerow" align="right">'.$campos3['it3tunidad']['field'].'</td>';
 $scampos3 .='<td class="littletablerow" align="right">'.$campos3['it3tiempo']['field'].'</td>';
-$scampos3 .='<td class="littletablerow"  align="center"><a href=# onclick="del_sinvplabor(<#i#>);return false;">'.img("images/delete.jpg").'</a></td></tr>';
+$scampos3 .='<td class="littletablerow"  align="center"><a href=# onclick="del_sinvplabor(<#i#>);return false;">'.img('images/delete.jpg').'</a></td></tr>';
 $campos3 = $form->js_escape($scampos3);
 
 $link  = site_url('inventario/common/add_marc');
@@ -1551,12 +1551,12 @@ if(isset($form->error_string))echo '<div class="alert">'.$form->error_string.'</
 	<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;height:170px'>
 		<table width='100%' cellpadding='0' cellspacing='0'>
 			<tr id='__INPL_SINVPITEM__'>
-				<td bgcolor='#7098D0'               ><b>C&oacute;digo     </b></td>
-				<td bgcolor='#7098D0'               ><b>Descripci&oacute;n</b></td>
-				<td bgcolor='#7098D0' align='left'  ><b>Cant.             </b></td>
-				<td bgcolor='#7098D0' align='center'><b>Unidad;           </b></td>
-				<td bgcolor='#7098D0' align='center'><b>Factor            </b></td>
-				<td bgcolor='#7098D0' align='center'><b>Merma &#37;       </b></td>
+				<td bgcolor='#7098D0'              ><b>C&oacute;digo     </b></td>
+				<td bgcolor='#7098D0'              ><b>Descripci&oacute;n</b></td>
+				<td bgcolor='#7098D0' align='right'><b>Cantidad          </b></td>
+				<td bgcolor='#7098D0' align='right'><b>Merma &#37;       </b></td>
+				<td bgcolor='#7098D0'              ><b>Unidad;</b>       </td>
+				<td bgcolor='#7098D0' align='right'><b>Merma &#37;       </b></td>
 
 				<?php if($form->_status!='show') {?>
 					<td  bgcolor='#7098D0' align='center'><b>&nbsp;</b></td>
@@ -1581,7 +1581,7 @@ if(isset($form->error_string))echo '<div class="alert">'.$form->error_string.'</
 				<td class="littletablerow" align="left" nowrap><?php echo $form->$it2codigo->output;   ?></td>
 				<td class="littletablerow" align="left"       ><?php echo $form->$it2descrip->output;  ?></td>
 				<td class="littletablerow" align="right"      ><?php echo $form->$it2cantidad->output; ?></td>
-				<td class="littletablerow" align="center"     ><?php echo $form->$itunidad->output ?></td>
+				<td class="littletablerow" align="left"       ><?php echo $form->$itunidad->output ?></td>
 				<td class="littletablerow" align="right"      ><?php echo $form->$itfactor->output ?></td>
 				<td class="littletablerow" align="right"      ><?php echo $form->$it2merma->output.$form->$it2pond->output.$form->$it2ultimo->output.$form->$it2formcal->output.$form->$it2id_sinv->output; ?></td>
 				<?php if($form->_status!='show'){?>
