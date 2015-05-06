@@ -3047,14 +3047,12 @@ class Sinv extends Controller {
 		$edit->dolar->autocomplete = false;
 		$edit->dolar->insertValue = 0;
 
-
 		$edit->margenu = new inputField('Margen Unico', 'margenu');
 		$edit->margenu->css_class    = 'inputnum';
 		$edit->margenu->size         = 10;
 		$edit->margenu->maxlength    = 13;
 		$edit->margenu->autocomplete = false;
 		$edit->margenu->insertValue = 0;
-
 
 		$edit->ultimo = new inputField('&Uacute;ltimo', 'ultimo');
 		$edit->ultimo->css_class    = 'inputnum';
@@ -3466,13 +3464,13 @@ class Sinv extends Controller {
 
 		/*INICIO SINV ITEM RECETAS*/
 		$edit->it2codigo = new inputField('C&oacute;digo <#o#>', 'it2codigo_<#i#>');
-		$edit->it2codigo->size    = 12;
+		$edit->it2codigo->size    = 16;
 		$edit->it2codigo->db_name = 'codigo';
 		$edit->it2codigo->rel_id  = 'sinvpitem';
 		$edit->it2codigo->append($bSINV_I);
 
 		$edit->it2descrip = new inputField('Descripci&oacute;n <#o#>', 'it2descrip_<#i#>');
-		$edit->it2descrip->size       = 32;
+		$edit->it2descrip->size       = 34;
 		$edit->it2descrip->db_name    = 'descrip';
 		$edit->it2descrip->maxlength  = 50;
 		$edit->it2descrip->readonly   = true;
@@ -3491,14 +3489,14 @@ class Sinv extends Controller {
 		$edit->it2cantidad->insertValue  = '1';
 
 		$edit->itunidad = new dropdownField('Unidad <#o#>','itunidad_<#i#>');
-		$edit->itunidad->style   = 'width:150px;';
+		$edit->itunidad->style   = 'width:100px;';
 		$edit->itunidad->option('','Seleccionar');
 		$edit->itunidad->options('SELECT unidades, unidades descrip FROM unidad ORDER BY unidades');
 		$edit->itunidad->rel_id   = 'sinvpitem';
 		$edit->itunidad->db_name  = 'unidad';
 
 		$edit->itfactor = new inputField('Factor <#o#>', 'itfactor_<#i#>');
-		$edit->itfactor->size       = 10;
+		$edit->itfactor->size       = 8;
 		$edit->itfactor->db_name    = 'factor';
 		$edit->itfactor->maxlength  = 15;
 		$edit->itfactor->css_class  = 'inputnum';

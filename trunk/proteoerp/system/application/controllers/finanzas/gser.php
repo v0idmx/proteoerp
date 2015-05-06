@@ -1305,7 +1305,7 @@ class gser extends Controller {
 		));
 
 		$grid->addField('departa');
-		$grid->label('Departamento');
+		$grid->label('Depto.');
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
@@ -1315,7 +1315,18 @@ class gser extends Controller {
 			'editoptions'   => '{ size:30, maxlength: 2 }',
 		));
 
+		$grid->addField('gcargo');
+		$grid->label('Cargo');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 40,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:30, maxlength: 2 }',
+		));
 
+/*
 		$grid->addField('feprox');
 		$grid->label('Feprox');
 		$grid->params(array(
@@ -1327,7 +1338,7 @@ class gser extends Controller {
 			'editrules'     => '{ required:true,date:true}',
 			'formoptions'   => '{ label:"Fecha" }'
 		));
-
+*/
 
 		$grid->addField('montasa');
 		$grid->label('Base G.');
@@ -3160,7 +3171,7 @@ class gser extends Controller {
 		$edit->departa->options("SELECT TRIM(depto) AS codigo, CONCAT_WS('-',depto,TRIM(descrip)) AS label FROM dpto WHERE tipo IN ('G','A') ORDER BY depto");
 		$edit->departa->db_name='departa';
 		$edit->departa->rule='required';
-		$edit->departa->style = 'width:100px';
+		$edit->departa->style = 'width:70px';
 		$edit->departa->rel_id   ='gitser';
 		$edit->departa->onchange="gdeparta(this.value)";
 
@@ -3171,8 +3182,18 @@ class gser extends Controller {
 		$edit->sucursal->style = 'width:40px';
 		$edit->sucursal->title ='Sucursal';
 
-		$edit->sucursal->rel_id   ='gitser';
-		$edit->sucursal->onchange="gsucursal(this.value)";
+		$edit->gcargo =  new dropdownField('Cargo <#o#>', 'gcargo_<#i#>');
+		$edit->gcargo->options("SELECT id, cargo FROM gcargo ORDER BY cargo");
+		$edit->gcargo->db_name='gcargo';
+		//$edit->gcargo->rule='required';
+		$edit->gcargo->style = 'width:50px';
+		$edit->gcargo->title ='Cargo';
+
+		$edit->sucursal->rel_id   = 'gitser';
+		$edit->sucursal->onchange = "gsucursal(this.value)";
+
+		$edit->gcargo->rel_id     = 'gitser';
+		$edit->gcargo->onchange   = "gcargo(this.value)";
 		//================= Fin de campos para detalle =================
 
 
@@ -4337,12 +4358,24 @@ class gser extends Controller {
 
 		$itcampos=$this->db->list_fields('gitser');
 		if(!in_array('id',$itcampos)){
-			$query="ALTER TABLE gitser ADD COLUMN id INT(15) UNSIGNED NULL AUTO_INCREMENT,  ADD PRIMARY KEY (`id`);";
-			$this->db->query($query);
+			$this->db->query("ALTER TABLE gitser ADD COLUMN id INT(15) UNSIGNED NULL AUTO_INCREMENT, ADD PRIMARY KEY (`id`);");
 		}
+		if(!in_array('idgser',$itcampos)){$this->db->query("ALTER TABLE gitser ADD COLUMN idgser INT(11) UNSIGNED NOT NULL DEFAULT '0' AFTER id,     ADD INDEX idgser (idgser)");}
+		if(!in_array('gcargo',$itcampos)){$this->db->query("ALTER TABLE gitser ADD COLUMN gcargo INT(11) UNSIGNED NOT NULL DEFAULT '0' AFTER idgser, ADD INDEX gcargo (gcargo)");}
 
-		if(!in_array('idgser',$itcampos)){
-			$query="ALTER TABLE gitser ADD COLUMN idgser INT(15) UNSIGNED NOT NULL DEFAULT '0' AFTER `id`, ADD INDEX `idgser` (`idgser`)";
+		if(!$this->db->table_exists('gcargo')){
+			$query="
+			CREATE TABLE gcargo (
+				id      INT(11) NOT  NULL AUTO_INCREMENT,
+				cargo   VARCHAR(20)  NULL DEFAULT NULL,
+				descrip VARCHAR(150) NULL DEFAULT NULL,
+				PRIMARY KEY (`id`)
+			)
+			COMMENT='Cargos de Gastos'
+			ENGINE=MyISAM 
+			AUTO_INCREMENT=1 
+			DEFAULT CHARSET=latin1 
+			ROW_FORMAT=DYNAMIC";
 			$this->db->query($query);
 		}
 
@@ -4352,24 +4385,28 @@ class gser extends Controller {
 		$this->db->query($query);
 
 		if(!$this->db->table_exists('gereten')){
-			$mSQL="CREATE TABLE `gereten` (
-				`id` INT(10) NOT NULL AUTO_INCREMENT,
-				`idd` INT(11) NULL DEFAULT NULL,
-				`origen` CHAR(4) NULL DEFAULT NULL,
-				`numero` VARCHAR(25) NULL DEFAULT NULL,
-				`codigorete` VARCHAR(4) NULL DEFAULT NULL,
-				`actividad` VARCHAR(45) NULL DEFAULT NULL,
-				`base` DECIMAL(10,2) NULL DEFAULT NULL,
-				`porcen` DECIMAL(5,2) NULL DEFAULT NULL,
-				`monto` DECIMAL(10,2) NULL DEFAULT NULL,
-				`transac` VARCHAR(8) NULL DEFAULT NULL,
-				PRIMARY KEY (`id`),
-				INDEX `transac` (`transac`)
+			$mSQL="
+			CREATE TABLE gereten (
+				id         INT(10) NOT   NULL AUTO_INCREMENT,
+				idd        INT(11)       NULL DEFAULT NULL,
+				origen     CHAR(4)       NULL DEFAULT NULL,
+				numero     VARCHAR(25)   NULL DEFAULT NULL,
+				codigorete VARCHAR(4)    NULL DEFAULT NULL,
+				actividad  VARCHAR(45)   NULL DEFAULT NULL,
+				base       DECIMAL(10,2) NULL DEFAULT NULL,
+				porcen     DECIMAL(5,2)  NULL DEFAULT NULL,
+				monto      DECIMAL(10,2) NULL DEFAULT NULL,
+				transac    VARCHAR(8)    NULL DEFAULT NULL,
+				PRIMARY KEY (id),
+				INDEX transac (transac)
 			)
-			COLLATE='latin1_swedish_ci'
-			ENGINE=MyISAM";
+			ENGINE=MyISAM 
+			AUTO_INCREMENT=1 
+			DEFAULT CHARSET=latin1 
+			ROW_FORMAT=DYNAMIC";
 			$this->db->query($mSQL);
 		}
+
 		$gcampos=$this->db->list_fields('gereten');
 		if(!in_array('transac',$gcampos)){
 			$query="ALTER TABLE `gereten` ADD COLUMN `transac` VARCHAR(8) NULL DEFAULT NULL AFTER `monto`";
@@ -4379,32 +4416,37 @@ class gser extends Controller {
 		}
 
 		if (!$this->db->table_exists('gserchi')) {
-			$query="CREATE TABLE IF NOT EXISTS `gserchi` (
-				`codbanc` varchar(5) NOT NULL DEFAULT '',
-				`fechafac` date DEFAULT NULL,
-				`numfac` varchar(8) DEFAULT NULL,
-				`nfiscal` varchar(12) DEFAULT NULL,
-				`rif` varchar(13) DEFAULT NULL,
-				`proveedor` varchar(40) DEFAULT NULL,
-				`codigo` varchar(6) DEFAULT NULL,
-				`descrip` varchar(50) DEFAULT NULL,
-				`moneda` char(2) DEFAULT NULL,
-				`montasa` decimal(17,2) DEFAULT '0.00',
-				`tasa` decimal(17,2) DEFAULT NULL,
-				`monredu` decimal(17,2) DEFAULT '0.00',
-				`reducida` decimal(17,2) DEFAULT NULL,
-				`monadic` decimal(17,2) DEFAULT '0.00',
-				`sobretasa` decimal(17,2) DEFAULT NULL,
-				`exento` decimal(17,2) DEFAULT '0.00',
-				`importe` decimal(12,2) DEFAULT NULL,
-				`sucursal` char(2) DEFAULT NULL,
-				`departa` char(2) DEFAULT NULL,
-				`usuario` varchar(12) DEFAULT NULL,
-				`estampa` date DEFAULT NULL,
-				`hora` varchar(8) DEFAULT NULL,
-				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-				PRIMARY KEY (`id`)
-				) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC";
+			$query="
+			CREATE TABLE IF NOT EXISTS gserchi (
+				codbanc   VARCHAR(5)    NOT NULL DEFAULT '',
+				fechafac  DATE DEFAULT  NULL,
+				numfac    VARCHAR(8)    DEFAULT NULL,
+				nfiscal   VARCHAR(12)   DEFAULT NULL,
+				rif       VARCHAR(13)   DEFAULT NULL,
+				proveedor VARCHAR(40)   DEFAULT NULL,
+				codigo    VARCHAR(6)    DEFAULT NULL,
+				descrip   VARCHAR(50)   DEFAULT NULL,
+				moneda    CHAR(2)       DEFAULT NULL,
+				montasa   DECIMAL(17,2) DEFAULT '0.00',
+				tasa      DECIMAL(17,2) DEFAULT NULL,
+				monredu   DECIMAL(17,2) DEFAULT '0.00',
+				reducida  DECIMAL(17,2) DEFAULT NULL,
+				monadic   DECIMAL(17,2) DEFAULT '0.00',
+				sobretasa DECIMAL(17,2) DEFAULT NULL,
+				exento    DECIMAL(17,2) DEFAULT '0.00',
+				importe   DECIMAL(12,2) DEFAULT NULL,
+				sucursal  CHAR(2)       DEFAULT NULL,
+				departa   CHAR(2)       DEFAULT NULL,
+				usuario   VARCHAR(12)   DEFAULT NULL,
+				estampa   DATE          DEFAULT NULL,
+				hora      VARCHAR(8)    DEFAULT NULL,
+				id        INT(11)       UNSIGNED NOT NULL AUTO_INCREMENT,
+				PRIMARY KEY (id)
+				) 
+			ENGINE=MyISAM 
+			AUTO_INCREMENT=1 
+			DEFAULT CHARSET=latin1 
+			ROW_FORMAT=DYNAMIC";
 			$this->db->query($query);
 		}
 
@@ -4414,13 +4456,18 @@ class gser extends Controller {
 		if(!in_array('cnd',     $gcampos)) $this->db->query("ALTER TABLE gserchi ADD COLUMN cnd      CHAR(1)    NULL DEFAULT NULL AFTER aceptado");
 
 		if (!$this->db->table_exists('rica')) {
-			$query="CREATE TABLE rica (
+			$query="
+			CREATE TABLE rica (
 				codigo CHAR(5)      NOT  NULL,
 				activi CHAR(14)     NULL DEFAULT NULL,
 				aplica CHAR(100)    NULL DEFAULT NULL,
 				tasa   DECIMAL(8,2) NULL DEFAULT NULL,
 				PRIMARY KEY (codigo)
-				) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC";
+			) 
+			ENGINE=MyISAM 
+			AUTO_INCREMENT=1 
+			DEFAULT CHARSET=latin1 
+			ROW_FORMAT=DYNAMIC";
 			$this->db->query($query);
 		}
 	}

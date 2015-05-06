@@ -31,14 +31,57 @@ class Edinmue extends Controller {
 		$bodyscript = $this->bodyscript( $param['grids'][0]['gridname']);
 
 		//Botones Panel Izq
-		$grid->wbotonadd(array("id"=>"galicuota", "img"=>"images/pdf_logo.gif",  "alt" => "Alicuotas", "label"=>"Alicuotas"));
+		//$grid->wbotonadd(array("id"=>"galicuota", "img"=>"images/pdf_logo.gif",  "alt" => "Alicuotas", "label"=>"Alicuotas"));
+
+		$cabeza  = "<td style='vertical-align:top;'><div class='botones'><a style='width:94px;text-align:left;vertical-align:top;' href='#'";
+		$cabeza1 = "<td style='vertical-align:top;'><div class='botones'><a style='text-align:left;vertical-align:top;' href='#'";
+
+		$cola   = "</a></div></td>";
+		$sgrupo = $this->datasis->llenaopciones('SELECT id, CONCAT(descrip," ",id) descrip FROM edgrupo ORDER BY descrip', true, 'grupoctual' );
+
+
+		$WpAdic = "
+		<tr><td><div class=\"anexos\">
+			<table cellpadding='0' cellspacing='0'>
+				<tr>
+					 <td style='vertical-align:top;' colspan='2'><div class='botones'><a style='width:100%;text-align:left;vertical-align:top;' href='#' id='galicuota'>Alicuotas</a></div></td>
+				</tr>
+
+				";
+
+		$WpAdic .= "
+				<tr>
+					<td colspan='2'>
+						<table style='border-collapse:collapse;padding:0px;width:99%;border:1px solid #AFAFAF;'><tr>
+							<td style='vertical-align:top;'><a id='vergrupo'>".img(array('src' =>"images/kardex.jpg", 'height'=>30, 'alt'=>'Ver de Grupos', 'title'=> 'Ver Grupos', 'border'=>'0'))."</a></td>
+							${cabeza1} id='grupos'>Grupos</a></div></td>
+							<td style='vertical-align:center;'><a id='sumagrupo' >".img(array('src' =>"images/agrega4.png",     'height'=> 25, 'alt'=>'Asignacion de Grupo',           'title'=>'Agregar inmueble al grupo',     'border'=>'0'))."</a></td>
+							<td style='vertical-align:center;'><a id='restagrupo'>".img(array('src' =>"images/elimina4.png",    'height'=> 25, 'alt'=>'Elimina el inmueble del grupo', 'title'=>'Elimina el inmueble del grupo', 'border'=>'0'))."</a></td>
+							<td style='vertical-align:center;'><a id='todogrupo' >".img(array('src' =>"images/agregatodo4.png", 'height'=> 25, 'alt'=>'Agrega todo lo seleccionado',   'title'=>'Agrega todo lo seleccionado',   'border'=>'0'))."</a></td>
+						</tr>
+							<td colspan='5'>Grupos: ${sgrupo} </td>
+						</tr>
+						</table>
+					</td>
+				</tr>
+				";
+
+		$WpAdic .= "
+			</table>
+			</div>
+		</td></tr>\n
+		";
+
+		$grid->setWpAdicional($WpAdic);
+
 		$WestPanel = $grid->deploywestp();
 
 		$adic = array(
 			array('id'=>'fedita',  'title'=>'Agregar/Editar Registro'),
 			array('id'=>'fshow' ,  'title'=>'Mostrar Registro'),
 			array('id'=>'falicu',  'title'=>'Agregar/Editar Alicuota'),
-			array('id'=>'fborra',  'title'=>'Eliminar Registro')
+			array('id'=>'fborra',  'title'=>'Eliminar Registro'),
+			array('id'=>'fciud'  , 'title'=>'Gestionar grupos'      )
 		);
 		$SouthPanel = $grid->SouthPanel($this->datasis->traevalor('TITULO1'), $adic);
 
@@ -86,6 +129,103 @@ class Edinmue extends Controller {
 				})
 			} else { $.prompt("<h1>Por favor Seleccione un Inmueble</h1>");}
 		});';
+
+////////////////////////////////////////////////////////////////////////
+		// Rutas
+		$bodyscript .= '
+		$("#grupos").click(function(){
+			$.post("'.site_url($this->url.'gruposform').'",
+			function(data){
+				$("#fciud").html(data);
+				$("#fciud").dialog({height: 450, width: 510, title: "Grupos"});
+				$("#fciud").dialog( "open" );
+			});
+		});';
+
+		// Ver Grupos
+		$bodyscript .= '
+		$("#vergrupo").click(function(){
+			var grupo = $("#grupoctual").val();
+			if ( grupo == "-"){
+				$.prompt("<h1>Por favor Seleccione un grupo para ver</h1>");
+				return false;
+			}
+			$.post("'.site_url($this->url.'vergrupo').'/"+grupo,
+			function(data){
+				$("#fciud").html(data);
+				$("#fciud").dialog({height: 470, width: 520, title: "Inmuebles en Grupos"});
+				$("#fciud").dialog( "open" );
+			});
+		});';
+
+		$dias = $this->datasis->llenadias();
+
+		// Suma Grupos
+		$bodyscript .= '
+		$("#sumagrupo").click(function(){
+			var id   = $("'.$ngrid.'").jqGrid(\'getGridParam\',\'selrow\');
+			var grupo = $("#grupoctual").val();
+			if ( grupo == "-"){
+				$.prompt("<h1>Por favor Seleccione un grupo</h1>");
+				return false;
+			}
+			if(id){
+				$.prompt("<b>Agregar inmueble al grupo </b> ",{
+					buttons: { Aceptar: 1, Salir: 0},
+					submit: function(e,v,m,f){
+						if ( v == 1 ){
+							$.post("'.site_url($this->url.'gruposuma').'/"+id+"/"+grupo,
+							function(data){
+
+							});
+						}
+					}
+				});
+			} else {
+				$.prompt("<h1>Por favor Seleccione un Inmueble</h1>");
+			}
+		});';
+
+		// Suma todos a la Rutas
+		$bodyscript .= '
+		$("#todogrupo").click(function(){
+			var id   = $("'.$ngrid.'").jqGrid(\'getGridParam\',\'selrow\');
+			var grupo = $("#grupoctual").val();
+			if ( grupo == "-"){
+				$.prompt("<h1>Por favor Seleccione un Grupo</h1>");
+			} else {
+				$.post("'.site_url($this->url.'grupotodo').'/"+grupo,
+				function(data){
+					$("#fciud").html(data);
+					$("#fciud").dialog({height: 450, width: 610, title: "Grupos"});
+					$("#fciud").dialog( "open" );
+				});
+			}
+		});';
+
+		// Resta Rutas
+		$bodyscript .= '
+		$("#restagrupo").click(function(){
+			var id   = $("'.$ngrid.'").jqGrid(\'getGridParam\',\'selrow\');
+			var grupo = $("#grupoctual").val();
+			if ( grupo == "-"){
+				$.prompt("<h1>Por favor Seleccione un grupo</h1>");
+				return false;
+			}
+			if(id){
+				$.post("'.site_url($this->url.'gruporesta').'/"+id+"/"+grupo,
+				function(data){
+					//$("#fciud").html(data);
+					//$("#fciud").dialog({height: 450, width: 610, title: "Rutas"});
+					//$("#fciud").dialog( "open" );
+				});
+			} else {
+				$.prompt("<h1>Por favor Seleccione un Registro</h1>");
+			}
+		});';
+
+////////////////////////////**FIN**/////////////////////////////////////
+
 
 		$bodyscript .= '
 		$("#falicu").dialog({
@@ -472,6 +612,21 @@ class Edinmue extends Controller {
 
 		$response   = $grid->getData('edinmue', array(array()), array(), false, $mWHERE, 'codigo' );
 		$rs = $grid->jsonresult( $response);
+
+		//Guarda en la BD el Where para usarlo luego
+		$querydata = array('data1' => $this->session->userdata('dtgQuery'));
+		$emp = strpos($querydata['data1'],'WHERE ');
+		if($emp > 0){
+			$querydata['data1'] = substr( $querydata['data1'], $emp );
+			$emp = strpos($querydata['data1'],'ORDER BY ');
+			if($emp > 0){
+				$querydata['data1'] = substr( $querydata['data1'], 0, $emp );
+			}
+		}else{
+			$querydata['data1'] = '';
+		}
+		$ids = $this->datasis->guardasesion($querydata);
+
 		echo $rs;
 	}
 
@@ -760,298 +915,389 @@ class Edinmue extends Controller {
 		$campos = $this->db->list_fields('edinmue');
 		if(!in_array('aplicacion',$campos)) $this->db->query('ALTER TABLE edinmue ADD COLUMN aplicacion CHAR(2) NULL DEFAULT NULL AFTER codigo');
 
+		if (!$this->db->table_exists('edgrupo')) {
+			$mSQL="
+			CREATE TABLE edgrupo (
+				id      INT(11) NOT NULL AUTO_INCREMENT,
+				descrip VARCHAR(50) NULL DEFAULT NULL,
+				cargo   INT(11)     NULL DEFAULT NULL,
+				activo  VARCHAR(20) NULL DEFAULT NULL,
+				fecha   DATE        NULL DEFAULT NULL,
+			PRIMARY KEY (`id`)
+			)
+			COMMENT='Grupos de inmuebles'
+			CHARSET=latin1
+			ENGINE=MyISAM
+			;";
+			$this->db->query($mSQL);
+		}
+
+		if (!$this->db->table_exists('editgrupo')) {
+			$mSQL="
+			CREATE TABLE editgrupo (
+				id       INT(11)    NOT NULL AUTO_INCREMENT,
+				grupo    INT(11)    NOT NULL COMMENT 'Grupo de edgrupo',
+				inmueble INT(11)        NULL DEFAULT NULL COMMENT 'Inmueble de edinmue',
+				alicuota DECIMAL(15,10) NULL DEFAULT '0.0000000000',
+				lectura  VARCHAR(20)    NULL DEFAULT NULL,
+				monto    DECIMAL(15,2)  NULL DEFAULT '0.00',
+			PRIMARY KEY (id),
+			UNIQUE INDEX ingrupo (inmueble, grupo)
+			)
+			COMMENT='Detalle de grupos de inmuebles'
+			CHARSET=latin1
+			ENGINE=MyISAM
+			;";
+			$this->db->query($mSQL);
+		}
+
 
 	}
-}
+
+	//******************************************************************
+	// Forma de Grupos
+	//
+	function gruposform(){
+		$grid  = new $this->jqdatagrid;
+		$editar = 'true';
+
+		$mSQL  = "SELECT id, cargo FROM gcargo ORDER BY cargo";
+		$cargo = $this->datasis->llenajqselect($mSQL, true );
+
+		$activo = '{"S": "Activo", "N": "Inactivo"}';
+
+		$grid->addField('id');
+		$grid->label('Id');
+		$grid->params(array(
+			'align'         => "'center'",
+			'hidden'        => 'true',
+			'frozen'        => 'true',
+			'width'         => 40,
+			'editable'      => 'false',
+			'search'        => 'false'
+		));
+
+
+		$grid->addField('descrip');
+		$grid->label('Nombre');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 100,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:50, maxlength: 50 }',
+		));
+
+
+		$grid->addField('cargo');
+		$grid->label('Cargo');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'align'         => "'right'",
+			'width'         => 100,
+			'edittype'      => "'select'",
+			'editrules'     => '{ required:true }',
+			'editoptions'   => '{ value: '.$cargo.', style:"width:120px"}',
+			'stype'         => "'text'"
+
+		));
+
+
+		$grid->addField('activo');
+		$grid->label('Activo');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 70,
+			'edittype'      => "'select'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ value: '.$activo.',  style:"width:70px"}',
+			'stype'         => "'text'",
+		));
 
 /*
-class edinmue extends Controller {
-	var $titp='Inmuebles';
-	var $tits='Inmuebles';
-	var $url ='construccion/edinmue/';
+		$grid->addField('fecha');
+		$grid->label('Fecha');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 80,
+			'align'         => "'center'",
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true,date:true}',
+			'formoptions'   => '{ label:"Fecha" }'
+		));
+*/
 
-	function edinmue(){
-		parent::Controller();
-		$this->load->library('rapyd');
-		$this->datasis->modulo_id('A03',1);
-		$this->instalar();
-	}
+		$grid->showpager(true);
+		$grid->setViewRecords(false);
+		$grid->setWidth('490');
+		$grid->setHeight('280');
 
-	function index(){
-		redirect($this->url.'filteredgrid');
-	}
+		$grid->setUrlget(site_url($this->url.'getruta/'));
+		$grid->setUrlput(site_url($this->url.'setruta/'));
 
-	function filteredgrid(){
-		$this->rapyd->load('datafilter','datagrid');
+		$mgrid = $grid->deploy();
 
-		$filter = new DataFilter($this->titp);
-		$sel=array('a.id','a.codigo','a.descripcion','a.edificacion','c.uso','d.uso AS usoalter','e.descripcion AS ubicacion','a.caracteristicas','a.area','a.estaciona','a.deposito','b.nombre');
+		$msalida  = '<script type="text/javascript">'."\n";
+		$msalida .= '
+		$("#newapi'.$mgrid['gridname'].'").jqGrid({
+			ajaxGridOptions : {type:"POST"}
+			,jsonReader : { root:"data", repeatitems: false }
+			'.$mgrid['table'].'
+			,scroll: true
+			,pgtext: null, pgbuttons: false, rowList:[]
+		})
+		$("#newapi'.$mgrid['gridname'].'").jqGrid(\'navGrid\',  "#pnewapi'.$mgrid['gridname'].'",{edit:false, add:false, del:true, search: false});
+		$("#newapi'.$mgrid['gridname'].'").jqGrid(\'inlineNav\',"#pnewapi'.$mgrid['gridname'].'");
+		$("#newapi'.$mgrid['gridname'].'").jqGrid(\'filterToolbar\');
+		';
 
-		$filter->db->select($sel);
-		$filter->db->from('edinmue AS a');
-		$filter->db->join('edif  AS b','a.edificacion=b.id');
-		$filter->db->join('eduso AS c','a.uso=c.id');
-		$filter->db->join('eduso AS d','a.usoalter=d.id','left');
-		$filter->db->join('edifubica AS e','a.ubicacion=e.id AND a.edificacion=e.id_edif');
+		$msalida .= '</script>';
+		$msalida .= '<id class="anexos"><table id="newapi'.$mgrid['gridname'].'"></table>';
+		$msalida .= '<div   id="pnewapi'.$mgrid['gridname'].'"></div></div>';
 
-		$filter->codigo = new inputField('C&oacute;digo','codigo');
-		$filter->codigo->rule      ='max_length[15]';
-		$filter->codigo->size      =17;
-		$filter->codigo->maxlength =15;
-
-		$filter->objeto = new dropdownField('Objeto','objeto');
-		$filter->objeto->option('','Todos');
-		$filter->objeto->option('A','Alquiler');
-		$filter->objeto->option('V','Venta');
-
-		$filter->descripcion = new inputField('Descripci&oacute;n','descripcion');
-		$filter->descripcion->rule      ='max_length[100]';
-		$filter->descripcion->maxlength =100;
-
-		$filter->edificacion = new dropdownField('Edificaci&oacute;n','edificacion');
-		$filter->edificacion->option('','Seleccionar');
-		$filter->edificacion->options('SELECT id,TRIM(nombre) AS nombre FROM edif ORDER BY nombre');
-
-		$filter->uso = new dropdownField('Uso','uso');
-		$filter->uso->option('','Todos');
-		$filter->uso->options('SELECT id,uso FROM `eduso` ORDER BY uso');
-
-		$filter->ubicacion = new dropdownField('Ubicaci&oacute;n','ubicacion');
-		$filter->ubicacion->option('','Seleccionar');
-		$filter->ubicacion->options('SELECT id,descripcion FROM `edifubica` ORDER BY descripcion');
-
-		$filter->status = new dropdownField('Estatus','status');
-		$filter->status->option('D','Disponible');
-		$filter->status->option('A','Alquilado');
-		$filter->status->option('D','Vendido');
-		$filter->status->option('R','Reservado');
-		$filter->status->option('O','Otro');
-
-		$filter->buttons('reset', 'search');
-		$filter->build();
-
-		$uri = anchor($this->url.'dataedit/show/<raencode><#id#></raencode>','<#id#>');
-
-		$grid = new DataGrid('');
-		$grid->order_by('id');
-		$grid->per_page = 40;
-
-		$grid->column_orderby('Id',$uri,'id','align="left"');
-		$grid->column_orderby('C&oacute;digo','codigo','codigo','align="left"');
-		$grid->column_orderby('Descripci&oacute;n','descripcion','descripcion','align="left"');
-		$grid->column_orderby('Edificaci&oacute;n','nombre','nombre');
-		$grid->column_orderby('Uso','uso','uso');
-		$grid->column_orderby('Uso alterno','usoalter','usoalter');
-		$grid->column_orderby('Ubicaci&oacute;n','ubicacion','ubicacion');
-		$grid->column_orderby('&Aacute;rea'     ,'<nformat><#area#></nformat>','area','align="right"');
-		$grid->column_orderby('Estacionamiento' ,'estaciona','estaciona','align="right"');
-
-		$grid->add($this->url.'dataedit/create');
-		$grid->build();
-
-		$data['filtro']  = $filter->output;
-		$data['content'] = $grid->output;
-		$data['head']    = $this->rapyd->get_head().script('jquery.js');
-		$data['title']   = heading($this->titp);
-		$this->load->view('view_ventanas', $data);
+		echo $msalida;
 
 	}
 
-	function dataedit(){
-		$this->rapyd->load('dataedit');
+	//******************************************************************
+	// Busca la data en el Servidor por json
+	//
+	function getruta(){
+		$grid       = $this->jqdatagrid;
+		// CREA EL WHERE PARA LA BUSQUEDA EN EL ENCABEZADO
+		$mWHERE = $grid->geneTopWhere('edgrupo');
+		$response   = $grid->getData('edgrupo', array(array()), array(), false, $mWHERE );
+		$rs = $grid->jsonresult( $response);
+		echo $rs;
+	}
 
-		$edit = new DataEdit($this->tits, 'edinmue');
+	//******************************************************************
+	// Guarda la Informacion del Grid o Tabla
+	//
+	function setruta(){
+		$this->load->library('jqdatagrid');
+		$oper   = $this->input->post('oper');
+		$id     = intval($this->input->post('id'));
+		$data   = $_POST;
+		$mcodp  = 'descrip';
+		$check  = 0;
 
-		$edit->back_url = site_url($this->url.'filteredgrid');
+		unset($data['oper']);
+		unset($data['id']);
+		if($oper == 'add'){
+			if(false == empty($data)){
+				$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM edgrupo WHERE descrip=".$this->db->escape($data['descrip'])));
+				if($check == 0){
+					$this->db->insert('edgrupo', $data);
+					echo 'Registro Agregado';
 
-		$edit->post_process('insert','_post_insert');
-		$edit->post_process('update','_post_update');
-		$edit->post_process('delete','_post_delete');
-		$edit->pre_process( 'insert','_pre_insert');
-		$edit->pre_process( 'update','_pre_update');
-		$edit->pre_process( 'delete','_pre_delete');
+					logusu('edgrupo','Registro '.$data['descrip'].' INCLUIDO');
+				}else{
+					echo "Ya existe un grupo con ese nombre";
+				}
+			}else{
+				echo 'Fallo Agregado!!!';
+			}
+		}elseif($oper == 'edit'){
+			if($id<=0){ 
+				return false; 
+			}
 
-		$edit->codigo = new inputField('C&oacute;digo','codigo');
-		$edit->codigo->rule='max_length[15]|unique';
-		$edit->codigo->size =17;
-		$edit->codigo->maxlength =15;
+			$nuevo  = $data[$mcodp];
+			//unset($data[$mcodp]);
+			$this->db->where('id', $id);
+			$this->db->update('edgrupo', $data);
 
-		$edit->descripcion = new inputField('Descripci&oacute;n','descripcion');
-		$edit->descripcion->rule='max_length[100]';
-		$edit->descripcion->maxlength =100;
+/*
+			$dbnuevo=$this->db->escape($nuevo);
+			$mSQL="SELECT  d.id
+			FROM sclitrut AS a
+			JOIN sclirut  AS b ON a.ruta=b.ruta AND b.ruta=${dbnuevo}
+			JOIN sclirut  AS c ON c.vende=b.vende
+			JOIN sclitrut AS d ON c.ruta=d.ruta AND d.cliente=a.cliente  AND c.ruta!=${dbnuevo}";
+			$query = $this->db->query($mSQL);
+			if ($query->num_rows() > 0){
+				foreach ($query->result() as $row){
+					$sql='DELETE FROM sclitrut WHERE id='.$row->id;
+					$this->db->simple_query($sql);
+				}
+			}
+*/
+			logusu('edgrupo','Grupos de Inmueble '.$nuevo.' MODIFICADO');
+			echo $nuevo." Modificada";
 
-		$edit->objeto = new dropdownField('Objeto','objeto');
-		$edit->objeto->option('','Seleccionar');
-		$edit->objeto->option('A','Alquiler');
-		$edit->objeto->option('V','Venta');
-		$edit->objeto->rule='max_length[1]|required';
+		}elseif($oper == 'del'){
+			if($id<=0){ 
+				return false; 
+			}
+			//$ruta  = $this->datasis->dameval("SELECT $ FROM sclirut WHERE id=${id}");
+			//$dbruta= $this->db->escape($ruta);
+			$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sclitrut a JOIN scli b ON a.cliente=b.cliente WHERE a.ruta=${dbruta}"));
+			if($check > 0){
+				echo 'El registro no puede ser eliminado; elimine primero los clientes asociados';
+			}else{
+				$this->db->query("DELETE FROM sclirut WHERE id=${id}");
+				logusu('sclirut',"Ruta ${ruta} ELIMINADO");
+				echo 'Registro Eliminado';
+			}
+		}
+	}
 
-		$edit->status = new dropdownField('Estatus','status');
-		$edit->status->option('D','Disponible');
-		$edit->status->option('A','Alquilado');
-		$edit->status->option('V','Vendido');
-		$edit->status->option('R','Reservado');
-		$edit->status->option('O','Otro');
-		$edit->status->rule='max_length[11]';
 
-		$edit->edificacion = new dropdownField('Edificaci&oacute;n','edificacion');
-		$edit->edificacion->option('','Seleccionar');
-		$edit->edificacion->options('SELECT id,TRIM(nombre) AS nombre FROM edif ORDER BY nombre');
-		$edit->edificacion->rule='max_length[11]';
+	//******************************************************************
+	// Ver Rutas
+	//
+	function vergrupo(){
+		$grupo   = $this->uri->segment($this->uri->total_segments());
+		$dbgrupo = $this->db->escape($grupo);
 
-		$edit->ubicacion = new dropdownField('Ubicaci&oacute;n','ubicacion');
-		$edit->ubicacion->rule='max_length[11]|integer';
-		$edif=$edit->getval('edificacion');
-		if($edif!==false){
-			$dbedif=$this->db->escape($edif);
-			$edit->ubicacion->option('','Seleccionar');
-			$edit->ubicacion->options("SELECT id,descripcion FROM `edifubica` WHERE id_edif=$dbedif ORDER BY descripcion");
-		}else{
-			$edit->ubicacion->option('','Seleccione una edificacion');
+		$mSQL = '
+		SELECT COUNT(*) AS cana 
+		FROM edinmue a 
+		JOIN editgrupo b ON a.id=b.inmueble 
+		WHERE b.grupo='.$dbgrupo;
+
+		if( intval($this->datasis->dameval($mSQL)) == 0 ) {
+			echo '<h1>No hay Inmuebles asignados a este grupo...</h1>';
+			return;
 		}
 
-		$edit->uso = new dropdownField('Uso','uso');
-		$edit->uso->option('','Seleccionar');
-		$edit->uso->options('SELECT id,uso FROM `eduso` ORDER BY uso');
-		$edit->uso->rule='max_length[11]|required';
+		$nombre = 'verutatab';
+		$mSQL = '
+		SELECT a.codigo, a.descripcion, b.inmueble eli
+		FROM edinmue a 
+		JOIN editgrupo b ON a.id=b.inmueble
+		JOIN edgrupo   c ON b.grupo = c.id 
+		WHERE b.grupo='.$dbgrupo.' 
+		ORDER BY a.codigo';
 
-		$edit->usoalter = new dropdownField('Uso Alternativo','usoalter');
-		$edit->usoalter->option('','Seleccionar');
-		$edit->usoalter->options('SELECT id,uso FROM `eduso` ORDER BY uso');
-		$edit->usoalter->rule='max_length[11]';
+		$columnas = $this->datasis->jqdata($mSQL,'verutatabdat');
+		$colModel = "
+			{name:'id',          index:'id',          label:'id',          width: 50, hidden:true},
+			{name:'codigo',      index:'codigo',      label:'Codigo',      width: 50},
+			{name:'descripcion', index:'descripcion', label:'Descripcion', width:300},
+			{name:'eli',         index:'eli',         label:' ',           width: 25, formatter: fsele },
+		 ";
 
-		$edit->caracteristicas = new textareaField('Caracter&iacute;sticas','caracteristicas');
-		//$edit->caracteristicas->rule='max_length[8]';
-		$edit->caracteristicas->cols = 70;
-		$edit->caracteristicas->rows = 4;
-
-		$edit->area = new inputField('&Aacute;rea Mt2','area');
-		$edit->area->rule='max_length[15]|numeric';
-		$edit->area->css_class='inputnum';
-		$edit->area->size =10;
-		//$edit->area->maxlength =15;
-
-		$edit->estaciona = new inputField('Estacionamiento','estaciona');
-		$edit->estaciona->rule='max_length[10]|integer';
-		$edit->estaciona->size =10;
-		$edit->estaciona->css_class='inputonlynum';
-		$edit->estaciona->maxlength =10;
-
-		$edit->deposito = new inputField('Dep&oacute;sito','deposito');
-		$edit->deposito->rule='max_length[11]|integer';
-		$edit->deposito->size =10;
-		$edit->deposito->maxlength =11;
-		$edit->deposito->css_class='inputonlynum';
-
-		$edit->preciomt2e = new inputField('Precio x mt2 (Contado)','preciomt2e');
-		$edit->preciomt2e->rule='max_length[15]|numeric';
-		$edit->preciomt2e->css_class='inputnum';
-		$edit->preciomt2e->size =10;
-		$edit->preciomt2e->maxlength =15;
-
-		$edit->preciomt2c = new inputField('Precio x mt2 (Cr&eacute;dito)','preciomt2c');
-		$edit->preciomt2c->rule='max_length[15]|numeric';
-		$edit->preciomt2c->css_class='inputnum';
-		$edit->preciomt2c->size =10;
-		$edit->preciomt2c->maxlength =15;
-
-		$edit->preciomt2a = new inputField('Precio x mt2 (Alquiler)','preciomt2');
-		$edit->preciomt2a->rule='max_length[15]|numeric';
-		$edit->preciomt2a->css_class='inputnum';
-		$edit->preciomt2a->size =10;
-		$edit->preciomt2a->maxlength =15;
-
-		$link1=site_url('construccion/common/get_ubic');
-		$script ='<script type="text/javascript" >
-		$(function() {
-			$("#edificacion").change(function(){ edif_change(); });
-			$(".inputnum").numeric(".");
-			$(".inputonlynum").numeric();
+		$Salida  = '<script>';
+		$Salida .= '
+		$("#'.$nombre.'").jqGrid({
+			datatype: "local",
+			height: 350,
+			colModel:['.$colModel.'],
+			multiselect: false,
+			shrinkToFit: false,
+			hiddengrid:  false,
+			width: 480,
+			rowNum:'.$columnas['i'].',
+			loadonce: true,
+			viewrecords: true,
+			editurl: ""
 		});
+		'.$columnas['data'].'
+		for(var i=0;i<='.$nombre."dat".'.length;i++) $("#'.$nombre.'").jqGrid(\'addRowData\',i+1,'.$nombre.'dat[i]);
+		';
 
-		function edif_change(){
-			$.post("'.$link1.'",{ edif:$("#edificacion").val() }, function(data){ $("#ubicacion").html(data);})
+		$Salida .= '
+		function fsele( el, val, opts ){
+			var meco=\'<div><a onclick="quitagrupo(\\\''.$grupo.'\\\',\'+el+\')">'.img(array('src'=>"images/elimina4.png", 'height'=> 20, 'alt'=>'Elimina el cliente de la ruta', 'title'=>'Elimina el cliente de la ruta', 'border'=>'0')).'</a></div>\';
+			return meco;
 		}
-
-		</script>';
-
-		$edit->buttons('modify', 'save', 'undo', 'delete', 'back','add');
-		$edit->build();
-		$data['content'] = $edit->output;
-		$data['script']  = script('jquery.js').script('plugins/jquery.numeric.pack.js').script('plugins/jquery.floatnumber.js').$script;
-		$data['head']    = $this->rapyd->get_head();
-		$data['title']   = heading($this->tits);
-		$this->load->view('view_ventanas', $data);
+		function quitagrupo(grupo, id){
+			$.post("'.site_url($this->url.'gruporesta').'/"+id+"/"+grupo);
+			//$("#verutatab").delRowData(rowid)
+			//$("#verutatab").trigger("reloadGrid");
+		}';
+		$Salida .= '</script><table id="verutatab"></table><div id="pnewapi_21293249"></div>';
+		echo $Salida;
 	}
 
-	function _pre_insert($do){
-		return true;
-	}
+	//******************************************************************
+	//  Suma a las rutas
+	//
+	function gruposuma(){
+		$salida = 'Guardado';
+		$grupo    = $this->uri->segment($this->uri->total_segments());
+		$inmueble = $this->uri->segment($this->uri->total_segments()-1);
 
-	function _pre_update($do){
-		return true;
-	}
+		$dbinmueble = $this->db->escape($inmueble);
+		$dbgrupo    = $this->db->escape($grupo);
 
-	function _pre_delete($do){
-		return true;
-	}
+		// Comprueba si existe el inmueble
+		$mSQL = "SELECT COUNT(*) AS cana FROM edinmue WHERE id=${dbinmueble}";
+		$rcli = intval($this->datasis->dameval($mSQL));
+		
+		// Comprueba si existe el grupo
+		$mSQL = "SELECT COUNT(*) FROM edgrupo WHERE id=${dbgrupo}";
+		$rgru = intval($this->datasis->dameval($mSQL));
 
-	function _post_insert($do){
-		$primary =implode(',',$do->pk);
-		logusu($do->table,"Creo $this->tits $primary ");
-	}
-
-	function _post_update($do){
-		$primary =implode(',',$do->pk);
-		logusu($do->table,"Modifico $this->tits $primary ");
-	}
-
-	function _post_delete($do){
-		$primary =implode(',',$do->pk);
-		logusu($do->table,"Elimino $this->tits $primary ");
-	}
-
-	function instalar(){
-		if (!$this->db->table_exists('edinmue')) {
-			$mSQL="CREATE TABLE `edinmue` (
-			  `id` INT(11) NOT NULL AUTO_INCREMENT,
-			  `codigo` CHAR(15) NULL DEFAULT NULL,
-			  `descripcion` CHAR(100) NULL DEFAULT NULL,
-			  `edificacion` INT(11) NULL DEFAULT NULL,
-			  `uso` INT(11) NULL DEFAULT NULL,
-			  `usoalter` INT(11) NULL DEFAULT NULL,
-			  `ubicacion` INT(11) NULL DEFAULT NULL,
-			  `caracteristicas` TEXT NULL,
-			  `area` DECIMAL(15,2) NULL DEFAULT NULL,
-			  `estaciona` INT(10) NULL DEFAULT NULL,
-			  `deposito` INT(11) NULL DEFAULT NULL,
-			  `preciomt2` DECIMAL(15,2) NULL DEFAULT NULL,
-			  PRIMARY KEY (`id`),
-			  UNIQUE INDEX `codigo` (`codigo`)
-			)
-			COMMENT='Inmuebles'
-			COLLATE='latin1_swedish_ci'
-			ENGINE=MyISAM
-			ROW_FORMAT=DEFAULT";
-			$this->db->simple_query($mSQL);
+		if($rgru == 1 && $rcli == 1){
+			$mSQL="SELECT count(*) FROM editgrupo WHERE grupo=${dbgrupo} AND inmueble=${dbinmueble}";
+			$hay = intval($this->datasis->dameval($mSQL));
+			if($hay <> 0){
+				$salida = 'El inmueble ya pertenece al grupo ';
+			} else {
+				$mSQL = "INSERT IGNORE INTO editgrupo (grupo, inmueble) VALUES ( ${dbgrupo}, ${dbinmueble} ) ";
+				$this->db->query($mSQL);
+			}
+		}else{
+			$salida = $mSQL.' Error en los datos ';
 		}
-
-		if (!$this->db->field_exists('preciomt2e', 'edinmue')) {
-			$mSQL="ALTER TABLE `edinmue`  CHANGE COLUMN `preciomt2` `preciomt2e` DECIMAL(15,2) NULL AFTER `deposito`,  ADD COLUMN `preciomt2c` DECIMAL(15,2) NULL AFTER `preciomt2e`,  ADD COLUMN `preciomt2a` DECIMAL(15,2) NULL AFTER `preciomt2c`";
-			$this->db->simple_query($mSQL);
-		}
-
-		if (!$this->db->field_exists('objeto', 'edinmue')) {
-			$mSQL="ALTER TABLE `edinmue`  ADD COLUMN `objeto` CHAR(1) NOT NULL AFTER `preciomt2a`";
-			$this->db->simple_query($mSQL);
-		}
-
-		if (!$this->db->field_exists('status', 'edinmue')) {
-			$mSQL="ALTER TABLE `edinmue`  ADD COLUMN `status` CHAR(1) NOT NULL COMMENT 'Alquilado, Vendido, Reservado,Disponible, Otro' AFTER `objeto`;";
-			$this->db->simple_query($mSQL);
-		}
-
+		echo $salida;
 	}
 
-}*/
+	//******************************************************************
+	//  Resta a las rutas
+	//
+	function gruporesta() {
+		$salida = 'Guardado';
+		$grupo    = intval($this->uri->segment($this->uri->total_segments()));
+		$inmueble = intval($this->uri->segment($this->uri->total_segments()-1));
+
+		$dbinmueble = $this->db->escape($inmueble);
+		$dbgrupo    = $this->db->escape($grupo);
+
+		$mSQL = "DELETE FROM editgrupo WHERE inmueble=${dbinmueble} AND grupo=${dbgrupo} ";
+		$this->db->query($mSQL);
+		echo $salida;
+	}
+
+
+	//******************************************************************
+	//  Suma a todas las rutas
+	//
+	function grupotodo(){
+		$data   = $this->datasis->damesesion();
+		if(isset($data['data1'])){
+			$where   = $data['data1'];
+			$grupo    = $this->uri->segment($this->uri->total_segments());
+			$dbgrupo = $this->db->escape($grupo);
+			$salida  = 'Guardado';
+
+			// Comprueba si existe la Ruta y son menos de 100
+			$mSQL  = "SELECT COUNT(*) AS cana FROM edgrupo WHERE id=${dbgrupo}";
+			$resta = intval($this->datasis->dameval($mSQL));
+			$cana  = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM edinmue ${where}"));
+
+			if($cana <= 500){
+				if($resta == 1){
+					$mSQL = "INSERT IGNORE INTO editgrupo (grupo, inmueble) SELECT ${dbgrupo}, id  FROM edinmue ${where} ";
+					$this->db->query($mSQL);
+				}else{
+					$salida = 'Error en los datos '.$mSQL;
+				}
+			}else{
+				$salida = 'Demasiados resultados para agregar en un grupo, max 500. ('.$cana.')';
+			}
+		}else{
+			$salida = 'No hay clientes seleccionados';
+		}
+		echo $salida;
+	}
+
+}
 ?>

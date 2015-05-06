@@ -1362,6 +1362,35 @@ $tabla .= '
 				';
 			}
 		}
+
+		// Calcular ingredientes
+		$mSQL = "SELECT c.codigo, SUM(a.cana * c.cantidad) canti  
+				FROM itprdo    a 
+				JOIN sinv      b ON a.codigo=b.codigo
+				JOIN sinvpitem c ON a.codigo = c.producto
+				WHERE a.numero = '$numero' 
+				GROUP BY c.codigo";
+		$query  = $this->db->query($mSQL);
+		if ($query->num_rows() > 0){
+			$tabla .= '<br><table align="center" class="tc" style="width:95%;border-collapse:collapse;padding:0px;background:#EDEDFD;border:1px solid;">';
+			$tabla .= "<tr style='background:#008000;color:#FFFFFF;font-weight:bold;'>\n";
+			$tabla .= "	<td colspan='2'  align='center'>INGRDIENTES</td>\n";
+			$tabla .= "</tr>\n";
+
+			$tabla .= "<tr style='background:#795006;color:#FFFFFF;font-weight:bold;'>\n";
+			$tabla .= "	<td >Codigo</td>\n";
+			$tabla .= "	<td >Cantidad</td>\n";
+			$tabla .= "</tr>\n";
+			$i      = 0;
+			foreach ($query->result() as $row) {
+				$tabla .= "<tr>\n";
+				$tabla .= "	<td>".$row->codigo."</td>\n";
+				$tabla .= "	<td align='right'>".$row->canti."</td>\n";
+				$tabla .= "</tr>\n";
+				$i++;
+			}
+			$tabla .= "</table>\n";
+		}
 		echo $tabla;
 	}
 
