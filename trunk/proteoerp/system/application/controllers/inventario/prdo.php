@@ -46,8 +46,9 @@ class Prdo extends Controller {
 
 		//Botones Panel Izq
 		$grid->wbotonadd(array("id"=>"ordene" , "img"=>"images/engrana.png",  "alt" => "Orden Estimada",     "label"=>"Orden Estimada"));
+		$grid->wbotonadd(array("id"=>"descar",  "img"=>"images/engrana.png",  "alt" => "Descargar Ingredientes", "label"=>"Descargar Ingred."));
 		$grid->wbotonadd(array("id"=>"recibir", "img"=>"images/engrana.png",  "alt" => "Recibir Produccion", "label"=>"Recibir Produccion"));
-		//$grid->wbotonadd(array("id"=>"ordenr",   "img"=>"images/engrana.png",  "alt" => "Orden Real",     "label"=>"Orden Real"));
+		$grid->wbotonadd(array("id"=>"cerraro", "img"=>"images/engrana.png",  "alt" => "Cerrar Orden", "label"=>"Cerrar Orden"));
 
 		$WestPanel = $grid->deploywestp();
 
