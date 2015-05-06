@@ -3107,6 +3107,7 @@ class Sinv extends Controller {
 		$edit->redecen->option('D','Decenas');
 		$edit->redecen->option('C','Centenas');
 		$edit->redecen->rule='enum[N,M,F,D,C]';
+		$edit->redecen->insertValue='N';
 		$edit->redecen->onchange='calculos(\'S\');';
 
 		$edit->linfe = new dropdownField('Limitar ventas', 'linfe');
@@ -5496,6 +5497,7 @@ class Sinv extends Controller {
 		$precio2=$do->get('precio2');
 		$precio3=$do->get('precio3');
 		$precio4=$do->get('precio4');
+		$redecen=$do->get('redecen');
 
 		$query = $this->db->query('SELECT ubica FROM caub WHERE gasto=\'N\' AND invfis=\'N\'');
 		foreach ($query->result() as $row){
@@ -5513,21 +5515,27 @@ class Sinv extends Controller {
 			}
 		}
 		// Redondear
-		$this->datasis->sinvredondear($codigo);
+		if($redecen!='N'){
+			$this->datasis->sinvredondear($codigo);
+		}
 
 		logusu('sinv',"Creo  ${codigo} precios: ${precio1}, ${precio2}, ${precio3}, ${precio4}");
 	}
 
 	function _post_update($do){
-		$codigo=$do->get('codigo');
+		$codigo =$do->get('codigo');
 		$precio1=$do->get('precio1');
 		$precio2=$do->get('precio2');
 		$precio3=$do->get('precio3');
 		$precio4=$do->get('precio4');
-		// Redondear
-		$this->datasis->sinvredondear($codigo);
+		$redecen=$do->get('redecen');
 
-		logusu('sinv',"Modifico $codigo precios: ${precio1},${precio2},${precio3}, ${precio4}");
+		// Redondear
+		if($redecen!='N'){
+			$this->datasis->sinvredondear($codigo);
+		}
+
+		logusu('sinv',"Modifico ${codigo} precios: ${precio1},${precio2},${precio3}, ${precio4}");
 	}
 
 	function _post_delete($do){
