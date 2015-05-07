@@ -84,7 +84,7 @@ class Dispmoviles extends Controller {
 		}
 
 		if($tabla=='config'){
-			$nombre  = $escape($this->datasis->dameval('SELECT nombre FROM vend WHERE vendedor='.$dbvend));
+			$nombre  = $escape(trim($this->datasis->dameval('SELECT nombre FROM vend WHERE vendedor='.$dbvend)));
 			$clave   = sha1($this->datasis->traevalor('CLAVESFAC'));
 			$minpre  = intval($this->datasis->traevalor('SFACPRECIOMINIMO'));
 			if($this->datasis->traevalor('CERIXCAMBIAPRECIO','Permite cambiar los precios en Cerix (S,N)')=='N'){
