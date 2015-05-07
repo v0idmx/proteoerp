@@ -2852,9 +2852,10 @@ class Sfac extends Controller {
 		$edit->numero->apply_rules=false; //necesario cuando el campo es clave y no se pide al usuario
 		$edit->numero->when=array('show','modify');
 
-		$edit->factura = new inputField('Factura', 'factura');
+		$edit->factura = new hiddenField('Factura', 'factura');
 		$edit->factura->size = 12;
-		$edit->factura->mode='autohide';
+		//$edit->factura->mode='autohide';
+		//$edit->factura->type='inputhidden';
 		$edit->factura->maxlength=8;
 		$edit->factura->rule='condi_required|callback_chfactura';
 
@@ -3672,6 +3673,7 @@ class Sfac extends Controller {
 	//******************************************************************
 	//Chequea que la cantidad devuelta no sea mayor que la facturada
 	function chcanadev($val,$i){
+		$val = floatval($val);
 		$tipo_doc = $this->input->post('tipo_doc');
 		$factura  = $this->input->post('factura');
 		$codigo   = $this->input->post('codigoa_'.$i);
@@ -3690,7 +3692,7 @@ class Sfac extends Controller {
 				JOIN sitems AS b ON a.codigo=b.codigoa
 				WHERE b.numa=${dbfactura} AND b.tipoa='F'
 				GROUP BY b.codigoa,b.preca) AS aa
-				LEFT JOIN sfac   AS c  ON aa.numa=c.factura AND c.tipo_doc='D'
+				LEFT JOIN sfac   AS c  ON aa.numa=c.factura AND c.tipo_doc='D' AND c.referen<>'P'
 				LEFT JOIN sitems AS d ON c.numero=d.numa AND c.tipo_doc=d.tipoa AND aa.codigo=d.codigoa AND aa.preca=d.preca
 				GROUP BY aa.codigo,aa.preca";
 
@@ -3698,8 +3700,8 @@ class Sfac extends Controller {
 				foreach ($query->result() as $row){
 					$ind =trim($row->codigoa);
 					$ind2=number_format($row->preca,2);
-					$c=(empty($row->cana))? 0 : $row->cana;
-					$d=(empty($row->dev))?  0 : $row->dev;
+					$c=(empty($row->cana))? 0 : floatval($row->cana);
+					$d=(empty($row->dev))?  0 : floatval($row->dev);
 					$this->devitems[$ind][$ind2]=$c-$d;
 				}
 			}
@@ -3763,13 +3765,6 @@ class Sfac extends Controller {
 
 		$globaldes=$descuento/100;
 
-		if($tipo_doc=='D'){
-			$factura = trim($do->get('factura'));
-			if($factura[0]=='_'){
-				$do->error_message_ar['pre_ins']=$do->error_message_ar['pre_upd']='No puede devolver una prefactura';
-				return false;
-			}
-		}
 
 		$dbcliente=$this->db->escape($cliente);
 		if(empty($cajero) && $referen!='C' && $referen!='P'){
@@ -3879,7 +3874,8 @@ class Sfac extends Controller {
 		//Fin de la totalizacion del pago
 
 		//Valida el cajero (obligado si hay forma de pago)
-		if(round(abs($sfpa-$tcredito),2)>0){
+		$contado = round(abs($sfpa-$tcredito),2);
+		if($contado > 0){
 			$chcaj=$this->validation->cajerostatus($cajero);
 			if(!$chcaj){
 				if(isset($this->validation->_error_messages['cajerostatus'])){
@@ -3898,6 +3894,33 @@ class Sfac extends Controller {
 			return false;
 		}
 		//Fin de la validacion de pago
+
+		//Valida la devolucion
+		if($tipo_doc=='D'){
+			if(!in_array($referen, array('E','C','M'))){
+				$do->error_message_ar['pre_ins']=$do->error_message_ar['pre_upd']='La devolucion solo puede ser en efectivo o credito';
+				return false;
+			}
+
+			$factura = trim($do->get('factura'));
+			if($factura[0]=='_'){
+				$do->error_message_ar['pre_ins']=$do->error_message_ar['pre_upd']='No puede devolver una prefactura';
+				return false;
+			}
+
+			if($contado>0){
+				$dbfactura = $this->db->escape($factura);
+				$sql="SELECT monto-abonos AS saldo FROM smov WHERE tipo_doc='FC' AND numero=${dbfactura}";
+				$fsaldo = floatval($this->datasis->dameval($sql));
+				if($fsaldo>0){
+					$do->error_message_ar['pre_ins']=$do->error_message_ar['pre_upd']='Solo se puede devolver a credito ya que la factura tiene un saldo de '.nformat($fsaldo);
+					return false;
+				}
+			}
+		}
+		//Fin de la validacion de la devolucion
+
+
 
 		//Calcula totalizacion y corte por maxlin
 		$maxlin=intval($this->datasis->traevalor('MAXLIN'));

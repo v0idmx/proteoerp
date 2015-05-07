@@ -20,18 +20,18 @@ $filter->build_form();
 
 if($this->rapyd->uri->is_set('search')){
 
-$mSQL ='SELECT codigo,descrip,ccosto FROM cpla ORDER BY codigo';
+	$mSQL ='SELECT codigo,descrip,ccosto FROM cpla ORDER BY codigo';
 
 	$pdf = new PDFReporte($mSQL);
 	$pdf->setHeadValores('TITULO1');
 	$pdf->setSubHeadValores('TITULO2','TITULO3');
-	$pdf->setTitulo("Listado de Plan de cuentas");
+	$pdf->setTitulo('Listado de Plan de cuentas');
 	$pdf->AddPage();
 	$pdf->setTableTitu(9,'Times');
 	$pdf->AddCol('codigo' ,30,'Código',         'L',8);
 	$pdf->AddCol('descrip',60,'Descripción'    ,'L',8);
 	$pdf->AddCol('ccosto' ,30,'Centro de Costo','L',8);
-      	$pdf->Table();
+	$pdf->Table();
 	$pdf->Output();
 
 }else{
