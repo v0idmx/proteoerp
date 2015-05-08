@@ -506,5 +506,213 @@ class Usol extends Controller {
 			$this->db->simple_query('ALTER TABLE usol ADD UNIQUE INDEX codigo (codigo)');
 			$this->db->simple_query('ALTER TABLE usol ADD COLUMN id INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
 		}
+		if(!in_array('id',$campos)){
+			$this->db->query('ALTER TABLE usol ADD COLUMN activo CHAR(1) NULL DEFAULT "S" AFTER sucursal');
+		}
+
 	}
+
+	//******************************************************************
+	// Forma de Grupos
+	//
+	function usolform(){
+		$grid  = new $this->jqdatagrid;
+		$editar = 'true';
+
+		$mSQL  = "SELECT id, CONCAT(codigo,' ',nombre) cargo FROM usol ORDER BY codigo";
+		$cargo = $this->datasis->llenajqselect($mSQL, true );
+
+		$activo = '{"S": "Activo", "N": "Inactivo"}';
+
+		$grid->addField('id');
+		$grid->label('Id');
+		$grid->params(array(
+			'align'         => "'center'",
+			'hidden'        => 'true',
+			'frozen'        => 'true',
+			'width'         => 40,
+			'editable'      => 'false',
+			'search'        => 'false'
+		));
+
+		$grid->addField('codigo');
+		$grid->label('Codigo');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 100,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:50, maxlength: 50 }',
+		));
+
+		$grid->addField('nombre');
+		$grid->label('Nombre');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 100,
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ size:50, maxlength: 50 }',
+		));
+
+/*
+		$grid->addField('cargo');
+		$grid->label('Cargo');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'align'         => "'right'",
+			'width'         => 100,
+			'edittype'      => "'select'",
+			'editrules'     => '{ required:true }',
+			'editoptions'   => '{ value: '.$cargo.', style:"width:120px"}',
+			'stype'         => "'text'"
+
+		));
+
+*/
+		$grid->addField('activo');
+		$grid->label('Activo');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 70,
+			'edittype'      => "'select'",
+			'editrules'     => '{ required:true}',
+			'editoptions'   => '{ value: '.$activo.',  style:"width:70px"}',
+			'stype'         => "'text'",
+		));
+
+/*
+		$grid->addField('fecha');
+		$grid->label('Fecha');
+		$grid->params(array(
+			'search'        => 'true',
+			'editable'      => $editar,
+			'width'         => 80,
+			'align'         => "'center'",
+			'edittype'      => "'text'",
+			'editrules'     => '{ required:true,date:true}',
+			'formoptions'   => '{ label:"Fecha" }'
+		));
+*/
+
+		$grid->showpager(true);
+		$grid->setViewRecords(false);
+		$grid->setWidth('490');
+		$grid->setHeight('280');
+
+		$grid->setUrlget(site_url('inventario/usol/getusol/'));
+		$grid->setUrlput(site_url('inventario/usol/setusol/'));
+
+		$mgrid = $grid->deploy();
+
+		$msalida  = '<script type="text/javascript">'."\n";
+		$msalida .= '
+		$("#newapi'.$mgrid['gridname'].'").jqGrid({
+			ajaxGridOptions : {type:"POST"}
+			,jsonReader : { root:"data", repeatitems: false }
+			'.$mgrid['table'].'
+			,scroll: true
+			,pgtext: null, pgbuttons: false, rowList:[]
+		})
+		$("#newapi'.$mgrid['gridname'].'").jqGrid(\'navGrid\',  "#pnewapi'.$mgrid['gridname'].'",{edit:false, add:false, del:true, search: false});
+		$("#newapi'.$mgrid['gridname'].'").jqGrid(\'inlineNav\',"#pnewapi'.$mgrid['gridname'].'");
+		$("#newapi'.$mgrid['gridname'].'").jqGrid(\'filterToolbar\');
+		';
+
+		$msalida .= '</script>';
+		$msalida .= '<id class="anexos"><table id="newapi'.$mgrid['gridname'].'"></table>';
+		$msalida .= '<div   id="pnewapi'.$mgrid['gridname'].'"></div></div>';
+
+		echo $msalida;
+
+	}
+
+	//******************************************************************
+	// Busca la data en el Servidor por json
+	//
+	function getusol(){
+		$grid       = $this->jqdatagrid;
+		// CREA EL WHERE PARA LA BUSQUEDA EN EL ENCABEZADO
+		$mWHERE = $grid->geneTopWhere('usol');
+		$response   = $grid->getData('usol', array(array()), array(), false, $mWHERE );
+		$rs = $grid->jsonresult( $response);
+		echo $rs;
+	}
+
+	//******************************************************************
+	// Guarda usol
+	//
+	function setusol(){
+		$this->load->library('jqdatagrid');
+		$oper   = $this->input->post('oper');
+		$id     = intval($this->input->post('id'));
+		$data   = $_POST;
+		$mcodp  = 'codigo';
+		$check  = 0;
+
+		unset($data['oper']);
+		unset($data['id']);
+		if($oper == 'add'){
+			if(false == empty($data)){
+				$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM usol WHERE codigo=".$this->db->escape($data['codigo'])));
+				if($check == 0){
+					$this->db->insert('usol', $data);
+					echo 'Registro Agregado';
+
+					logusu('usol','Registro '.$data['descrip'].' INCLUIDO');
+				}else{
+					echo "Ya existe un cargo con ese codigo";
+				}
+			}else{
+				echo 'Fallo Agregado!!!';
+			}
+		}elseif($oper == 'edit'){
+			if($id<=0){ 
+				return false; 
+			}
+
+			$nuevo  = $data[$mcodp];
+			//unset($data[$mcodp]);
+			$this->db->where('id', $id);
+			$this->db->update('edgrupo', $data);
+
+/*
+			$dbnuevo=$this->db->escape($nuevo);
+			$mSQL="SELECT  d.id
+			FROM sclitrut AS a
+			JOIN sclirut  AS b ON a.ruta=b.ruta AND b.ruta=${dbnuevo}
+			JOIN sclirut  AS c ON c.vende=b.vende
+			JOIN sclitrut AS d ON c.ruta=d.ruta AND d.cliente=a.cliente  AND c.ruta!=${dbnuevo}";
+			$query = $this->db->query($mSQL);
+			if ($query->num_rows() > 0){
+				foreach ($query->result() as $row){
+					$sql='DELETE FROM sclitrut WHERE id='.$row->id;
+					$this->db->simple_query($sql);
+				}
+			}
+*/
+			logusu('edgrupo','Grupos de Inmueble '.$nuevo.' MODIFICADO');
+			echo $nuevo." Modificada";
+
+		}elseif($oper == 'del'){
+			if($id<=0){ 
+				return false; 
+			}
+			//$ruta  = $this->datasis->dameval("SELECT $ FROM sclirut WHERE id=${id}");
+			//$dbruta= $this->db->escape($ruta);
+			$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sclitrut a JOIN scli b ON a.cliente=b.cliente WHERE a.ruta=${dbruta}"));
+			if($check > 0){
+				echo 'El registro no puede ser eliminado; elimine primero los clientes asociados';
+			}else{
+				$this->db->query("DELETE FROM sclirut WHERE id=${id}");
+				logusu('sclirut',"Ruta ${ruta} ELIMINADO");
+				echo 'Registro Eliminado';
+			}
+		}
+	}
+
 }

@@ -57,12 +57,11 @@ class gser extends Controller {
 		<tr><td><div class=\"anexos\">
 			<table cellpadding='0' cellspacing='0' style='width:95%;' align='center'>
 				<tr>
-					<td style='vertical-align:center;border:1px solid #AFAFAF;'><div class='botones'>".img(array('src' =>"assets/default/images/print.png", 'height'=>18, 'alt'=>'Imprimir','title'=>'Imprimir', 'border'=>'0'))."</div></td>
+					<td style='vertical-align:center;border:1px solid #AFAFAF;' rowspan='2'><div class='botones'>".img(array('src' =>"assets/default/images/print.png", 'height'=>28, 'alt'=>'Imprimir','title'=>'Imprimir', 'border'=>'0'))."</div></td>
 					<td style='vertical-align:top;text-align:center;'><div class='botones'><a style='width:78px;text-align:left;vertical-align:top;' href='#' id='imprimir'>Egreso</a></div></td>
 					<td style='vertical-align:top;text-align:center;'><div class='botones'><a style='width:78px;text-align:left;vertical-align:top;text-align:center;' href='#' id='princheque'>Cheque</a></div></td>
 				</tr>
 				<tr>
-					<td style='vertical-align:center;border:1px solid #AFAFAF;'><div class='botones'>".img(array('src' =>"assets/default/images/print.png",  'height'=>18, 'alt'=>'Imprimir', 'title'=>'Imprimir', 'border'=>'0'))."</div></td>
 					<td style='vertical-align:top;text-align:center;'><div class='botones'><a style='width:78px;text-align:left;vertical-align:top;' href='#' id='reteprint'>R.I.V.A.</a></div></td>
 					<td style='vertical-align:top;text-align:center;'><div class='botones'><a style='width:78px;text-align:left;vertical-align:top;' href='#' id='reteislrprint'>R.I.S.L.R.</a></div></td>
 				</tr>
@@ -76,6 +75,7 @@ class gser extends Controller {
 		//Botones Panel Izq
 		$grid->wbotonadd(array('id'=>'creamga', 'img'=>'images/agrega4.png' , 'alt' => 'Crear concepto de gasto', 'label'=>'Crear concepto de gasto', 'tema'=>'proteo' ));
 		$grid->wbotonadd(array('id'=>'creaprv', 'img'=>'images/agrega4.png' , 'alt' => 'Crear proveedor'        , 'label'=>'Crear Proveedor',  'tema'=>'proteo'   ));
+		$grid->wbotonadd(array('id'=>'creauso', 'img'=>'images/agrega4.png' , 'alt' => 'Crear Cargos'           , 'label'=>'Crear Cargos',     'tema'=>'proteo'   ));
 		$WestPanel = $grid->deploywestp();
 
 
@@ -226,54 +226,64 @@ class gser extends Controller {
 				$.post("'.site_url('finanzas/mgas/dataedit/create').'",
 				function(data){
 					$("#fsprv").html(data);
-					$("#fsprv").dialog({height: 500, width: 700, title: "Agregar Gasto"});
+					$("#fsprv").dialog({height: 400, width: 700, title: "Agregar Gasto"});
 					$("#fsprv").dialog( "open" );
 				});
 		});';
 
-
 		// Agregar Proveedor
 		$bodyscript .= '
-		jQuery("#creaprv").click(
+		$("#creaprv").click(
 			function(){
 			$.post("'.site_url('compras/sprv/dataedit/create').'",
 			function(data){
 				$("#fsprv").html(data);
-				$("#fsprv").dialog({height: 500, width: 720, title: "Agregar Proveedor"});
+				$("#fsprv").dialog({height: 400, width: 720, title: "Agregar Proveedor"});
 				$("#fsprv").dialog( "open" );
 			})
 		});';
 
+		// Agregar Cargo
 		$bodyscript .= '
-		jQuery("#agregar").click( function(){
+		$("#creauso").click(function(){
+			$.post("'.site_url('inventario/usol/usolform').'",
+			function(data){
+				$("#fsprv").html(data);
+				$("#fsprv").dialog({height: 450, width: 510, title: "Cargos"});
+				$("#fsprv").dialog( "open" );
+			});
+		});';
+
+		$bodyscript .= '
+		$("#agregar").click( function(){
 			window.open(\''.site_url('finanzas/gser/dataedit/create').'\', \'_blank\', \'width=900,height=700,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-350)\');
 		});';
 
 		$bodyscript .= '
-		jQuery("#modifica").click( function(){
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#modifica").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id)	{
-				var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 				window.open(\''.site_url('finanzas/gser/dataedit/modify').'/\'+id, \'_blank\', \'width=900,height=700,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-350)\');
 			} else { $.prompt("<h1>Por favor Seleccione un Gasto</h1>");}
 		});';
 
 
 		$bodyscript.= '
-		jQuery("#imprimir").click( function(){
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#imprimir").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id)	{
-				var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 				window.open(\''.site_url('formatos/ver/GSER/').'/\'+id, \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
 			} else { $.prompt("<h1>Por favor Seleccione una gasto</h1>");}
 		});';
 
 		//Imprimir retencion
 		$bodyscript .= '
-		jQuery("#reteprint").click( function(){
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#reteprint").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id)	{
-				var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 				if(Number(ret.reteiva) > 0){
 					window.open(\''.site_url($this->url.'printrete').'/\'+id, \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
 				}else{
@@ -286,10 +296,10 @@ class gser extends Controller {
 
 		//Imprime retencion islr
 		$bodyscript .= '
-		jQuery("#reteislrprint").click( function(){
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#reteislrprint").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id){
-				var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 				if(Number(ret.reten) > 0){
 					window.open(\''.site_url('formatos/ver/GSERRT/').'/\'+id, \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
 				}else{
@@ -299,24 +309,24 @@ class gser extends Controller {
 		});';
 
 		$bodyscript .= '
-		jQuery("#agregar").click( function(){
+		$("#agregar").click( function(){
 			window.open(\''.site_url('finanzas/gser/dataedit/create').'\', \'_blank\', \'width=900,height=700,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-350)\');
 		});';
 
 
 		$bodyscript .= '
-			$("#fshow").dialog({
-				autoOpen: false, height: 500, width: 900, modal: true,
-				buttons: {
-					"Aceptar": function() {
-						$("#fshow").html("");
-						$( this ).dialog( "close" );
-					},
-				},
-				close: function() {
+		$("#fshow").dialog({
+			autoOpen: false, height: 500, width: 900, modal: true,
+			buttons: {
+				"Aceptar": function() {
 					$("#fshow").html("");
-				}
-			});';
+					$( this ).dialog( "close" );
+				},
+			},
+			close: function() {
+				$("#fshow").html("");
+			}
+		});';
 
 		$bodyscript .= '
 			$("#fgasto").dialog({
@@ -345,7 +355,6 @@ class gser extends Controller {
 									}catch(e){
 										$("#fgasto").html(r);
 									}
-
 								}
 							});
 						}
@@ -3183,7 +3192,7 @@ class gser extends Controller {
 		$edit->sucursal->title ='Sucursal';
 
 		$edit->gcargo =  new dropdownField('Cargo <#o#>', 'gcargo_<#i#>');
-		$edit->gcargo->options("SELECT id, cargo FROM gcargo ORDER BY cargo");
+		$edit->gcargo->options("SELECT id, CONCAT(codigo,' ',nombre) nombre FROM usol ORDER BY codigo");
 		$edit->gcargo->db_name='gcargo';
 		//$edit->gcargo->rule='required';
 		$edit->gcargo->style = 'width:50px';
@@ -4363,6 +4372,7 @@ class gser extends Controller {
 		if(!in_array('idgser',$itcampos)){$this->db->query("ALTER TABLE gitser ADD COLUMN idgser INT(11) UNSIGNED NOT NULL DEFAULT '0' AFTER id,     ADD INDEX idgser (idgser)");}
 		if(!in_array('gcargo',$itcampos)){$this->db->query("ALTER TABLE gitser ADD COLUMN gcargo INT(11) UNSIGNED NOT NULL DEFAULT '0' AFTER idgser, ADD INDEX gcargo (gcargo)");}
 
+/*
 		if(!$this->db->table_exists('gcargo')){
 			$query="
 			CREATE TABLE gcargo (
@@ -4378,7 +4388,7 @@ class gser extends Controller {
 			ROW_FORMAT=DYNAMIC";
 			$this->db->query($query);
 		}
-
+*/
 		$query="UPDATE gitser AS a
 			JOIN gser AS b on a.numero=b.numero AND a.fecha = b.fecha AND a.proveed = b.proveed
 			SET a.idgser=b.id WHERE a.idgser IS NULL OR a.idgser=0";
@@ -4470,5 +4480,7 @@ class gser extends Controller {
 			ROW_FORMAT=DYNAMIC";
 			$this->db->query($query);
 		}
+		$campos=$this->db->list_fields('usol');
+		if(!in_array('activo',$campos)){$this->db->query('ALTER TABLE usol ADD COLUMN activo CHAR(1) NULL DEFAULT "S" AFTER sucursal');}
 	}
 }
