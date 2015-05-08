@@ -120,8 +120,8 @@ class Edinmue extends Controller {
 		$bodyscript .= '});';
 
 		$bodyscript .= '
-		jQuery("#galicuota").click( function(){
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#galicuota").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id)	{
 				$.post("'.site_url('construccion/edalicuota/dataefla/create').'/"+id, function(data){
 					$("#falicu").html(data);
@@ -961,7 +961,7 @@ class Edinmue extends Controller {
 		$grid  = new $this->jqdatagrid;
 		$editar = 'true';
 
-		$mSQL  = "SELECT id, cargo FROM gcargo ORDER BY cargo";
+		$mSQL  = "SELECT id, CONCAT(codigo,' ',nombre) cargo FROM usol ORDER BY codigo";
 		$cargo = $this->datasis->llenajqselect($mSQL, true );
 
 		$activo = '{"S": "Activo", "N": "Inactivo"}';
