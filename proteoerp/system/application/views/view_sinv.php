@@ -313,6 +313,22 @@ $(function(){
 
 	$("#linfe").change();
 
+	//$("#margen1").
+	$("input[name^='margen']").dblclick(function() {
+		var val = Number($(this).val());
+		if(isNaN(val)) return false;
+		var mj = roundNumber((10000/(100-val))-100,2);
+		mj = prompt("Margen Justo", mj);
+		mj = Number(mj);
+		if(isNaN(mj)) return false;
+		if(mj>0){
+			var ms = roundNumber(Math.trunc(100*(100-(10000/(100+mj))))/100,2);
+			$(this).val(ms);
+			$(this).keyup();
+		}
+	});
+
+
 });
 
 function post_enlace(){
