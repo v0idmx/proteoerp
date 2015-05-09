@@ -1255,7 +1255,7 @@ class Pers extends Controller {
 		$edit->civil->option('C','Casado');
 		$edit->civil->option('D','Divorciado');
 		$edit->civil->option('V','Viudo');
-		$edit->civil->group = "Datos del Trabajador";
+		$edit->civil->group = 'Datos del Trabajador';
 
 		$edit->profes = new dropdownField('Profesi&oacute;n','profes');
 		$edit->profes->options('SELECT TRIM(codigo) AS codigo,profesion FROM prof ORDER BY profesion');
@@ -1280,7 +1280,7 @@ class Pers extends Controller {
 		$edit->divi->group = 'Relaci&oacute;n Laboral';
 
 		$edit->depa = new dropdownField('Departamento', 'depto');
-		$edit->depa->style ="width:200px;";
+		$edit->depa->style ='width:200px;';
 		//$edit->depa->option('','Seleccionar');
 		$edit->depa->group = 'Relaci&oacute;n Laboral';
 		$edit->depa->rule = 'required';
@@ -1295,7 +1295,7 @@ class Pers extends Controller {
 		$edit->contrato = new dropdownField('Contrato','contrato');
 		$edit->contrato->style ='width:350px;';
 		$edit->contrato->option('','Ninguno');
-		$edit->contrato->options("SELECT codigo,CONCAT('',codigo,nombre)as nombre FROM noco ORDER BY codigo");
+		$edit->contrato->options("SELECT codigo,CONCAT_WS('',codigo,nombre) AS nombre FROM noco ORDER BY codigo");
 
 		$edit->vencimiento = new DateonlyField('Vencimiento', 'vence','d/m/Y');
 		$edit->vencimiento->size = 10;

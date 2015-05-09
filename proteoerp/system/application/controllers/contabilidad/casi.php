@@ -108,8 +108,8 @@ class Casi extends Controller {
 			function(data){
 				$("#fedita").html(data);
 				$("#fedita").dialog( "open" );
-			})
-		};';
+			});
+		}';
 
 		$bodyscript .= '
 		function casiedit() {

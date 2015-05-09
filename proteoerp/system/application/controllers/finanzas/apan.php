@@ -1252,7 +1252,7 @@ class Apan extends Controller {
 			if($numero === false || $tipo === false || $fecha === false ){
 				break;
 			}
-			if(empty($numero)|| empty($tipo) || empty($fecha)){
+			if(empty($numero) || empty($tipo) || empty($fecha)){
 				break;
 			}
 
@@ -1345,7 +1345,7 @@ class Apan extends Controller {
 			//Fin de los efectos
 
 			if(round($aplicar-$efectos,2) != 0.0){
-				$do->error_message_ar['pre_ins'] = $do->error_message_ar['insert'] = 'El monto a aplicar es diferente al aplicado. '."$aplicar-$efectos";
+				$do->error_message_ar['pre_ins'] = $do->error_message_ar['insert'] = 'El monto a aplicar es diferente al aplicado. '."${aplicar}-${efectos}";
 				return false;
 			}
 
