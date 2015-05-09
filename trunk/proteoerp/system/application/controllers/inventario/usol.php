@@ -540,7 +540,7 @@ class Usol extends Controller {
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
-			'width'         => 100,
+			'width'         => 50,
 			'edittype'      => "'text'",
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:50, maxlength: 50 }',
@@ -551,7 +551,7 @@ class Usol extends Controller {
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
-			'width'         => 100,
+			'width'         => 150,
 			'edittype'      => "'text'",
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:50, maxlength: 50 }',
@@ -578,7 +578,7 @@ class Usol extends Controller {
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
-			'width'         => 70,
+			'width'         => 50,
 			'edittype'      => "'select'",
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ value: '.$activo.',  style:"width:70px"}',
@@ -676,9 +676,9 @@ class Usol extends Controller {
 			}
 
 			$nuevo  = $data[$mcodp];
-			//unset($data[$mcodp]);
+			unset($data[$mcodp]);
 			$this->db->where('id', $id);
-			$this->db->update('edgrupo', $data);
+			$this->db->update('usol', $data);
 
 /*
 			$dbnuevo=$this->db->escape($nuevo);
@@ -695,7 +695,7 @@ class Usol extends Controller {
 				}
 			}
 */
-			logusu('edgrupo','Grupos de Inmueble '.$nuevo.' MODIFICADO');
+			logusu('usol','Cargos '.$nuevo.' MODIFICADO');
 			echo $nuevo." Modificada";
 
 		}elseif($oper == 'del'){
@@ -704,14 +704,18 @@ class Usol extends Controller {
 			}
 			//$ruta  = $this->datasis->dameval("SELECT $ FROM sclirut WHERE id=${id}");
 			//$dbruta= $this->db->escape($ruta);
-			$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sclitrut a JOIN scli b ON a.cliente=b.cliente WHERE a.ruta=${dbruta}"));
-			if($check > 0){
-				echo 'El registro no puede ser eliminado; elimine primero los clientes asociados';
-			}else{
-				$this->db->query("DELETE FROM sclirut WHERE id=${id}");
-				logusu('sclirut',"Ruta ${ruta} ELIMINADO");
-				echo 'Registro Eliminado';
-			}
+			//$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM sclitrut a JOIN scli b ON a.cliente=b.cliente WHERE a.ruta=${dbruta}"));
+			//if($check > 0){
+			//	echo 'El registro no puede ser eliminado; elimine primero los clientes asociados';
+			//}else{
+				//$this->db->query("DELETE FROM usol WHERE id=${id}");
+
+			$this->db->where('id', $id);
+			$this->db->update('usol', array('activo'=>'N'));
+
+			logusu('usol',"Cargo ELIMINADO");
+			echo 'Registro Eliminado';
+			//}
 		}
 	}
 

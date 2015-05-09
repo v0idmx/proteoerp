@@ -87,6 +87,7 @@ class gser extends Controller {
 			array('id'=>'fshow' , 'title'=>'Mostrar registro'),
 			array('id'=>'fimpri', 'title'=>'Imprimir Gasto/Egreso'),
 			array('id'=>'fborra', 'title'=>'Eliminar Registro'),
+			array('id'=>'fusol',  'title'=>'Cargos'),
 			array('id'=>'fsprv' , 'title'=>'Agregar Proveedor')
 		);
 		$SouthPanel = $grid->SouthPanel($this->datasis->traevalor('TITULO1'), $adic);
@@ -248,9 +249,9 @@ class gser extends Controller {
 		$("#creauso").click(function(){
 			$.post("'.site_url('inventario/usol/usolform').'",
 			function(data){
-				$("#fsprv").html(data);
-				$("#fsprv").dialog({height: 450, width: 510, title: "Cargos"});
-				$("#fsprv").dialog( "open" );
+				$("#fusol").html(data);
+				$("#fusol").dialog({height: 450, width: 510, title: "Cargos"});
+				$("#fusol").dialog( "open" );
 			});
 		});';
 
@@ -369,6 +370,24 @@ class gser extends Controller {
 					$("#fgasto").html("");
 				}
 			});';
+
+
+		$bodyscript .= '
+			$("#fusol").dialog({
+				autoOpen: false, height: 450, width: 900, modal: true,
+				buttons: {
+					"Cerrar": function() {
+						$(this).dialog( "close" );
+						$("#fusol").html("");
+					}
+				},
+				close: function() {
+					allFields.val("").removeClass( "ui-state-error" );
+					$("#fusol").html("");
+				}
+			});';
+
+
 
 		$bodyscript .= '
 			$("#fsprv").dialog({
@@ -3176,33 +3195,31 @@ class gser extends Controller {
 		$edit->importe->type='inputhidden';
 
 		$edit->departa =  new dropdownField('Departamento <#o#>', 'departa_<#i#>');
-		$edit->departa->option('','Seleccionar');
+		$edit->departa->option( '', 'Seleccionar' );
 		$edit->departa->options("SELECT TRIM(depto) AS codigo, CONCAT_WS('-',depto,TRIM(descrip)) AS label FROM dpto WHERE tipo IN ('G','A') ORDER BY depto");
-		$edit->departa->db_name='departa';
-		$edit->departa->rule='required';
-		$edit->departa->style = 'width:70px';
-		$edit->departa->rel_id   ='gitser';
+		$edit->departa->db_name  = 'departa';
+		$edit->departa->rule     = 'required';
+		$edit->departa->style    = 'width:70px';
+		$edit->departa->rel_id   = 'gitser';
 		$edit->departa->onchange="gdeparta(this.value)";
 
 		$edit->sucursal =  new dropdownField('Sucursal <#o#>', 'sucursal_<#i#>');
 		$edit->sucursal->options("SELECT codigo,codigo AS sucursal FROM sucu ORDER BY codigo");
 		$edit->sucursal->db_name='sucursal';
-		$edit->sucursal->rule='required';
-		$edit->sucursal->style = 'width:40px';
-		$edit->sucursal->title ='Sucursal';
-
-		$edit->gcargo =  new dropdownField('Cargo <#o#>', 'gcargo_<#i#>');
-		$edit->gcargo->options("SELECT id, CONCAT(codigo,' ',nombre) nombre FROM usol ORDER BY codigo");
-		$edit->gcargo->db_name='gcargo';
-		//$edit->gcargo->rule='required';
-		$edit->gcargo->style = 'width:50px';
-		$edit->gcargo->title ='Cargo';
-
+		$edit->sucursal->rule     = 'required';
+		$edit->sucursal->style    = 'width:40px';
+		$edit->sucursal->title    = 'Sucursal';
 		$edit->sucursal->rel_id   = 'gitser';
 		$edit->sucursal->onchange = "gsucursal(this.value)";
 
-		$edit->gcargo->rel_id     = 'gitser';
-		$edit->gcargo->onchange   = "gcargo(this.value)";
+		$edit->cargo =  new dropdownField('Cargo <#o#>', 'cargo_<#i#>');
+		$edit->cargo->options("SELECT id, CONCAT(codigo,' ',nombre) nombre FROM usol WHERE activo='S' ORDER BY codigo");
+		$edit->cargo->db_name    = 'gcargo';
+		$edit->cargo->style      = 'width:50px';
+		$edit->cargo->title      = 'Cargo';
+		$edit->cargo->rel_id     = 'gitser';
+		$edit->cargo->onchange   = "gcargo(this.value)";
+
 		//================= Fin de campos para detalle =================
 
 
