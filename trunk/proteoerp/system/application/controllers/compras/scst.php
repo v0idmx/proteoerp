@@ -2821,6 +2821,24 @@ class Scst extends Controller {
 		return true;
 	}
 
+	function chmargenact($margen){
+		$cprecio = $this->input->post('cprecio');
+		if($cprecio=='M'){
+			$this->validation->set_message('chmargenact', 'Valor invalido para el margen');
+			if(is_numeric($margen)){
+				$margen = floatval($margen);
+				if($margen>0 && $margen<100){
+					return true;
+				}
+				return false;
+			}else{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	function chcodigoa($codigo){
 		$cana=$this->datasis->dameval('SELECT COUNT(*) FROM sinv WHERE codigo='.$this->db->escape($codigo));
 		if(empty($cana) || $cana==0){
@@ -2925,6 +2943,7 @@ class Scst extends Controller {
 
 		$script = '$(function(){
 			$(".littletableheader").css("width","200px");
+			$(".inputnum").numeric(".");
 			$("#fecha").datepicker({ dateFormat: "dd/mm/yy" });
 			$("#cprecio").change(function(){
 				var cprecio=$("#cprecio").val();
@@ -2940,6 +2959,11 @@ class Scst extends Controller {
 					$("#advs").hide();
 					$("#advn").hide();
 					$("#advd").show();
+				}
+				if(cprecio=="M"){
+					$("#tr_margens").show();
+				}else{
+					$("#tr_margens").hide();
 				}
 			});
 			$("#cprecio").change();
@@ -2976,11 +3000,10 @@ class Scst extends Controller {
 
 			if( in_array($scstrow['tipo_doc'], array('FC','NE') )){
 				$opt_arr=array(
-					'D' => 'Dejar el precio mayor',
-					'M' => 'Obliga Margen',
-					'N' => 'No',
-					'S' => 'Si'
-
+					'D' => array('Dejar el precio mayor','Coloca el precio mayor entre el precio en inventario y el nuevo precio seg&uacute;n compra.'),
+					'M' => array('Obliga Margen'        ,'Calcula el precio a partir del costo nuevo aplicando el margen suministrado.'),
+					'N' => array('No'                   ,'Respeta los precios de los productos en inventario e ignora los provenientes de la compra.'),
+					'S' => array('Si'                   ,'Coloca los precios provenientes de la compra reemplazando los del inventario exepto los productos marcados con la opci&oacute;n de repetar margen a los cuales se les calculara el precio sin modificar sus margenes.')
 				);
 
 				$optstr  = $this->datasis->traevalor('SCSTACTUALIOPT','Fija las opciones para actualizar compras Ej SND');
@@ -2990,28 +3013,34 @@ class Scst extends Controller {
 					if(count($pivo)>0){
 						$result  = array();
 						foreach($pivo as $val){
-							$result[$val]=$opt_arr[$val];
+							$result[$val]=$opt_arr[$val][0];
 						}
-						$opt_arr=$result;
+					}
+				}else{
+					foreach($opt_arr as $id=>$val){
+						$result[$id]=$opt_arr[$id][0];
 					}
 				}
+
+				$arr_enum=array();
+				$infoview='';
+				foreach($result as $id=>$val){
+					$arr_enum[]= $id;
+					$infoview .= '<li><b>'.$val.'</b>:'.$opt_arr[$id][1].'</li>';
+				}
+				$opt_arr=$result;
 
 				$form->cprecio = new  dropdownField ('Cambiar precios', 'cprecio');
 				$form->cprecio->options($opt_arr);
 				$form->cprecio->append(' <sup>1</sup>');
 				$form->cprecio->title ='Ver nota 1';
 				$form->cprecio->style = 'width:170px;';
-				$form->cprecio->rule  = 'required|enum[D,N,S,M]';
+				$form->cprecio->rule  = 'required|enum['.implode(',',$arr_enum).']';
 
 				$htmltabla='
 				<div  style="background-color:#9D9FFF;font-size:1.2em">
 				<span style="font-size:1.2em"><sup>1</sup> Opciones para <b>cambio de precios</b>:</span>
-				<ul style="padding: 0px;margin: 0px 0px 0px 20px;">
-					<li><b>No</b>:Respeta los precios de los productos en inventario e ignora los provenientes de la compra.</li>
-					<li><b>Si</b>:Coloca los precios provenientes de la compra reemplazando los del inventario exepto los productos marcados con la opci&oacute;n de repetar margen a los cuales se les calculara el precio sin modificar sus margenes.</li>
-					<li><b>Dejar mayor</b>: Coloca el precio mayor entre el precio en inventario y el nuevo precio seg&uacute;n compra.</li>
-					<li><b>Obligar margen</b>: Calcula el precio a partir del costo nuevo aplicando el margen suministrado.</li>
-				</ul>
+				<ul style="padding: 0px;margin: 0px 0px 0px 20px;">'.$infoview.'</ul>
 				</div>';
 			}else{
 				$form->cprecio = new hiddenField('Fecha de recepci&oacute;n del documento', 'cprecio');
@@ -3035,7 +3064,7 @@ class Scst extends Controller {
 				$form->ordc->option('S','Si');
 				$form->ordc->rule  = 'required|enum[N,S]';
 				$form->ordc->style = 'width:100px;';
-				$form->ordc->title ='Selecionar SI para cerrar las ordenes de compra asociadas o NO para dejarlas en backorder';
+				$form->ordc->title = 'Selecionar SI para cerrar las ordenes de compra asociadas o NO para dejarlas en backorder';
 			}
 
 			$style='style="background-color:red;border-radius: 5px;color:yellow;padding:3px;font-size:1.2em;"';
@@ -3065,9 +3094,10 @@ class Scst extends Controller {
 			$form->margens = new inputField('Obligar Margen', 'margens');
 			$form->margens->css_class    = 'inputnum';
 			$form->margens->size         = 10;
-			$form->margens->maxlength    = 13;
+			$form->margens->maxlength    = 6;
 			$form->margens->autocomplete = false;
 			$form->margens->insertValue = 30.00;
+			$form->margens->rule        = 'condi_required|callback_chmargenact';
 
 			//Advertencia cambio de precios N
 			$mSQL = "SELECT GROUP_CONCAT(DISTINCT TRIM(a.codigo)) AS codigos
@@ -4345,7 +4375,13 @@ class Scst extends Controller {
 					//Falta implementar
 				}
 
-				logusu('scst',"Compra ${numero} control ${control} C.Precio ${cprecio} ACTUALIZADA");
+				if($cprecio=='M'){
+					$adlog=$margens;
+				}else{
+					$adlog='';
+				}
+
+				logusu('scst',"Compra ${numero} control ${control} C.Precio ${cprecio} ${adlog} ACTUALIZADA");
 			}else{
 				$this->error_string='Compra no existe '.$id;
 				return false;

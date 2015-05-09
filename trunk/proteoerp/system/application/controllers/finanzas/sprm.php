@@ -67,7 +67,7 @@ class Sprm extends Controller {
 		$grid->wbotonadd(array('id'=>'imprime'   ,'img'=>'assets/default/images/print.png', 'alt' => 'Reimprimir Documento',      'label'=>'Imprimir', 'tema'=>'anexos'));
 		$grid->wbotonadd(array('id'=>'princheque','img'=>'images/check.png'  , 'alt' => 'Emitir Cheque'   , 'label'=>'Imprimir cheque',      'tema'=>'anexos'));
 		$grid->wbotonadd(array('id'=>'pago'      ,'img'=>'images/dinero.png' , 'alt' => 'Pago a proveedor', 'label'=>'Pago a proveedor'));
-		//$grid->wbotonadd(array('id'=>'bncpro'    ,'img'=>'images/dinero.png' , 'alt' => 'NC a FC pagada'  , 'label'=>'NC a FC pagada'));
+		//$grid->wbotonadd(array('id'=>'bncpro'    ,'img'=>'images/circuloamarillo.png' , 'alt' => 'NC a FC pagada'  , 'label'=>'NC a FC pagada'));
 		$WestPanel = $grid->deploywestp();
 
 
@@ -296,7 +296,7 @@ class Sprm extends Controller {
 							$("#fgrid").val(JSON.stringify(paras));
 							$.ajax({
 								type: "POST", dataType: "html", async: false,
-								url:"'.site_url("finanzas/ppro/abono").'",
+								url:"'.site_url('finanzas/ppro/abono').'",
 								data: $("#abonoforma").serialize(),
 								success: function(r,s,x){
 									var res = $.parseJSON(r);
