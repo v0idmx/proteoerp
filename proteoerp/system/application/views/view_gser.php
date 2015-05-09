@@ -25,7 +25,7 @@ $campos.=' <td class="littletablerow" align="right">'.$ccampos['iva']['field'].'
 $campos.=' <td class="littletablerow" align="right">'.$ccampos['importe']['field'].'</td>';
 $campos.=' <td class="littletablerow">'.$ccampos['departa']['field'].'</td>';
 $campos.=' <td class="littletablerow">'.$ccampos['sucursal']['field'].'</td>';
-$campos.=' <td class="littletablerow">'.$ccampos['gcargo']['field'].'</td>';
+$campos.=' <td class="littletablerow">'.$ccampos['cargo']['field'].'</td>';
 $campos.=' <td class="littletablerow" align="center"><a href=\'#\' onclick="del_gitser(<#i#>);return false;">'.img("images/delete.jpg").'</a></td></tr>';
 $campos=$form->js_escape($campos);
 
@@ -73,7 +73,7 @@ var gereten_cont=<?php echo $form->max_rel_count['gereten'];?>;
 
 var departa  = '';
 var sucursal = '';
-var gcargo   = '';
+var cargo   = '';
 
 var comis    = <?php echo $json_comis; ?>;
 var rete     = <?php echo $json_rete;  ?>;
@@ -242,12 +242,12 @@ function gdeparta(val){
 
 //Para que el proximo registro tenga la misma sucursal
 function gsucursal(val){
-	sucursal=val;
+	sucursal = val;
 }
 
 //Para que el proximo registro tenga el mismo cargo
 function gcargo(val){
-	gcargo=val;
+	cargo = val;
 }
 
 //Calcula la retencion del iva
@@ -432,7 +432,7 @@ function add_gitser(){
 	$("#__PTPL__").after(htm);
 	$("#departa_"+can).val(departa);
 	$("#sucursal_"+can).val(sucursal);
-	$("#gcargo_"+can).val(gcargo);
+	$("#cargo_"+can).val(cargo);
 
 	autocod(gitser_cont);
 	gitser_cont = gitser_cont+1;
@@ -637,7 +637,7 @@ function toggle() {
 				$obj5 ="importe_$i";
 				$obj7 ="departa_$i";
 				$obj8 ="sucursal_$i";
-				$obj9 ="gcargo_$i";
+				$obj9 ="cargo_$i";
 				$obj11="tasaiva_$i";
 
 				if($form->_status=='show'){
