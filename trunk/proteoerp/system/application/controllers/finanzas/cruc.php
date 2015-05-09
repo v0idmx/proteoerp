@@ -1639,8 +1639,6 @@ class Cruc extends Controller {
 
 
 	function _pre_insert($do){
-		$numero  = 'C'.$this->datasis->fprox_numero('ncruc',7);
-		$trans   = $this->datasis->fprox_numero('ntransa');
 		$tipo    = $do->get('tipo');
 		$cliente = $do->get('cliente');
 		$proveed = $do->get('proveed');
@@ -1659,9 +1657,6 @@ class Cruc extends Controller {
 				return false;
 			}
 		}
-
-		$do->set('transac',$trans );
-		$do->set('numero' ,$numero);
 
 		$citcruc=$apatot=$adetot=0;
 		$cana = $do->count_rel('itcruc');
@@ -1738,6 +1733,13 @@ class Cruc extends Controller {
 			}
 		}
 		$do->set('monto',round($adetot,2));
+
+		$numero = 'C'.substr($this->datasis->fprox_numero('ncruc'),1);
+		$trans  = $this->datasis->fprox_numero('ntransa');
+
+		$do->set('transac',$trans );
+		$do->set('numero' ,$numero);
+
 		return true;
 	}
 

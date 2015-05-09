@@ -4175,13 +4175,13 @@ class Sfac extends Controller {
 				if($manual!='S'){
 					$numero = $this->datasis->fprox_numero('nsfac'.$prefijo);
 				}else{
-					$numero = 'M'.$this->datasis->fprox_numero('nsfacman',7);
+					$numero = 'M'.substr($this->datasis->fprox_numero('nsfacman'),1);
 				}
 			}else{
 				if($manual!='S'){
 					$numero = $this->datasis->fprox_numero('nccli'.$prefijo);
 				}else{
-					$numero = 'M'.$this->datasis->fprox_numero('nccliman',7);
+					$numero = 'M'.substr($this->datasis->fprox_numero('nccliman'),1);
 				}
 			}
 		}

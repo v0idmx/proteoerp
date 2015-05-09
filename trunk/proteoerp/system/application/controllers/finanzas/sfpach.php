@@ -40,9 +40,9 @@ class sfpach extends Controller {
 		$grid->setUrlput(site_url($this->url.'setdata/'));
 
 		//Botones Panel Izq
-		$grid->wbotonadd(array("id"=>"depositar", "img"=>"assets/default/images/cheque.png",  "alt" => 'Enviar Cheques',  "label"=>"Enviar a Depositar", 'tema'=>'anexos'));
-		$grid->wbotonadd(array("id"=>"efectivo",  "img"=>"assets/default/images/monedas.png", "alt" => 'Enviar Efectivo', "label"=>"Enviar Efectivo",    'tema'=>'anexos'));
-		$grid->wbotonadd(array("id"=>"ocultar",   "img"=>"images/delete.png",  "alt" => 'No Depositar',    "label"=>"No Depositar"));
+		$grid->wbotonadd(array('id'=>'depositar', 'img'=>'assets/default/images/cheque.png',  'alt' => 'Enviar Cheques',  "label"=>"Enviar a Depositar", 'tema'=>'anexos'));
+		$grid->wbotonadd(array('id'=>'efectivo',  'img'=>'assets/default/images/monedas.png', 'alt' => 'Enviar Efectivo', "label"=>"Enviar Efectivo",    'tema'=>'anexos'));
+		$grid->wbotonadd(array('id'=>'ocultar',   'img'=>'images/delete.png',                 'alt' => 'No Depositar',    "label"=>"No Depositar"));
 		$WestPanel = $grid->deploywestp();
 
 		$mSQL  = "SELECT codbanc, CONCAT(codbanc, ' ', TRIM(banco), IF(tbanco='CAJ',' ',numcuent) ) banco FROM banc WHERE tbanco='CAJ' AND activo='S' AND codbanc<>'00' ORDER BY codbanc ";
@@ -323,7 +323,7 @@ class sfpach extends Controller {
 		$grid  = new $this->jqdatagrid;
 
 		$grid->addField('status');
-		$grid->label('Status');
+		$grid->label('Estatus');
 		$grid->params(array(
 				'width'    => 30,
 				'align'    => "'center'",
@@ -515,8 +515,7 @@ class sfpach extends Controller {
 	/**
 	* Get data result as json
 	*/
-	function getdata()
-	{
+	function getdata(){
 		$tabla = 'view_sfpach';
 		$filters = $this->input->get_post('filters');
 		$mWHERE = array();
@@ -534,8 +533,7 @@ class sfpach extends Controller {
 	/**
 	* Put information
 	*/
-	function setData()
-	{
+	function setData(){
 		//$this->load->library('jqdatagrid');
 		$oper   = $this->input->post('oper');
 		$id     = $this->input->post('id');
@@ -589,25 +587,26 @@ class sfpach extends Controller {
 	function depositos(){
 		$envia   = $this->input->get_post('envia');
 		$recibe  = $this->input->get_post('recibe');
-		$monto   = $this->input->get_post('monto');
+		$monto   = floatval($this->input->get_post('monto'));
 		$cheques = $this->input->get_post('ids');
 		$fecha   = date('Ymd');
 
 		// Revisamos si el monto coincide con la suma
-		$mMonto = $this->datasis->dameval("SELECT SUM(monto) FROM sfpa WHERE id IN ( $cheques )");
+		$mMonto = intval($this->datasis->dameval("SELECT SUM(monto) AS val FROM sfpa WHERE id IN ( ${cheques} )"));
 
-		if ($monto <> $mMonto) memowrite("Diferencia de monto $monto <> $mMonto");
+		if ($monto <> $mMonto) memowrite("Diferencia de monto ${monto} <> ${mMonto}");
 
 		$monto = $mMonto;
 
-		$transac = $this->datasis->prox_sql("ntransa",8);
+		$transac = $this->datasis->fprox_numero('ntransa');
 
 		$i = 0;
 		while ( $i == 0){
-			$numero  =$this->datasis->prox_sql("nbcaj",8);
-			if ($this->datasis->dameval("SELECT count(*) FROM bcaj WHERE numero='".$numero."'") == 0 ){
+			$numero  =$this->datasis->fprox_numero('nbcaj');
+			$cana = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM bcaj WHERE numero='${numero}'"));
+			if ($cana == 0 ){
 				$i = 1;
-			};
+			}
 		}
 
 		$numeroe = $this->datasis->banprox($envia);
@@ -699,7 +698,7 @@ class sfpach extends Controller {
 		$data['transac']  = $transac;
 		$this->db->insert('bmov', $data);
 
-		logusu('BCAJ',"Deposito de cheques de caja Nro. $numero creada");
+		logusu('BCAJ',"Deposito de cheques de caja Nro. ${numero} creada");
 		echo "{\"numero\":\"$numero\",\"mensaje\":\"Registro Agregado\"}";
 	}
 
