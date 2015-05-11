@@ -250,6 +250,7 @@ class Sprm extends Controller {
 		jQuery("#bncpro").click( function(){
 			$.post("'.site_url($this->url.'ncppro').'/create", function(data){
 				$("#fabono").html(data);
+				$("#fabono").dialog({ height: 470, width: 600 });
 				$("#fabono").dialog( "open" );
 			});
 		});';
@@ -269,7 +270,7 @@ class Sprm extends Controller {
 			$("#abonos").click(function() {
 				var id  = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 				if (id)	{
-					var ret    = $("#newapi'.$grid0.'").getRowData(id);
+					var ret = $("#newapi'.$grid0.'").getRowData(id);
 					mId = id;
 					$.post("'.site_url('finanzas/ppro/formaabono').'/"+id, function(data){
 						$("#fpreabono").html("");
@@ -313,13 +314,20 @@ class Sprm extends Controller {
 							});
 						}
 					},
-					Cancel: function() { $( this ).dialog( "close" ); }
+					Cancel: function(){
+						$("#fabono").html("");
+						$( this ).dialog( "close" );
+					}
 				},
-				close: function() { allFields.val( "" ).removeClass( "ui-state-error" );}
+				close: function() {
+					$("#fabono").html("");
+					allFields.val( "" ).removeClass( "ui-state-error" );
+				}
 			});';
 
 		$bodyscript .= '
 		jQuery("#pago").click( function(){
+			$("#fabono").dialog({ height: 470, width: 790 });
 			$.post("'.site_url($this->url.'selsprv/').'",
 				function(data){
 					$("#fsprvsel").html(data);
@@ -1868,7 +1876,7 @@ class Sprm extends Controller {
 		$edit->post_process('insert', '_post_ncppro_insert');
 
 		$edit->cod_prv = new inputField('Proveedor','cod_prv');
-		$edit->cod_prv->rule ='max_length[5]';
+		$edit->cod_prv->rule ='existesprv';
 		$edit->cod_prv->size =8;
 
 		$edit->nombre = new inputField('Nombre','nombre');
@@ -1926,7 +1934,7 @@ class Sprm extends Controller {
 		$edit->fecapl->calendar = false;
 		$edit->fecapl->rule ='chfecha|required';
 
-		$edit->depto = new  dropdownField('Asignar a departamento', 'depto');
+		$edit->depto = new  dropdownField('Departamento', 'depto');
 		$edit->depto->option('','Seleccionar');
 		$edit->depto->options('SELECT depto,CONCAT_WS(\'-\',depto,TRIM(descrip)) AS descrip FROM dpto WHERE tipo=\'G\' ORDER BY descrip');
 		$edit->depto->style='width:200px;';
@@ -2010,7 +2018,7 @@ class Sprm extends Controller {
 		$edit->reteiva->insertValue='0';
 		$edit->reteiva->rule='condi_required|callback_chobligatipo[NC]|positive';
 
-		$edit->monto = new inputField('Total a pagar','monto');
+		$edit->monto = new inputField('Total','monto');
 		$edit->monto->rule='required|max_length[17]|numeric';
 		$edit->monto->css_class='inputnum';
 		$edit->monto->size =19;
@@ -2167,7 +2175,7 @@ class Sprm extends Controller {
 		//$edit->post_process('delete', '_post_pprv_delete');
 
 		$edit->cod_prv = new hiddenField('Proveedor','cod_prv');
-		$edit->cod_prv->rule ='max_length[5]';
+		$edit->cod_prv->rule ='existesprv';
 		$edit->cod_prv->size =7;
 		$edit->cod_prv->insertValue=$proveed;
 		$edit->cod_prv->maxlength =5;

@@ -44,7 +44,7 @@ class Sfac extends Controller {
 		$bodyscript = $this->bodyscript( $param['grids'][0]['gridname'], $param['grids'][1]['gridname'] );
 
 		//Botones Panel Izq
-		$grid->wbotonadd(array('id'=>'fimprime',  'img'=>'assets/default/images/print.png','alt' => 'Reimprimir Documento','tema'=>'anexos', 'label'=>'Imprimir'));
+		$grid->wbotonadd(array('id'=>'fimprime', 'img'=>'assets/default/images/print.png','alt' => 'Reimprimir Documento','tema'=>'anexos', 'label'=>'Imprimir'));
 		$grid->wbotonadd(array('id'=>'precierre','img'=>'images/dinero.png',              'alt' => 'Cierre de Caja',      'tema'=>'anexos', 'label'=>'Cierre de Caja'));
 		$grid->wbotonadd(array('id'=>'fmanual',  'img'=>'images/mano.png',                'alt' => 'Factura Manual',      'tema'=>'anexos', 'label'=>'Factura Manual'));
 		$grid->wbotonadd(array('id'=>'bdevolu',  'img'=>'images/dinero.png',              'alt' => 'Devolver Factura',    'tema'=>'anexos', 'label'=>'Devolver'));

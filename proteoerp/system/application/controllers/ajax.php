@@ -1784,6 +1784,50 @@ class Ajax extends Controller {
 	}
 
 	//******************************************************************
+	//Busca la factura afectada para NC a facturas cobradas
+	//
+	function buscaafectasprm(){
+		$comodin= $this->datasis->traevalor('COMODIN');
+		$mid    = $this->input->post('q');
+		$sprv   = $this->input->post('sprv');
+
+		if(strlen($comodin)==1 && $comodin!='%' && $mid!==false){
+			$mid=str_replace($comodin,'%',$mid);
+		}
+		$qdb  = $this->db->escape('%'.$mid.'%');
+
+		$data = '[]';
+		if($mid !== false && $sprv !== false){
+			$dbsprv   = $this->db->escape($sprv);
+			$retArray = $retorno = array();
+
+			$mSQL ="SELECT serie,fecha,montonet AS totalg,montasa, monredu, monadic, tasa, reducida, sobretasa, reteiva FROM scst WHERE proveed=${dbsprv} AND serie LIKE ${qdb} LIMIT ".$this->autolimit;
+			$mSQL.=' UNION ALL ';
+			$mSQL.="SELECT serie,fecha,totbruto AS totalg,montasa, monredu, monadic, tasa, reducida, sobretasa, reteiva FROM gser WHERE proveed=${dbsprv} AND serie LIKE ${qdb} LIMIT ".$this->autolimit;
+
+			$query = $this->db->query($mSQL);
+			if ($query->num_rows() > 0){
+				foreach( $query->result_array() as  $row ) {
+					$retArray['label']     = '('.$row['serie'].') '.$this->_datehuman($row['fecha']).' '.($row['totalg']);
+					$retArray['value']     = $row['serie'];
+					$retArray['fecha']     = $this->_datehuman($row['fecha']);
+					$retArray['montasa']   = floatval($row['montasa']);
+					$retArray['monredu']   = floatval($row['monredu']);
+					$retArray['monadic']   = floatval($row['monadic']);
+					$retArray['tasa']      = floatval($row['tasa']);
+					$retArray['reducida']  = floatval($row['reducida']);
+					$retArray['sobretasa'] = floatval($row['sobretasa']);
+					$retArray['reteiva']   = floatval($row['reteiva']);
+
+					array_push($retorno, $retArray);
+				}
+				$data = json_encode($retorno);
+	        }
+		}
+		echo $data;
+	}
+
+	//******************************************************************
 	//Saldo de proveedor
 	//
 	function ajaxsaldosprv(){
