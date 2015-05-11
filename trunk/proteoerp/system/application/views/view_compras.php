@@ -130,11 +130,18 @@ $(function(){
 				success:
 					function(data){
 						var sugiere = [];
-						$.each(data,
-							function(i, val){
-								sugiere.push( val );
-							}
-						);
+						if(data.length==0){
+							$('#nombre').val('');
+							$('#nombre_val').text('');
+							$('#proveed').val('');
+							$('#sprvreteiva').val('0');
+						}else{
+							$.each(data,
+								function(i, val){
+									sugiere.push( val );
+								}
+							);
+						}
 						add(sugiere);
 					},
 			})
