@@ -539,7 +539,7 @@ class Reparto extends Controller {
 					$this->db->update('reparto', array('tipo' => 'F', 'retorno' => $fecha, 'tcierre'=>date('Y-m-d H:i:s')));
 					$entrega  = $this->datasis->dameval("SELECT entregado FROM reparto WHERE id=${id}");
 					$dbentrega= $this->db->escape($entrega);
-					$this->db->query("UPDATE sfac SET entregado=${dbentrega} WHERE reparto=${id} AND repcob NOT IN ('EF','MI','CH','FP')");
+					$this->db->query("UPDATE sfac SET entregado=${dbentrega} WHERE reparto=${id} AND COALESCE(repcob,'') NOT IN ('EF','MI','CH','FP')");
 					echo 'Guardada';
 				}
 			}else{
