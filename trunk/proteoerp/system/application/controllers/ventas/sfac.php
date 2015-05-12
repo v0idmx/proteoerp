@@ -2744,14 +2744,14 @@ class Sfac extends Controller {
 
 		// Revisa los repartos
 		if(!empty($reparto)){
-			$rrow = $this->datasis->damerow("SELECT b.nombre,b.telefono  FROM reparto AS a JOIN chofer AS b ON a.chofer=b.id WHERE a.id=${reparto}");
+			$rrow = $this->datasis->damerow("SELECT b.nombre,b.telefono,a.tipo  FROM reparto AS a JOIN chofer AS b ON a.chofer=b.id WHERE a.id=${reparto}");
 			if(!empty($rrow)){
 				if(empty($row['telefono'])){
 					$telf='';
 				}else{
 					$telf=' Telef: '.$row['telefono'];
 				}
-				$salida .= '<p style=\'text-align:center\'>Reparto: <b>'.str_pad($reparto,8,'0',0).'</b> Chofer: <b>'.$rrow['nombre'].'</b>'.$telf.'</p>';
+				$salida .= '<p style=\'text-align:center\'>Reparto: <b>'.$rrow['tipo'].' '.str_pad($reparto,8,'0',0).'</b> Chofer: <b>'.$rrow['nombre'].'</b>'.$telf.'</p>';
 			}
 		}
 
