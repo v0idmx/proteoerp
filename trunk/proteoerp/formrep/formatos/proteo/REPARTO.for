@@ -366,7 +366,7 @@ foreach ($detalle as $items){ $i++; $nsitems=$nsitems-1; $totalg+=$items->totalg
 			</tr>
 <?php
 		if($npagina && $nsitems>0 && $restan>0){
-			echo $pie_continuo.$nsitems;
+			echo $pie_continuo;
 		}else{
 			$mod = ! $mod;
 		}

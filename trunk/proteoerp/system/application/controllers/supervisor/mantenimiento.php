@@ -1314,7 +1314,7 @@ function elminacenti(cual){
 		$filter->buttons("reset","search");
 		$filter->build();
 
-		if($this->rapyd->uri->is_set("search") AND $filter->is_valid()){
+		if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
 
 			$uri = anchor('supervisor/mantenimiento/sntecambioalma/modify/<#numero#>','<#almacen#>');
 
@@ -1573,10 +1573,50 @@ function elminacenti(cual){
 		$this->load->view('view_ventanas', $data);
 	}
 
+	function revivesfac(){
+		$this->datasis->modulo_id('900',1);
+		$this->rapyd->load('dataform','datagrid2');
+		$this->rapyd->uri->keep_persistence();
+
+		$edit = new DataForm('supervisor/mantenimiento/revivesfac/process');
+
+		$edit->numero = new inputField('N&uacute;mero', 'numero');
+		$edit->numero->size = 10;
+		$edit->numero->maxlength = 8;
+		$edit->numero->rule='required';
+
+		$edit->submit('btnsubmit','Procesar');
+		$edit->build_form();
+
+		$salida = '';
+		if($edit->on_success()){
+			$numero  = $edit->numero->newValue;
+			$dbnumero= $this->db->escape($numero);
+			$referen = $this->datasis->dameval("SELECT referen FROM sfac WHERE numero=${dbnumero} AND tipo_doc='X'");
+			if($referen=='C'){
+				$mSQL="UPDATE sfac SET tipo_doc='F' WHERE tipo_doc='X' AND numero=${dbnumero}";
+				$this->db->simple_query($mSQL);
+
+				$mSQL="UPDATE sitems SET tipoa='F' WHERE tipoa='X' AND numa=${dbnumero}";
+				$this->db->simple_query($mSQL);
+
+				$salida = 'Cambio realizado';
+			}else{
+				$salida = 'Factura no valida para el cambio';
+			}
+		}
+
+		$data['content'] = $edit->output.$salida;
+		$data['title']   = heading('Revive facturas anuladas');
+		$data['head']    = $this->rapyd->get_head();
+		$this->load->view('view_ventanas', $data);
+	}
+
+
 	function calcosto(){
-		$this->db->simple_query("CALL sp_calcopasa()");
-		$this->db->simple_query("CALL sp_calcoinv()");
-		$this->db->simple_query("CALL sp_calcoestadis()");
+		$this->db->simple_query('CALL sp_calcopasa()');
+		$this->db->simple_query('CALL sp_calcoinv()');
+		$this->db->simple_query('CALL sp_calcoestadis()');
 		echo '<h1>Recalculo Concluido</h1>';
 	}
 

@@ -2602,10 +2602,19 @@ class Sfac extends Controller {
 			$cliente   = $row['cod_cli'];
 			$transac   = $row['transac'];
 			$referen   = $row['referen'];
-			$tipo_doc  = $row['tipo_doc'].'C';
 			$numero    = $row['numero'];
 			$reparto   = intval($row['reparto']);
+			$orgtipo   = $row['tipo_doc'];
 			$fecha     = $row['fecha'];
+			if($orgtipo=='F'){
+				$tipo_doc  = 'FC';
+			}elseif($orgtipo=='D'){
+				$tipo_doc  = 'NC';
+			}elseif($orgtipo=='T'){
+				$tipo_doc  = 'ND';
+			}else{
+				return false;
+			}
 		}else{
 			return false;
 		}
@@ -2615,6 +2624,40 @@ class Sfac extends Controller {
 		$dbtipo_doc= $this->db->escape($tipo_doc);
 		$dbnumero  = $this->db->escape($numero);
 		$dbfecha   = $this->db->escape($fecha);
+
+		if($referen=='C' && in_array($tipo_doc,array('NC','FC'))){
+			$mSQL = "SELECT COUNT(*) AS cana FROM smov WHERE transac=${dbtransac} AND cod_cli=${dbcliente} AND tipo_doc=${dbtipo_doc}";
+			$cana = intval($this->datasis->dameval($mSQL));
+			if($cana==0){
+				$dborgtipo=$this->db->escape($orgtipo);
+				$mSQL="INSERT IGNORE INTO smov (cod_cli,numero,nombre,dire1,dire2,tipo_doc,fecha, monto,impuesto,
+				abonos,vence,tipo_ref,num_ref,usuario,estampa,hora,transac,observa1,montasa,monredu,
+				monadic,tasa,reducida,sobretasa,exento,vendedor)
+				SELECT
+					a.cod_cli,a.numero,b.nombre,
+					b.dire11 AS dire1,
+					b.dire12 AS dire2,
+					IF(a.tipo_doc='D','NC','FC') AS tipo_doc,
+					a.fecha,
+					a.totalg AS monto,
+					a.iva AS impuesto,
+					0 AS abonos,
+					a.vence,
+					IF(a.tipo_doc='D','DV','FC') AS tipo_ref,
+					a.numero AS num_ref,
+					a.usuario,
+					a.estampa,
+					a.hora,
+					a.transac,
+					'FACTURA DE CREDITO' AS observa1,
+					a.montasa ,a.monredu ,a.monadic ,a.tasa ,a.reducida ,
+					a.sobretasa, a.exento,a.vd
+				FROM sfac AS a
+				JOIN scli AS b ON a.cod_cli=b.cliente
+				WHERE a.transac=${dbtransac} AND a.numero=${dbnumero} AND a.tipo_doc=${dborgtipo}";
+				$this->db->simple_query($mSQL);
+			}
+		}
 
 		$salida = '<br><table width=\'100%\' border=\'1\'>';
 		$pago  = 0;
