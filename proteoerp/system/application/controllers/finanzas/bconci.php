@@ -876,7 +876,8 @@ class Bconci extends Controller {
 		$do->set('fecha',$fecha);
 
 		$dbfecha  = $this->db->escape($fecha);
-		$ant = intval($this->datasis->dameval('SELECT COUNT(*) AS cana FROM bconci WHERE codbanc='.$dbcodbanc.' AND fecha='.$dbfecha));
+		$sql = 'SELECT COUNT(*) AS cana FROM bconci WHERE codbanc='.$dbcodbanc.' AND fecha='.$dbfecha;
+		$ant = intval($this->datasis->dameval($sql));
 		if($ant>0){
 			$do->error_message_ar['pre_ins']='Ya existe una conciliacion con esa fecha para el mismo banco.';
 			return false;
