@@ -87,7 +87,7 @@ class sfacter extends validaciones {
 		$uri = anchor('ventas/sfacter/dataedit/show/<#id#>','<#tipo_doc#><#numero#>');
 		$uri2  = anchor('ventas/sfacter/dataedit/show/<#id#>',img(array('src'=>'images/editar.png','border'=>'0','alt'=>'Editar')));
 		$uri2 .= "&nbsp;";
-		$uri2 .= anchor('formatos/ver/FACTURATER/<#numero#>/<#tipo_doc#>',img(array('src'=>'images/pdf_logo.gif','border'=>'0','alt'=>'PDF')));
+		$uri2 .= anchor('formatos/ver/FACTURA/<#id#>',img(array('src'=>'images/pdf_logo.gif','border'=>'0','alt'=>'PDF')));
 		$uri2 .= "&nbsp;";
 		//$uri2 .= anchor('formatos/verhtml/FACTURATER/<#numero#>/<#tipo_doc#>',img(array('src'=>'images/html_icon.gif','border'=>'0','alt'=>'HTML')));
 		//$uri2 .= "&nbsp;";

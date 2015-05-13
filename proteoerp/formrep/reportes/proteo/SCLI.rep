@@ -18,9 +18,14 @@ $boton=$this->datasis->modbus($modbus);
 
 $filter = new DataFilter('Filtro del Reporte');
 $filter->attributes=array('onsubmit'=>'is_loaded()');
-
-$filter->db->select(array('nombre','cliente','rifci','fecha1','fecha2','vendedor','contacto','zona','grupo','ciudad1','telefono','limite','tipo','dire11'));
-$filter->db->from('scli');
+$sel=array(
+	'a.nombre','a.cliente','a.rifci','a.fecha1','a.fecha2',
+	'a.vendedor','a.contacto','a.zona','a.grupo','a.ciudad1',
+	'a.telefono','a.limite','a.tipo','a.dire11','b.gr_desc'
+);
+$filter->db->select($sel);
+$filter->db->from('scli AS a');
+$filter->db->join('grcl AS b','a.grupo=b.grupo','left');
 $filter->db->where('cliente=cliente');
 
 $filter->grupo = new dropdownField('Grupo', 'grupo');
@@ -97,15 +102,19 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
 	$pdf->AddPage();
 	$pdf->setTableTitu(10,'Times');
 
-	$pdf->AddCol('cliente' ,17,'Código',   'L',7);
-	$pdf->AddCol('nombre'  ,65,'Nombre',   'L',6);
-	$pdf->AddCol('rifci'   ,20,'Rif',      'L',7);
-	$pdf->AddCol('grupo'   ,12,'Grupo',    'C',7);
-	$pdf->AddCol('ciudad1' ,25,'Ciudad',   'L',7);
-	$pdf->AddCol('telefono',35,'Teléfonos','L',7);
-	$pdf->AddCol('limite'  ,10 ,'Lim',     'L',7);
-	$pdf->AddCol('tipo'    ,10 ,'Tipo',    'L',7);
-	$pdf->AddCol('dire11'  ,75,'Dirección','L',7);
+	$pdf->AddCol('cliente' ,17 ,'Código',    'L',7);
+	$pdf->AddCol('nombre'  ,65 ,'Nombre',    'L',6);
+	$pdf->AddCol('rifci'   ,20 ,'Rif',       'L',7);
+	$pdf->AddCol('grupo'   ,12 ,'Grupo',     'C',7);
+	$pdf->AddCol('ciudad1' ,25 ,'Ciudad',    'L',7);
+	$pdf->AddCol('telefono',35 ,'Teléfonos', 'L',7);
+	$pdf->AddCol('limite'  ,10 ,'Lim',       'L',7);
+	$pdf->AddCol('tipo'    ,10 ,'Tipo',      'L',7);
+	$pdf->AddCol('dire11'  ,75 ,'Dirección', 'L',7);
+
+	//$pdf->setGrupoLabel('(<#grupo#>) <#gr_desc#>');
+	//$pdf->setGrupo('grupo');
+
 	$pdf->Table();
 	$pdf->Output();
 
