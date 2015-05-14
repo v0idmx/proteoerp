@@ -122,26 +122,26 @@ class Sprm extends Controller {
 
 		$bodyscript .= '
 		function sprmadd(){
-			$.post("'.site_url($this->url.'dataedit/create').'",
-			function(data){
-				$("#fedita").html(data);
-				$("#fedita").dialog( "open" );
-			})
+			//$.post("'.site_url($this->url.'dataedit/create').'",
+			//function(data){
+			//	$("#fedita").html(data);
+			//	$("#fedita").dialog( "open" );
+			//})
 		};';
 
 		$bodyscript .= '
 		function sprmedit(){
-			var id     = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
-			if(id){
-				var ret    = $("#newapi'.$grid0.'").getRowData(id);
-				mId = id;
-				$.post("'.site_url($this->url.'dataedit/modify').'/"+id, function(data){
-					$("#fedita").html(data);
-					$("#fedita").dialog( "open" );
-				});
-			} else {
-				$.prompt("<h1>Por favor Seleccione un Registro</h1>");
-			}
+			//var id     = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			//if(id){
+			//	var ret    = $("#newapi'.$grid0.'").getRowData(id);
+			//	mId = id;
+			//	$.post("'.site_url($this->url.'dataedit/modify').'/"+id, function(data){
+			//		$("#fedita").html(data);
+			//		$("#fedita").dialog( "open" );
+			//	});
+			//} else {
+			//	$.prompt("<h1>Por favor Seleccione un Registro</h1>");
+			//}
 		};';
 
 		$bodyscript .= '
@@ -249,9 +249,9 @@ class Sprm extends Controller {
 		$bodyscript .= '
 		jQuery("#bncpro").click( function(){
 			$.post("'.site_url($this->url.'ncppro').'/create", function(data){
-				$("#fabono").html(data);
-				$("#fabono").dialog({ height: 470, width: 600 });
-				$("#fabono").dialog( "open" );
+				$("#fedita").html(data);
+				$("#fedita").dialog({ height: 470, width: 600 });
+				$("#fedita").dialog( "open" );
 			});
 		});';
 
@@ -327,7 +327,6 @@ class Sprm extends Controller {
 
 		$bodyscript .= '
 		jQuery("#pago").click( function(){
-			$("#fabono").dialog({ height: 470, width: 790 });
 			$.post("'.site_url($this->url.'selsprv/').'",
 				function(data){
 					$("#fsprvsel").html(data);
@@ -353,6 +352,7 @@ class Sprm extends Controller {
 						if(id_sprv){
 							$.get("'.site_url($this->url.'pprov').'"+"/"+id_sprv+"/create", function(data) {
 								$("#fedita").html(data);
+								$("#fedita").dialog({ height: 470, width: 790 });
 								$("#fedita").dialog("open");
 								$("#fsprvsel").html("");
 								$("#fsprvsel").dialog("close");
@@ -396,7 +396,7 @@ class Sprm extends Controller {
 									}
 									return true;
 								} else {
-									$.prompt(json.mensaje);
+									$.prompt(json.mensaje.replace("\\n", "<br />"));
 								}
 							}catch(e){
 								$("#fedita").html(r);
@@ -1883,10 +1883,7 @@ class Sprm extends Controller {
 		$edit->nombre->type='inputhidden';
 		$edit->nombre->in='cod_prv';
 
-		$edit->numero = new inputField('N&uacute;mero','numero');
-		$edit->numero->rule='max_length[8]';
-		$edit->numero->size =10;
-		$edit->numero->maxlength =8;
+		$edit->sprvreteiva = new hiddenField('','sprvreteiva');
 
 		$edit->codigo = new  dropdownField('Motivo', 'codigo');
 		$edit->codigo->option('','Seleccionar');
@@ -1927,12 +1924,12 @@ class Sprm extends Controller {
 		$edit->afecta->size =15;
 		$edit->afecta->maxlength =12;
 
-		$edit->fecapl = new dateonlyField('Fecha','fecapl');
-		$edit->fecapl->size =12;
-		$edit->fecapl->maxlength =8;
-		$edit->fecapl->type='inputhidden';
-		$edit->fecapl->calendar = false;
-		$edit->fecapl->rule ='chfecha|required';
+		//$edit->fecapl = new dateonlyField('Fecha','fecapl');
+		//$edit->fecapl->size =12;
+		//$edit->fecapl->maxlength =8;
+		//$edit->fecapl->type='inputhidden';
+		//$edit->fecapl->calendar = false;
+		//$edit->fecapl->rule ='chfecha|required';
 
 		$edit->depto = new  dropdownField('Departamento', 'depto');
 		$edit->depto->option('','Seleccionar');
@@ -2057,8 +2054,20 @@ class Sprm extends Controller {
 			);
 
 			echo json_encode($rt);
-		}else{
+		}
 
+		if($edit->on_error()){
+			$rt=array(
+				'status' =>'B',
+				'mensaje'=>preg_replace('/<[^>]*>/', '', $edit->error_string),
+				'pk'     =>null,
+			);
+			echo json_encode($rt);
+			$act = false;
+			return true;
+		}
+
+		if($edit->on_show()){
 			$conten['json_ptasa']= json_encode($arr_ptasa);
 			$conten['form']      =& $edit;
 			$conten['title']     = heading('Nota de cr&eacute;dito a factura pagada de proveedor');
@@ -2080,17 +2089,39 @@ class Sprm extends Controller {
 		$reducida  = floatval($do->get('reducida' ));
 		$sobretasa = floatval($do->get('sobretasa'));
 		$exento    = floatval($do->get('exento'   ));
+		$fecha     = $do->get('fecha');
+		$serie     = $do->get('serie');
+		$numero    = substr($serie ,(-1)*$this->datasis->long);
+		$tipo_doc  = $do->get('tipo_doc');
+		$cod_prv   = $do->get('cod_prv');
 
 		$impuesto= $tasa+$reducida+$sobretasa;
 		$monto   = $montasa+$monredu+$monadic+$tasa+$reducida+$sobretasa+$exento;
 
-		$transac   = $this->datasis->prox_sql('ntransa' ,8);
-		$mcontrol  = $this->datasis->prox_sql('nsprm'   ,8);
-		$mncausado = $this->datasis->prox_sql('ncausado',8);
+		if($monto<=0){
+			$do->error_message_ar['pre_ins']='No se coloco monto';
+			return false;
+		}
+
+		$dbcod_prv = $this->db->escape($cod_prv);
+		$dbnumero  = $this->db->escape($numero);
+		$dbtipo_doc= $this->db->escape($tipo_doc);
+		$mSQL = "SELECT COUNT(*) AS cana FROM sprm WHERE cod_prv=${dbcod_prv} AND tipo_doc=${dbtipo_doc} AND numero=${dbnumero}";
+		$cana = intval($this->datasis->dameval($mSQL));
+		if($cana>0){
+			$do->error_message_ar['pre_ins']='Ya existe una nota de credito con el mismo proveedor y el mismo numero '.$numero;
+			return false;
+		}
+
+		$transac   = $this->datasis->prox_sql('ntransa' ,$this->datasis->long);
+		$mcontrol  = $this->datasis->prox_sql('nsprm'   ,$this->datasis->long);
+		$mncausado = $this->datasis->prox_sql('ncausado',$this->datasis->long);
 
 		$do->rm_get('aplrete');
-		$do->rm_get('sprvrete');
+		$do->rm_get('sprvreteiva');
 
+		$do->set('transac' , $transac);
+		$do->set('numero'  , $numero);
 		$do->set('vence'   , $fecha);
 		$do->set('causado' , $mncausado);
 		$do->set('negreso' , '');
@@ -2111,8 +2142,7 @@ class Sprm extends Controller {
 		$do->set('posdata' , '');
 		$do->set('abonos'  , 0);
 		$do->set('fecapl'  ,$fecha);
-		$do->set('fecdoc'  ,$itfecha);
-
+		$do->set('fecdoc'  ,$fecha);
 	}
 
 	function _post_ncppro_insert($do){
@@ -3186,7 +3216,7 @@ class Sprm extends Controller {
 			//$mSQL = 'UPDATE sprm SET abonos=abonos+'.$reteiva.' WHERE cod_prv="'.$cod_prv.'" AND tipo_doc="'.$tipo_doc.'" AND numero="'.$mnumero.'"';
 			//$ban=$this->db->simple_query($mSQL);
 			//if(!$ban){ memowrite($mSQL,'scst'); $error++;}
-            //
+			//
 			//$cana = $do->count_rel($rel);
 			//for($i = 0;$i < $cana;$i++){
 			//	$itabono  = floatval($do->get_rel($rel, 'abono'   , $i));
@@ -3194,13 +3224,13 @@ class Sprm extends Controller {
 			//	$itnumero = $do->get_rel($rel, 'numero'  , $i);
 			//	$itfecha  = $do->get_rel($rel, 'fecha'   , $i);
 			//	$abono    = $do->get_rel($rel, 'reteiva'   , $i);
-            //
+			//
 			//	//$itpppago = $do->get_rel($rel, 'ppago'   , $i);
-            //
+			//
 			//	$dbittipo   = $this->db->escape($ittipo  );
 			//	$dbitnumero = $this->db->escape($itnumero);
 			//	$dbitfecha  = $this->db->escape($itfecha );
-            //
+			//
 			//	$sprm=array();
 			//	$sprm['numppro']    = $mnumnd;
 			//	$sprm['tipoppro']   = 'ND';
@@ -3210,16 +3240,16 @@ class Sprm extends Controller {
 			//	$sprm['fecha']      = $fecha;
 			//	$sprm['monto']      = $reteiva;
 			//	$sprm['abono']      = $abono;
-            //
+			//
 			//	$sprm['estampa']    = $estampa;
 			//	$sprm['hora']       = $hora;
 			//	$sprm['transac']    = $transac;
 			//	$sprm['usuario']    = $usuario;
 			//	$mSQL = $this->db->insert_string('itppro', $sprm);
-            //
+			//
 			//	$ban=$this->db->query($mSQL);
 			//	if(!$ban){ memowrite($mSQL,'sprm'); $error++; }
-            //
+			//
 			//	//$mSQL = "UPDATE sprm SET abonos=abonos+${itabono}, preabono=0, preppago=0
 			//	//WHERE tipo_doc=${dbittipo} AND numero=${dbitnumero} AND cod_prv=${dbcod_prv}";
 			//	//$this->db->query($mSQL);
@@ -3284,7 +3314,10 @@ class Sprm extends Controller {
 			$riva['fecha']      = $fecha;
 			$riva['numero']     = $numero;
 			$riva['nfiscal']    = $nfiscal;
-			$riva['afecta']     = $itnumero;
+			if(isset($itnumero))
+				$riva['afecta']     = $itnumero;
+			else
+				$riva['afecta']     = $do->get('afecta');
 			$riva['clipro']     = $cod_prv;
 			$riva['nombre']     = $nombre;
 			$riva['rif']        = $this->datasis->dameval('SELECT rif FROM sprv WHERE proveed='.$this->db->escape($cod_prv));
