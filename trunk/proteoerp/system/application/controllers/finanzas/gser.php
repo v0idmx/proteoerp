@@ -1755,7 +1755,7 @@ class gser extends Controller {
 
 		$filter->codbanc = new dropdownField('Codigo de la caja','codbanc');
 		$filter->codbanc->option('','Todos');
-		$filter->codbanc->options("SELECT codbanc, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE tbanco='CAJ' ORDER BY codbanc");
+		$filter->codbanc->options("SELECT codbanc, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE tbanco='CAJ' AND codbanc<>'00' ORDER BY codbanc");
 
 		$filter->fechad = new dateonlyField('Fecha desde', 'fechad','d/m/Y');
 		$filter->fechah = new dateonlyField('Fecha hasta', 'fechah','d/m/Y');
@@ -1969,7 +1969,7 @@ class gser extends Controller {
 
 		$edit->codbanc = new dropdownField('Codigo de la caja','codbanc');
 		$edit->codbanc->option('','Seleccionar');
-		$edit->codbanc->options("SELECT codbanc, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE tbanco='CAJ' AND activo='S' ORDER BY codbanc");
+		$edit->codbanc->options("SELECT codbanc, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE tbanco='CAJ' AND activo='S' AND codbanc<>'00' ORDER BY codbanc");
 		$edit->codbanc->rule='max_length[5]|required';
 
 		$edit->fechafac = new dateField('Fecha de la factura','fechafac');
@@ -2295,7 +2295,7 @@ class gser extends Controller {
 
 		$form->cargo = new dropdownField('Con cargo a','cargo');
 		$form->cargo->option($this->mcred,'Credito');
-		$form->cargo->options("SELECT codbanc, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE activo='S' ORDER BY codbanc");
+		$form->cargo->options("SELECT codbanc, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE activo='S' AND codbanc<>'00' ORDER BY codbanc");
 		$form->cargo->onchange='desactivacampo(this.value)';
 		$form->cargo->rule='max_length[5]|required';
 
@@ -3050,14 +3050,14 @@ class gser extends Controller {
 
 		$edit->codb1 = new dropdownField('Caja/Banco','codb1');
 		$edit->codb1->option('','Ninguno');
-		$edit->codb1->options("SELECT TRIM(codbanc) AS ind, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE activo='S' ORDER BY codbanc");
+		$edit->codb1->options("SELECT TRIM(codbanc) AS ind, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE activo='S' AND codbanc<>'00' ORDER BY codbanc");
 		$edit->codb1->rule  = 'max_length[5]|callback_chcodb|condi_required';
 		$edit->codb1->style = 'width:120px';
 		$edit->codb1->onchange="esbancaja(this.value)";
 
 		$edit->fondo = new dropdownField('Fondo','fondo');
 		$edit->fondo->option('','Ninguno');
-		$edit->fondo->options("SELECT TRIM(codbanc) AS ind, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE activo='S' AND tbanco='FO' ORDER BY codbanc");
+		$edit->fondo->options("SELECT TRIM(codbanc) AS ind, CONCAT_WS('-',codbanc,banco) AS label FROM banc WHERE activo='S' AND codbanc<>'00' AND tbanco='FO' ORDER BY codbanc");
 		$edit->fondo->style = 'width:160px';
 
 		$edit->tipo1 =  new dropdownField('Tipo', 'tipo1');
