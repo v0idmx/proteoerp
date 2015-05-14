@@ -1801,6 +1801,17 @@ class Ajax extends Controller {
 			$dbsprv   = $this->db->escape($sprv);
 			$retArray = $retorno = array();
 
+			if(date('d')<=15){
+				$pdia  ='01';
+				$dia   ='15';
+			}else{
+				$pdia  ='16';
+				$dia   =date('d', mktime(0, 0, 0, date('n'), 0));
+			}
+			$rivafechai =date('Ym'.$pdia);
+			$rivafechac =date('Ym'.$dia );
+
+
 			$mSQL ="SELECT serie,fecha,montonet AS totalg,montasa, monredu, monadic, tasa, reducida, sobretasa, reteiva FROM scst WHERE proveed=${dbsprv} AND serie LIKE ${qdb} LIMIT ".$this->autolimit;
 			$mSQL.=' UNION ALL ';
 			$mSQL.="SELECT serie,fecha,totbruto AS totalg,montasa, monredu, monadic, tasa, reducida, sobretasa, reteiva FROM gser WHERE proveed=${dbsprv} AND serie LIKE ${qdb} LIMIT ".$this->autolimit;
@@ -1818,6 +1829,18 @@ class Ajax extends Controller {
 					$retArray['reducida']  = floatval($row['reducida']);
 					$retArray['sobretasa'] = floatval($row['sobretasa']);
 					$retArray['reteiva']   = floatval($row['reteiva']);
+
+					$fecha=intval(str_replace('-','',$row['fecha']));
+					if($retArray['reteiva']>0){
+						if($fecha>=$rivafechai && $fecha<=$rivafechac){
+							$aplrete='S';
+						}else{
+							$aplrete='V';
+						}
+					}else{
+						$aplrete='N';
+					}
+					$retArray['aplrete']   = $aplrete;
 
 					array_push($retorno, $retArray);
 				}
