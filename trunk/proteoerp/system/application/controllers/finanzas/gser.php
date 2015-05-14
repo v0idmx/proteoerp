@@ -3213,6 +3213,7 @@ class gser extends Controller {
 		$edit->sucursal->onchange = "gsucursal(this.value)";
 
 		$edit->cargo =  new dropdownField('Cargo <#o#>', 'cargo_<#i#>');
+		$edit->cargo->option( '', 'Seleccionar' );
 		$edit->cargo->options("SELECT id, CONCAT(codigo,' ',nombre) nombre FROM usol WHERE activo='S' ORDER BY codigo");
 		$edit->cargo->db_name    = 'gcargo';
 		$edit->cargo->style      = 'width:50px';
