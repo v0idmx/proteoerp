@@ -36,13 +36,15 @@ class Edgasto extends Controller {
 		$bodyscript = $this->bodyscript( $param['grids'][0]['gridname']);
 
 		//Botones Panel Izq
-		$grid->wbotonadd(array("id"=>"edtraegas",   "img"=>"images/engrana.png",  "alt" => "Traer Gastos", "label"=>"Traer Gastos"));
+		$grid->wbotonadd(array("id"=>"gmedidor",  "img"=>"images/engrana.png",  "alt" => "Gastos por Medidor", "label"=>"Gastos por Medidor"));
+		$grid->wbotonadd(array("id"=>"edtraegas", "img"=>"images/engrana.png",  "alt" => "Traer Gastos", "label"=>"Traer Gastos"));
 		$WestPanel = $grid->deploywestp();
 
 		$adic = array(
 			array('id'=>'fedita',  'title'=>'Agregar/Editar Registro'),
 			array('id'=>'fshow' ,  'title'=>'Mostrar Registro'),
-			array('id'=>'fborra',  'title'=>'Eliminar Registro')
+			array('id'=>'fborra',  'title'=>'Eliminar Registro'),
+			array('id'=>'fmedidor', 'title'=>'Gastos por Medidor')
 		);
 		$SouthPanel = $grid->SouthPanel($this->datasis->traevalor('TITULO1'), $adic);
 
@@ -118,6 +120,28 @@ class Edgasto extends Controller {
 			}
 			};
 			$.prompt(mgene);
+		});';
+
+
+		$mSQL  = 'SELECT id, descrip FROM edgrupo WHERE activo="S" ORDER BY descrip'; 
+		$grupo = $this->datasis->llenaopciones($mSQL, true, 'mgrupo');
+		$grupo = str_replace('"',"'",$grupo);
+
+		$bodyscript .= '
+		$("#gmedidor").click(function(){
+			$.prompt("<center>Fecha: '.$mano.'&nbsp; Mes: '.$mes.'</center><br/><b>Grupo: </b>'.$grupo.' ",{
+				buttons: { Aceptar: 1, Salir: 0},
+				submit: function(e,v,m,f){
+					if ( v == 1 ){
+						$.post("'.site_url($this->url.'gfmedidor').'",{ anomes : encodeURIComponent(f.mano+f.mmes), grupo: f.mgrupo },
+						function(data){
+							$("#fedita").dialog( {height: 400, width: 620, title: "Cargo por Medidor"} );
+							$("#fedita").html(data);
+							$("#fedita").dialog( "open" );
+						})
+					}
+				}
+			});
 		});';
 
 		$bodyscript .= $this->jqdatagrid->bsshow('edgasto', $ngrid, $this->url );
@@ -655,6 +679,86 @@ class Edgasto extends Controller {
 		$primary =implode(',',$do->pk);
 		logusu($do->table,"Elimino $this->tits $primary ");
 	}
+
+
+	//******************************************************************
+	//
+	//
+	function gfmedidor(){
+		$grupo  = intval($_POST['grupo']);
+		$anomes = intval($_POST['anomes']);
+		
+	
+		$this->rapyd->load('dataform');  
+		$edit = new DataForm("construccion/edgasto/gfmedidor/process");  
+	
+		$script = '
+		$(function() {
+			$("#fecha").datepicker({dateFormat:"dd/mm/yy"});
+			$("#vence").datepicker({dateFormat:"dd/mm/yy"});
+			$(".inputnum").numeric(".");
+		});
+		';
+
+		$edit->script($script);
+
+		$edit->grupo = new inputField('Grupo','grupo');
+		$edit->grupo->rule      = 'integer';
+		$edit->grupo->css_class = 'inputonlynum';
+		$edit->grupo->size      = 13;
+		$edit->grupo->maxlength = 11;
+
+		$edit->gasto = new inputField('Gasto','gasto');
+		$edit->gasto->rule      = '';
+		$edit->gasto->size      = 52;
+		$edit->gasto->maxlength = 50;
+
+		$edit->imueble = new inputField('Imueble','imueble');
+		$edit->imueble->rule      = 'integer';
+		$edit->imueble->css_class = 'inputonlynum';
+		$edit->imueble->size      = 13;
+		$edit->imueble->maxlength = 11;
+
+		$edit->lectira = new inputField('Lectira','lectira');
+		$edit->lectira->rule      = '';
+		$edit->lectira->size      = 22;
+		$edit->lectira->maxlength = 20;
+
+		$edit->monto = new inputField('Monto','monto');
+		$edit->monto->rule      = 'numeric';
+		$edit->monto->css_class = 'inputnum';
+		$edit->monto->size      = 12;
+		$edit->monto->maxlength = 10;
+
+		$edit->fecha = new dateonlyField('Fecha','fecha');
+		$edit->fecha->rule      = 'chfecha';
+		$edit->fecha->calendar  = false;
+		$edit->fecha->size      = 10;
+		$edit->fecha->maxlength = 8;
+
+/*
+		$edit->estampa = new autoUpdateField('estampa' ,date('Ymd'), date('Ymd'));
+		$edit->hora    = new autoUpdateField('hora',date('H:i:s'), date('H:i:s'));
+		$edit->usuario = new autoUpdateField('usuario',$this->session->userdata('usuario'),$this->session->userdata('usuario'));
+*/
+
+		$edit->build_form();
+
+		if($edit->on_success()){
+			$rt=array(
+				'status' =>'A',
+				'mensaje'=>'Registro guardado',
+				'pk'     =>''
+			);
+			echo json_encode($rt);
+		}else{
+			//echo $edit->output;
+			$conten['form'] =&  $edit;
+			$this->load->view('view_edmedidor', $conten);
+		}
+	}
+
+
 
 	function instalar(){
 		if (!$this->db->table_exists('edgasto')) {
