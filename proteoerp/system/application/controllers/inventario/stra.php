@@ -1428,7 +1428,7 @@ class Stra extends Controller {
 
 
 	//******************************************************************
-	//Hace la reservacion del material para una orden de produccion
+	// Hace la reservacion del material para una orden de produccion
 	//
 	function creadordp($id_ordp){
 		$url='inventario/ordp/dataedit/show/'.$id_ordp;
@@ -1602,6 +1602,67 @@ class Stra extends Controller {
 		$data = array();
 		$this->load->view('view_stramas', $data);
 	}
+
+	//******************************************************************
+	// Carga los ingredientes
+	//
+	function creaprdo($id_prdo){
+		$url='inventario/prdo/dataedit/show/'.$id_prdo;
+		
+		$this->rapyd->uri->keep_persistence();
+		$persistence = $this->rapyd->session->get_persistence($url, $this->rapyd->uri->gfid);
+		$back= (isset($persistence['back_uri'])) ? $persistence['back_uri'] : $url;
+
+		$this->genesal=false;
+
+		$mSQL="INSERT IGNORE INTO caub  (ubica,ubides,gasto) VALUES ('PROD','PRODUCCION','S')";
+		$this->db->simple_query($mSQL);
+
+		$this->db->select(array('a.fecha','a.almacen','a.numero','a.status'));
+		$this->db->from('prdo AS a');
+		$this->db->where('a.id' , $id_ordp);
+		$mSQL_1 = $this->db->get();
+
+		if($mSQL_1->num_rows() == 1 ){
+		$row = $mSQL_1->row();
+			$_POST=array(
+				'btn_submit' => 'Guardar',
+				'envia'      => $row->almacen,
+				'fecha'      => dbdate_to_human($row->fecha),
+				'recibe'     => 'PROD',
+				'observ1'    => 'ORDEN DE PRODUCCION NRO.'.$row->numero
+			);
+        
+			$sel=array('a.codigo','b.descrip','a.cantidad');
+			$this->db->select($sel);
+			$this->db->from('ordpitem AS a');
+			$this->db->join('sinv AS b','a.codigo=b.codigo');
+			$this->db->where('a.id_ordp' , $id_ordp);
+			$mSQL_2 = $this->db->get();
+			$ordpitem_row =$mSQL_2->result();
+        
+			foreach ($ordpitem_row as $id=>$itrow){
+				$ind='codigo_'.$id;
+				$_POST[$ind] = $itrow->codigo;
+				$ind='descrip_'.$id;
+				$_POST[$ind] = $itrow->descrip;
+				$ind='cantidad_'.$id;
+				$_POST[$ind] = $itrow->cantidad*$cana;
+			}
+			$rt=$this->dataedit();
+			if(strripos($rt,'Guardada')){
+				$data = array('status' => 'P','reserva'=>'S');
+				$this->db->where('id', $id_ordp);
+				$this->db->update('ordp', $data);
+			}
+        
+			echo $rt.' '.anchor($back,'regresar');
+			//redirect($back);
+		}else{
+			exit();
+		}
+	}
+
 
 	//******************************************************************
 	// Chequea si tiene existencia

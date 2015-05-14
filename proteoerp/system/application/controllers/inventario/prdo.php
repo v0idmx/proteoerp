@@ -264,34 +264,38 @@ class Prdo extends Controller {
 				}
 		})';
 
-/*
+
 		$bodyscript .= '
-		function guardarp(){
-			alert("Guardar Produccion");
-			$.post( "'.base_url().'inventario/prdo/guardare", $("form#guardarpro").serialize(),
-				function(data) {
-					alert(data);
-				}
-			);
-		}
-		';
-
-
-
-			function(id){
-				if (id){
-					$(gridId2).jqGrid(\'setGridParam\',{url:"'.site_url($this->url.'getdatait/').'/"+id+"/", page:1});
-					$(gridId2).trigger("reloadGrid");
-					$.ajax({
-						url: "'.base_url().$this->url.'fabri/"+id+"/0",
-						success: function(msg){
-							$("#ladicional").html(msg);
+		$("#descar").click(function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			if(id){
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				$.prompt( "<h1>Descargar ingredientes Orden Nro. "+ret.numero+" ?</h1>", {
+					buttons: { Descargar: true, Cancelar: false },
+					submit: function(e,v,m,f){
+						if(v){
+							$.get("'.site_url('inventario/stra/creaprdo').'/"+id,
+							function(r){
+								try{
+									var json = JSON.parse(r);
+									if (json.status == "A"){
+										alert("Ingredientes descargado");
+										grid.trigger("reloadGrid");
+										return true;
+									}else{
+										alert(json.mensaje);
+									}
+								}catch(e){
+									alert("Error en respuesta");
+								}
+							});
 						}
-					});
-				}
-			}'
-
-*/
+					}
+				});
+			} else {
+				$.prompt("<h1>Por favor Seleccione una Orden</h1>");
+			}
+		})';
 
 		$bodyscript .= '
 		function actualiza(){
@@ -323,7 +327,6 @@ class Prdo extends Controller {
 		$bodyscript .= $this->jqdatagrid->bsfborra( $ngrid, '300', '400' );
 
 		$bodyscript .= '});';
-
 
 		$bodyscript .= '</script>';
 
@@ -721,8 +724,8 @@ class Prdo extends Controller {
 	/**
 	* Guarda la Informacion
 	*/
-	function setDatait()
-	{
+	function setDatait(){
+	
 	}
 
 
@@ -838,7 +841,7 @@ class Prdo extends Controller {
 	function instalar(){
 		if (!$this->db->table_exists('prdo')) {
 			$mSQL="
-			CREATE TABLE `prdo` (
+			CREATE TABLE prdo (
 				numero        VARCHAR(8) NOT NULL DEFAULT '',
 				fecha         DATE       DEFAULT NULL,
 				almacen       VARCHAR(4) DEFAULT NULL COMMENT 'Almacen de descuento',
@@ -850,7 +853,7 @@ class Prdo extends Controller {
 				hora          VARCHAR(8)  NOT NULL DEFAULT '',
 				modificado    TIMESTAMP   NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 				id            INT(11) NOT NULL AUTO_INCREMENT,
-				PRIMARY KEY (`id`),
+				PRIMARY KEY (id),
 				UNIQUE KEY `numero` (`numero`)
 			) 
 			ENGINE=MyISAM DEFAULT 
@@ -904,6 +907,12 @@ class Prdo extends Controller {
 			;";
 			$this->db->query($mSQL);
 		}
+
+		// Crea almacen de produccion
+		$mSQL = 'INSERT IGNORE INTO caub (ubica, ubides, gasto, sucursal,invfis, tipo) VALUE ("PROD","PRODUCCION","S","01","N","N")';
+		$this->db->query($mSQL);
+		
+		
 	}
 
 
@@ -1395,6 +1404,25 @@ $tabla .= '
 		echo $tabla;
 	}
 
+	//******************************************************************
+	//
+	//
+	function descargar( $id = 0){
+		if ( $id == 0 ) die('Error no hay orden seleccionada');
+		$id = intval($id);
+
+		$numero = $this->datasis->dameval("SELECT numero FROM prdo WHERE id=$id");
+		if ( $numero <= 0 ) die('Error en numero de orden');
+
+		$rt=array(
+			'status' =>'A',
+			'mensaje'=>'Descargado',
+			'pk'     =>$id
+		);
+		echo json_encode($rt);
+
+
+	}
 
 	//******************************************************************
 	//
