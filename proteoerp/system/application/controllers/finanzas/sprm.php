@@ -388,12 +388,13 @@ class Sprm extends Controller {
 								var json = JSON.parse(r);
 								if (json.status == "A"){
 									var esapan = $("#clipro").length;
-									$.prompt("Registro Guardado");
 									$("#fedita").dialog( "close" );
+									//$.prompt("Registro Guardado");
 									grid.trigger("reloadGrid");
 									if(!esapan){
-										'.$this->datasis->jwinopen(site_url('formatos/ver/SPRM').'/\'+res.pk.id+\'/id\'').';
+										'.$this->datasis->jwinopen(site_url('formatos/ver/PPRONC').'/\'+json.pk.id+\'/id\'').';
 									}
+
 									return true;
 								} else {
 									var resp=json.mensaje;
@@ -1569,6 +1570,12 @@ class Sprm extends Controller {
 			$cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM rivc WHERE transac=${dbtransac}"));
 			if($cana>0){
 				$do->error_message_ar['pre_del']='Movimiento originado en retenciones de clientes, debe eliminarlo por el modulo respectivo.';
+				return false;
+			}
+
+			$cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM apan WHERE transac=${dbtransac}"));
+			if($cana>0){
+				$do->error_message_ar['pre_del']='Movimiento aplicado, reverse la aplicacion por el modulo respectivo.';
 				return false;
 			}
 		}
@@ -3399,9 +3406,9 @@ class Sprm extends Controller {
 			$dbsprv     = $this->db->escape($sprv);
 
 			$cana = 0;
-			$mSQL ="SELECT COUNT(*) AS cana FROM scst WHERE proveed=${dbsprv} AND serie=${dbserie}";
+			$mSQL = "SELECT COUNT(*) AS cana FROM scst WHERE proveed=${dbsprv} AND serie=${dbserie} AND tipo_doc='FC'";
 			$cana+= intval($this->datasis->dameval($mSQL ));
-			$mSQL.="SELECT COUNT(*) AS cana FROM gser WHERE proveed=${dbsprv} AND serie=${dbserie}";
+			$mSQL = "SELECT COUNT(*) AS cana FROM gser WHERE proveed=${dbsprv} AND serie=${dbserie} AND tipo_doc='FC'";
 			$cana+= intval($this->datasis->dameval($mSQL ));
 
 			if($cana==0){

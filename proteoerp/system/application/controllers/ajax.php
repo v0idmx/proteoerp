@@ -1812,13 +1812,13 @@ class Ajax extends Controller {
 			$rivafechac =date('Ym'.$dia );
 
 
-			$mSQL ="SELECT a.tipo_doc,a.serie,a.fecha,a.montonet AS totalg, a.montasa, a.monredu, a.monadic, a.tasa, a.reducida, a.sobretasa, a.reteiva
+			$mSQL ="SELECT a.tipo_doc,a.serie,a.fecha,a.montonet AS totalg, a.montasa, a.monredu, a.monadic, a.tasa, a.reducida, a.sobretasa, a.exento, a.reteiva
 				FROM scst AS a
 				LEFT JOIN sprm AS b ON a.tipo_doc=b.tipo_doc AND a.numero=b.numero AND a.transac=b.transac AND a.proveed=b.cod_prv
 				WHERE a.tipo_doc='FC' AND a.proveed=${dbsprv} AND a.serie LIKE ${qdb} AND (b.abonos>=b.monto OR b.monto IS NULL)
 				LIMIT ".$this->autolimit;
 			$mSQL.=' UNION ALL ';
-			$mSQL.="SELECT a.tipo_doc,a.serie, a.fecha, a.totbruto AS totalg, a.montasa, a.monredu, a.monadic, a.tasa, a.reducida, a.sobretasa, a.reteiva
+			$mSQL.="SELECT a.tipo_doc,a.serie, a.fecha, a.totbruto AS totalg, a.montasa, a.monredu, a.monadic, a.tasa, a.reducida, a.sobretasa, a.exento, a.reteiva
 				FROM gser AS a
 				LEFT JOIN sprm AS b ON a.tipo_doc=b.tipo_doc AND a.numero=b.numero AND a.transac=b.transac AND a.proveed=b.cod_prv
 				WHERE a.tipo_doc='FC' AND a.proveed=${dbsprv} AND a.serie LIKE ${qdb} AND (b.abonos>=b.monto OR b.monto IS NULL)
@@ -1836,6 +1836,7 @@ class Ajax extends Controller {
 					$retArray['tasa']      = floatval($row['tasa']);
 					$retArray['reducida']  = floatval($row['reducida']);
 					$retArray['sobretasa'] = floatval($row['sobretasa']);
+					$retArray['exento']    = floatval($row['exento']);
 					$retArray['reteiva']   = floatval($row['reteiva']);
 
 					$fecha=intval(str_replace('-','',$row['fecha']));
