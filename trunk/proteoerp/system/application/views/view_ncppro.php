@@ -220,7 +220,7 @@ function calretiva(){
 
 function totaliza(){
 	var stota =0;
-	var mascara= "APLICA A"+$('#afecta').val();
+	var mascara= "APLICA A "+$('#afecta').val();
 
 	var actualmontasa  = Number($('#montasa'  ).val());
 	var actualmonredu  = Number($('#monredu'  ).val());
@@ -288,6 +288,9 @@ echo $title;
 			<tr>
 				<td><?php echo $form->afecta->label;   ?>*</td>
 				<td><?php echo $form->afecta->output;  ?></td>
+			</tr><tr>
+				<td><?php echo $form->fecapl->label;   ?>*</td>
+				<td><?php echo $form->fecapl->output;  ?></td>
 			</tr><tr>
 				<td><?php echo $form->fecha->label;    ?>*</td>
 				<td><?php echo $form->fecha->output;   ?></td>

@@ -78,13 +78,13 @@ $detalle2 = $mSQL_3->result();
 
 
 $mSQL_2 = $this->db->query("SELECT
-a.tipo_doc, a.numero, a.fecha, a.zona, b.nombre AS nzona, a.totalg, a.cod_cli, a.nombre, a.vd, a.almacen,a.peso
+a.tipo_doc, a.numero, a.fecha, a.zona, b.nombre AS nzona, a.totalg, a.cod_cli, a.nombre, a.vd, a.almacen,a.peso, a.iva
 FROM sfac AS a
 LEFT JOIN zona AS b ON a.zona=b.codigo
 WHERE a.reparto=${dbid}
 UNION ALL
 SELECT
-c.tipo_doc, c.numero, c.fecha, a.zona, b.nombre AS nzona, c.totalg, c.cod_cli, c.nombre, c.vd, c.almacen,c.peso
+c.tipo_doc, c.numero, c.fecha, a.zona, b.nombre AS nzona, c.totalg, c.cod_cli, c.nombre, c.vd, c.almacen,c.peso, c.iva
 FROM sfac AS a
 LEFT JOIN zona AS b ON a.zona=b.codigo
 JOIN sfac AS c ON c.factura=a.numero AND a.tipo_doc='F'
@@ -313,13 +313,13 @@ if($npagina){
 	$lineas=0;
 }
 
-$totalg=0;
+$totalg=$tiva=0;
 $lineas+=$det2encab;
 $i = 0;
 echo '<h2>Lista de Facturas</h2>';
 echo $encabezado_tabla;
 $restan  = count($detalle);
-foreach ($detalle as $items){ $i++; $nsitems=$nsitems-1; $totalg+=$items->totalg; $restan--;
+foreach ($detalle as $items){ $i++; $nsitems=$nsitems-1; $totalg+=$items->totalg;$restan--;
 	do {
 		if($npagina){
 			$this->incluir('X_CINTILLO');

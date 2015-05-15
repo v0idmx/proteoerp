@@ -2955,7 +2955,7 @@ class gser extends Controller {
 		$edit->post_process('delete','_post_delete');
 
 		$edit->tipo_doc =  new dropdownField('Documento', 'tipo_doc');
-		$edit->tipo_doc->style='width:70px';
+		$edit->tipo_doc->style='width:80px';
 		$edit->tipo_doc->option('FC','Factura');
 		$edit->tipo_doc->option('ND','N. Debito');
 		if($edit->_status=='show'){
@@ -2985,6 +2985,10 @@ class gser extends Controller {
 		$edit->compra->rule='max_length[8]';
 		$edit->compra->size =10;
 		$edit->compra->maxlength =8;
+
+		$edit->afecta = new inputField('Doc.Afectado','afecta');
+		$edit->afecta->rule='';
+		$edit->afecta->size =10;
 
 		$edit->numero = new inputField('Documento Nro.', 'serie');
 		$edit->numero->size = 10;
@@ -3500,7 +3504,7 @@ class gser extends Controller {
 		$this->db->query($update4);
 
 		//MODIFICA RIVA
-		$update5="UPDATE riva SET fecha=$fecha, numero=$numero,clipro=$proveed,nombre=$nombre WHERE transac=$dbtransac";
+		$update5="UPDATE riva SET fecha=${fecha}, numero=$numero,clipro=$proveed,nombre=$nombre WHERE transac=$dbtransac";
 		$this->db->query($update5);
 
 		logusu('GSER',"Gasto $numero CAMBIADO");
@@ -3524,6 +3528,10 @@ class gser extends Controller {
 		$tipo_doc= $do->get('tipo_doc');
 		$monto1  = $do->get('monto1');
 		$serie   = $do->get('serie');
+
+		if($tipo_doc=='FC'){
+			$do->set('afecta','');
+		}
 
 		if(empty($serie) && $tipo_doc='ND'){
 			$serie = $this->datasis->fprox_numero('num_nd');
@@ -3567,7 +3575,7 @@ class gser extends Controller {
 		}
 
 		$mSQL='SELECT COUNT(*) AS cana FROM gser WHERE proveed='.$this->db->escape($proveed).' AND numero='.$this->db->escape($numero).' AND fecha='.$this->db->escape($fecha).' AND tipo_doc='.$this->db->escape($tipo_doc);
-		$ca=$this->datasis->dameval($mSQL);
+		$ca=intval($this->datasis->dameval($mSQL));
 		if($ca>0){
 			$do->error_message_ar['pre_ins'] = $do->error_message_ar['insert']='Al parecer ya esta registrado un gasto con la misma fecha de recepcion, numero y proveedor.';
 			return false;
@@ -4175,7 +4183,8 @@ class gser extends Controller {
 		$this->db->simple_query($mSQL);
 
 		//Anula la retencion de IVA
-		if($this->datasis->dameval("SELECT COUNT(*) FROM riva WHERE transac=${dbtransac}") > 0){
+		$cana = intval($this->datasis->dameval("SELECT COUNT(*) FROM riva WHERE transac=${dbtransac}"));
+		if($cana > 0){
 			$mTRANULA = '_'.$this->datasis->fprox_numero('rivanula',7);
 			$this->db->simple_query("UPDATE riva SET transac='${mTRANULA}' WHERE transac=${dbtransac}");
 		}
@@ -4400,9 +4409,9 @@ class gser extends Controller {
 				PRIMARY KEY (`id`)
 			)
 			COMMENT='Cargos de Gastos'
-			ENGINE=MyISAM 
-			AUTO_INCREMENT=1 
-			DEFAULT CHARSET=latin1 
+			ENGINE=MyISAM
+			AUTO_INCREMENT=1
+			DEFAULT CHARSET=latin1
 			ROW_FORMAT=DYNAMIC";
 			$this->db->query($query);
 		}
@@ -4428,9 +4437,9 @@ class gser extends Controller {
 				PRIMARY KEY (id),
 				INDEX transac (transac)
 			)
-			ENGINE=MyISAM 
-			AUTO_INCREMENT=1 
-			DEFAULT CHARSET=latin1 
+			ENGINE=MyISAM
+			AUTO_INCREMENT=1
+			DEFAULT CHARSET=latin1
 			ROW_FORMAT=DYNAMIC";
 			$this->db->query($mSQL);
 		}
@@ -4470,10 +4479,10 @@ class gser extends Controller {
 				hora      VARCHAR(8)    DEFAULT NULL,
 				id        INT(11)       UNSIGNED NOT NULL AUTO_INCREMENT,
 				PRIMARY KEY (id)
-				) 
-			ENGINE=MyISAM 
-			AUTO_INCREMENT=1 
-			DEFAULT CHARSET=latin1 
+				)
+			ENGINE=MyISAM
+			AUTO_INCREMENT=1
+			DEFAULT CHARSET=latin1
 			ROW_FORMAT=DYNAMIC";
 			$this->db->query($query);
 		}
@@ -4491,10 +4500,10 @@ class gser extends Controller {
 				aplica CHAR(100)    NULL DEFAULT NULL,
 				tasa   DECIMAL(8,2) NULL DEFAULT NULL,
 				PRIMARY KEY (codigo)
-			) 
-			ENGINE=MyISAM 
-			AUTO_INCREMENT=1 
-			DEFAULT CHARSET=latin1 
+			)
+			ENGINE=MyISAM
+			AUTO_INCREMENT=1
+			DEFAULT CHARSET=latin1
 			ROW_FORMAT=DYNAMIC";
 			$this->db->query($query);
 		}

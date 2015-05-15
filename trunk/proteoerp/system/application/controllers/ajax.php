@@ -726,7 +726,7 @@ class Ajax extends Controller {
 				SELECT DISTINCT a.id AS numero, a.serial AS codigo,
 				a.precio1,precio2,precio3,precio4, a.iva,a.existen,a.tipo,a.peso, a.ultimo, a.pond, a.barras
 				FROM rnoti AS a
-				WHERE (a.id LIKE $qdb OR a.nomcliente LIKE  $qdb OR a.serial=$qba) a.estado<>'ENTREGADO'
+				WHERE (a.id LIKE $qdb OR a.nomcliente LIKE  $qdb OR a.serial=${qba}) a.estado<>'ENTREGADO'
 				ORDER BY a.id LIMIT ".$this->autolimit;
 			$cana=1;
 
@@ -1812,14 +1812,22 @@ class Ajax extends Controller {
 			$rivafechac =date('Ym'.$dia );
 
 
-			$mSQL ="SELECT serie,fecha,montonet AS totalg,montasa, monredu, monadic, tasa, reducida, sobretasa, reteiva FROM scst WHERE proveed=${dbsprv} AND serie LIKE ${qdb} LIMIT ".$this->autolimit;
+			$mSQL ="SELECT a.tipo_doc,a.serie,a.fecha,a.montonet AS totalg, a.montasa, a.monredu, a.monadic, a.tasa, a.reducida, a.sobretasa, a.reteiva
+				FROM scst AS a
+				LEFT JOIN sprm AS b ON a.tipo_doc=b.tipo_doc AND a.numero=b.numero AND a.transac=b.transac AND a.proveed=b.cod_prv
+				WHERE a.tipo_doc='FC' AND a.proveed=${dbsprv} AND a.serie LIKE ${qdb} AND (b.abonos>=b.monto OR b.monto IS NULL)
+				LIMIT ".$this->autolimit;
 			$mSQL.=' UNION ALL ';
-			$mSQL.="SELECT serie,fecha,totbruto AS totalg,montasa, monredu, monadic, tasa, reducida, sobretasa, reteiva FROM gser WHERE proveed=${dbsprv} AND serie LIKE ${qdb} LIMIT ".$this->autolimit;
+			$mSQL.="SELECT a.tipo_doc,a.serie, a.fecha, a.totbruto AS totalg, a.montasa, a.monredu, a.monadic, a.tasa, a.reducida, a.sobretasa, a.reteiva
+				FROM gser AS a
+				LEFT JOIN sprm AS b ON a.tipo_doc=b.tipo_doc AND a.numero=b.numero AND a.transac=b.transac AND a.proveed=b.cod_prv
+				WHERE a.tipo_doc='FC' AND a.proveed=${dbsprv} AND a.serie LIKE ${qdb} AND (b.abonos>=b.monto OR b.monto IS NULL)
+				LIMIT ".$this->autolimit;
 
 			$query = $this->db->query($mSQL);
 			if ($query->num_rows() > 0){
 				foreach( $query->result_array() as  $row ) {
-					$retArray['label']     = '('.$row['serie'].') '.$this->_datehuman($row['fecha']).' '.($row['totalg']);
+					$retArray['label']     = $row['tipo_doc'].$row['serie'].' '.$this->_datehuman($row['fecha']).' '.($row['totalg']);
 					$retArray['value']     = $row['serie'];
 					$retArray['fecha']     = $this->_datehuman($row['fecha']);
 					$retArray['montasa']   = floatval($row['montasa']);
