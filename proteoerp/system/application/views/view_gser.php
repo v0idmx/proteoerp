@@ -82,12 +82,24 @@ $(document).ready(function() {
 	$('#_rivaex').change(function () {
 		totalizar();
 	});
+
+	$('#tipo_doc').change(function () {
+		var ttipo=$("#tipo_doc").val();
+		if(ttipo=='ND'){
+			$('.mccompra').hide();
+			$('.mcafecta').show();
+		}else{
+			$('.mccompra').show();
+			$('.mcafecta').hide();
+		}
+	});
+
 	$(".inputnum").numeric(".");
 	totalizar();
 
-	$( "#fecha" ).datepicker({    dateFormat: "dd/mm/yy" });
-	$( "#ffactura" ).datepicker({ dateFormat: "dd/mm/yy" });
-	$( "#vence" ).datepicker({    dateFormat: "dd/mm/yy" });
+	$("#fecha").datepicker({    dateFormat: "dd/mm/yy" });
+	$("#ffactura").datepicker({ dateFormat: "dd/mm/yy" });
+	$("#vence").datepicker({    dateFormat: "dd/mm/yy" });
 
 	$('#benefi').change(function () {
 		$.prompt("<h1>Advertencia</h1><p>El beneficiario del cheque debe ser el mismo contribuyente o proveedor segun la normativa de la ley del Impuesto al Valor Agregado</p>");
@@ -162,6 +174,8 @@ $(document).ready(function() {
 			ajaxsanncprov();
 		}
 	});
+
+	$('#tipo_doc').change();
 });
 
 function ajaxsanncprov(){
@@ -597,8 +611,8 @@ function toggle() {
 			<tr>
 				<td class="littletableheader"><?php echo $form->nfiscal->label  ?>&nbsp;</td>
 				<td class="littletablerow"   ><?php echo $form->nfiscal->output ?>&nbsp;</td>
-				<td class="littletableheader"><?php echo $form->compra->label   ?>&nbsp;</td>
-				<td class="littletablerow"   ><?php echo $form->compra->output  ?>&nbsp;</td>
+				<td class="littletableheader"><?php echo '<span class="mccompra" >'.$form->compra->label .'</span><span class="mcafecta">'.$form->afecta->label .'</span>'  ?>&nbsp;</td>
+				<td class="littletablerow"   ><?php echo '<span class="mccompra" >'.$form->compra->output.'</span><span class="mcafecta">'.$form->afecta->output.'</span>'  ?>&nbsp;</td>
 				<td class="littletableheader"><?php echo $form->vence->label    ?>&nbsp;</td>
 				<td class="littletablerow"   ><?php echo $form->vence->output   ?>&nbsp;</td>
 			</tr>

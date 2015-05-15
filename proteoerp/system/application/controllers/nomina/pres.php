@@ -34,15 +34,17 @@ class Pres extends Controller {
 		$grid = $this->defgrid();
 		$param['grids'][] = $grid->deploy();
 
-		$bodyscript = '<script type="text/javascript">
-		jQuery("#a1").click( function(){
-			var id = jQuery("#newapi'. $param['grids'][0]['gridname'].'").jqGrid(\'getGridParam\',\'selrow\');
-			if (id)	{
-				var ret = jQuery("#newapi'. $param['grids'][0]['gridname'].'").jqGrid(\'getRowData\',id);
-				window.open(\''.base_url().'formatos/ver/PRES/\'+id, \'_blank\', \'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-400), screeny=((screen.availWidth/2)-300)\');
-			} else { $.prompt("<h1>Por favor Seleccione un Movimiento</h1>");}
-		});
-		</script>';
+		//$bodyscript = '<script type="text/javascript">
+		//jQuery("#a1").click( function(){
+		//	var id = jQuery("#newapi'. $param['grids'][0]['gridname'].'").jqGrid(\'getGridParam\',\'selrow\');
+		//	if (id)	{
+		//		var ret = jQuery("#newapi'. $param['grids'][0]['gridname'].'").jqGrid(\'getRowData\',id);
+		//		window.open(\''.base_url().'formatos/ver/PRES/\'+id, \'_blank\', \'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-400), screeny=((screen.availWidth/2)-300)\');
+		//	} else { $.prompt("<h1>Por favor Seleccione un Movimiento</h1>");}
+		//});
+		//</script>';
+
+		$bodyscript = $this->bodyscript( $param['grids'][0]['gridname']);
 
 		$adic = array(
 			array('id'=>'fedita',  'title'=>'Agregar/Editar Registro'),
@@ -81,21 +83,15 @@ Estatus:
 		$bodyscript .= $this->jqdatagrid->bsdel( 'pres', $ngrid, $this->url );
 		$bodyscript .= $this->jqdatagrid->bsedit('pres', $ngrid, $this->url );
 
-		$SouthPanel = '
-		<div id="BottomPane" class="ui-layout-south ui-widget ui-widget-content">
-		<p>'.$this->datasis->traevalor('TITULO1').'</p>
-		</div>';
+		//$bodyscript .= $this->jqdatagrid->bswrapper($ngrid);
 
-		$param['WestPanel']   = $WestPanel;
-		//$param['EastPanel'] = $EastPanel;
-		$param['SouthPanel']  = $SouthPanel;
-		$param['listados']    = $this->datasis->listados('PRES', 'JQ');
-		$param['otros']       = $this->datasis->otros('PRES', 'JQ');
-		$param['temas']       = array('proteo','darkness','anexos1');
-		$param['bodyscript']  = $bodyscript;
-		$param['tabs']        = false;
-		$param['encabeza'] = $this->titp;
-		$this->load->view('jqgrid/crud2',$param);
+		$bodyscript .= $this->jqdatagrid->bsfedita( $ngrid, '410', '500' );
+		$bodyscript .= $this->jqdatagrid->bsfshow( '300', '400' );
+		$bodyscript .= $this->jqdatagrid->bsfborra( $ngrid, '410', '500' );
+
+
+		$bodyscript .= '</script>';
+		return $bodyscript;
 	}
 
 	//***************************

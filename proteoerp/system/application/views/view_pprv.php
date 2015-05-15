@@ -422,18 +422,22 @@ echo $title;
 		<td><?php echo $form->tipo_doc->label;  ?>*</td>
 		<td><?php echo $form->tipo_doc->output; ?></td>
 		<td><span id='trdpto'><?php echo $form->depto->label; ?>* <?php echo $form->depto->output; ?></span></td>
-		<td><?php echo $form->fecha->label;    ?>*</td>
-		<td><?php echo $form->fecha->output;   ?></td>
+		<td><?php echo $form->fecha->label;     ?>*</td>
+		<td><?php echo $form->fecha->output;    ?></td>
 	</tr>
 	<tr id='trnd'>
-		<td><?php echo $form->serie->label;  ?>*</td>
-		<td><?php echo $form->serie->output; ?></td>
+		<td><?php echo $form->serie->label;    ?>*</td>
+		<td><?php echo $form->serie->output;   ?></td>
 		<td></td>
 		<td><?php echo $form->nfiscal->label;  ?>*</td>
 		<td><?php echo $form->nfiscal->output; ?></td>
 	</tr>
 	<tr id='trnd2'>
-		<td colspan='5' align='center'><?php echo $form->codigo->label.'* '. $form->codigo->output;  ?></td>
+		<td><?php echo $form->codigo->label;  ?>*</td>
+		<td><?php echo $form->codigo->output; ?></td>
+		<td></td>
+		<td><?php echo $form->afecta->label;  ?>*</td>
+		<td><?php echo $form->afecta->output; ?></td>
 	</tr>
 </table>
 <?php if($cana>0){ ?>

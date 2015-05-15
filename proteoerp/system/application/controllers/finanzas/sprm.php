@@ -67,7 +67,7 @@ class Sprm extends Controller {
 		$grid->wbotonadd(array('id'=>'imprime'   ,'img'=>'assets/default/images/print.png', 'alt' => 'Reimprimir Documento',      'label'=>'Imprimir', 'tema'=>'anexos'));
 		$grid->wbotonadd(array('id'=>'princheque','img'=>'images/check.png'  , 'alt' => 'Emitir Cheque'   , 'label'=>'Imprimir cheque',      'tema'=>'anexos'));
 		$grid->wbotonadd(array('id'=>'pago'      ,'img'=>'images/dinero.png' , 'alt' => 'Pago a proveedor', 'label'=>'Pago a proveedor'));
-		//$grid->wbotonadd(array('id'=>'bncpro'    ,'img'=>'images/circuloamarillo.png' , 'alt' => 'NC a FC pagada'  , 'label'=>'NC a FC pagada'));
+		$grid->wbotonadd(array('id'=>'bncpro'    ,'img'=>'images/circuloamarillo.png' , 'alt' => 'NC a FC pagada'  , 'label'=>'NC a FC pagada'));
 		$WestPanel = $grid->deploywestp();
 
 
@@ -396,7 +396,8 @@ class Sprm extends Controller {
 									}
 									return true;
 								} else {
-									$.prompt(json.mensaje.replace("\\n", "<br />"));
+									var resp=json.mensaje;
+									$.prompt(resp.split("\\n").join("<br />"));
 								}
 							}catch(e){
 								$("#fedita").html(r);
@@ -1919,17 +1920,17 @@ class Sprm extends Controller {
 		$edit->serie->size =15;
 		$edit->serie->maxlength =17;
 
-		$edit->afecta = new inputField('F.Afectada','afecta');
+		$edit->afecta = new inputField('#Fac.Afectada','afecta');
 		$edit->afecta->rule='required';
 		$edit->afecta->size =15;
 		$edit->afecta->maxlength =12;
 
-		//$edit->fecapl = new dateonlyField('Fecha','fecapl');
-		//$edit->fecapl->size =12;
-		//$edit->fecapl->maxlength =8;
-		//$edit->fecapl->type='inputhidden';
-		//$edit->fecapl->calendar = false;
-		//$edit->fecapl->rule ='chfecha|required';
+		$edit->fecapl = new dateonlyField('Fecha de emisi&oacute;n','fecapl');
+		$edit->fecapl->size =12;
+		$edit->fecapl->maxlength =8;
+		$edit->fecapl->insertValue=date('Y-m-d');
+		$edit->fecapl->calendar = false;
+		$edit->fecapl->rule ='chfecha|required';
 
 		$edit->depto = new  dropdownField('Departamento', 'depto');
 		$edit->depto->option('','Seleccionar');
@@ -2070,7 +2071,7 @@ class Sprm extends Controller {
 		if($edit->on_show()){
 			$conten['json_ptasa']= json_encode($arr_ptasa);
 			$conten['form']      =& $edit;
-			$conten['title']     = heading('Nota de cr&eacute;dito a factura pagada de proveedor');
+			$conten['title']     = heading('Nota de cr&eacute;dito a factura pagada a proveedor');
 
 			$this->load->view('view_ncppro', $conten);
 		}
@@ -2094,6 +2095,7 @@ class Sprm extends Controller {
 		$numero    = substr($serie ,(-1)*$this->datasis->long);
 		$tipo_doc  = $do->get('tipo_doc');
 		$cod_prv   = $do->get('cod_prv');
+		$afecta    = $do->get('afecta');
 
 		$impuesto= $tasa+$reducida+$sobretasa;
 		$monto   = $montasa+$monredu+$monadic+$tasa+$reducida+$sobretasa+$exento;
@@ -2106,6 +2108,25 @@ class Sprm extends Controller {
 		$dbcod_prv = $this->db->escape($cod_prv);
 		$dbnumero  = $this->db->escape($numero);
 		$dbtipo_doc= $this->db->escape($tipo_doc);
+		$dbafecta  = $this->db->escape($afecta);
+		$dbserie   = $this->db->escape($serie);
+
+		$cana =0;
+		$mSQL ="SELECT COUNT(*) AS cana
+			FROM scst AS a
+			LEFT JOIN sprm AS b ON a.tipo_doc=b.tipo_doc AND a.numero=b.numero AND a.transac=b.transac AND a.proveed=b.cod_prv
+			WHERE a.tipo_doc='FC' AND a.proveed=${dbcod_prv} AND a.serie=${dbafecta} AND (b.monto-b.abonos<${monto} OR b.monto IS NULL)";
+		$cana+= intval($this->datasis->dameval($mSQL));
+		$mSQL ="SELECT COUNT(*) AS cana
+			FROM gser AS a
+			LEFT JOIN sprm AS b ON a.tipo_doc=b.tipo_doc AND a.numero=b.numero AND a.transac=b.transac AND a.proveed=b.cod_prv
+			WHERE a.tipo_doc='FC' AND a.proveed=${dbcod_prv} AND a.serie=${dbafecta} AND (b.monto-b.abonos<${monto} OR b.monto IS NULL)";
+		$cana+= intval($this->datasis->dameval($mSQL));
+		if($cana<=0){
+			$do->error_message_ar['pre_ins']='La factura afectada no esa pagada o tiene saldo suficiente para que se le aplique la nota';
+			return false;
+		}
+
 		$mSQL = "SELECT COUNT(*) AS cana FROM sprm WHERE cod_prv=${dbcod_prv} AND tipo_doc=${dbtipo_doc} AND numero=${dbnumero}";
 		$cana = intval($this->datasis->dameval($mSQL));
 		if($cana>0){
@@ -2141,8 +2162,8 @@ class Sprm extends Controller {
 		$do->set('benefi'  , '');
 		$do->set('posdata' , '');
 		$do->set('abonos'  , 0);
-		$do->set('fecapl'  ,$fecha);
 		$do->set('fecdoc'  ,$fecha);
+		$do->set('posdata' ,$fecha);
 	}
 
 	function _post_ncppro_insert($do){
@@ -2370,6 +2391,11 @@ class Sprm extends Controller {
 		$edit->reteiva->maxlength =17;
 		$edit->reteiva->insertValue='0';
 		$edit->reteiva->rule='condi_required|callback_chobligatipo[NC]|positive';
+
+		$edit->afecta = new inputField('Factura Afectada','afecta');
+		$edit->afecta->rule='callback_chafectanc';
+		$edit->afecta->size =15;
+		$edit->afecta->maxlength =12;
 
 		//Para la retencion de iva si aplica
 		$contribu= trim($this->datasis->traevalor('CONTRIBUYENTE'));
@@ -3079,6 +3105,7 @@ class Sprm extends Controller {
 		$posdata = $do->get('posdata');
 		$reteiva = $do->get('reteiva');
 		$nfiscal = $do->get('nfiscal');
+		$afecta  = $do->get('afecta');
 
 		$do->set('vence',$fecha);
 
@@ -3314,10 +3341,13 @@ class Sprm extends Controller {
 			$riva['fecha']      = $fecha;
 			$riva['numero']     = $numero;
 			$riva['nfiscal']    = $nfiscal;
-			if(isset($itnumero))
-				$riva['afecta']     = $itnumero;
-			else
-				$riva['afecta']     = $do->get('afecta');
+			if(empty($afecta)){
+				if(isset($itnumero)){
+					$riva['afecta'] = $itnumero;
+				}
+			}else{
+				$riva['afecta'] = $afecta;
+			}
 			$riva['clipro']     = $cod_prv;
 			$riva['nombre']     = $nombre;
 			$riva['rif']        = $this->datasis->dameval('SELECT rif FROM sprv WHERE proveed='.$this->db->escape($cod_prv));
@@ -3358,6 +3388,28 @@ class Sprm extends Controller {
 			$this->validation->set_message('chobligatipo', "El campo %s es necesario cuando el tipo es ${tipo}");
 			return false;
 		}
+		return true;
+	}
+
+	function chafectanc($serie){
+		$tipo_doc = $this->input->post('tipo_doc');
+		$sprv     = $this->input->post('cod_prv');
+		if($tipo_doc=='NC'){
+			$dbserie = $this->db->escape($serie);
+			$dbsprv     = $this->db->escape($sprv);
+
+			$cana = 0;
+			$mSQL ="SELECT COUNT(*) AS cana FROM scst WHERE proveed=${dbsprv} AND serie=${dbserie}";
+			$cana+= intval($this->datasis->dameval($mSQL ));
+			$mSQL.="SELECT COUNT(*) AS cana FROM gser WHERE proveed=${dbsprv} AND serie=${dbserie}";
+			$cana+= intval($this->datasis->dameval($mSQL ));
+
+			if($cana==0){
+				$this->validation->set_message('chafectanc', "La factura en el campo %s no esta registrada o no esta pagada");
+				return false;
+			}
+		}
+
 		return true;
 	}
 
