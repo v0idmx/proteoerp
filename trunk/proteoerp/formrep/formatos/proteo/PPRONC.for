@@ -6,7 +6,7 @@ $id=$parametros[0];
 
 $sel=array('a.tipo_doc','a.numero','a.cod_prv','a.fecha','a.monto','a.abonos','a.banco','a.codigo','a.descrip'
 ,'b.nombre','TRIM(b.nomfis) AS nomfis','TRIM(b.direc1) AS direc','b.rif','a.tipo_op','a.numche'
-,'CONCAT_WS(\' \',observa1,observa2) AS observa','b.rif AS rifci','a.transac');
+,'CONCAT_WS(\' \',observa1,observa2) AS observa','b.rif AS rifci','a.transac','a.afecta');
 $this->db->select($sel);
 $this->db->from('sprm AS a');
 $this->db->join('sprv AS b'  ,'a.cod_prv=b.proveed');
@@ -47,8 +47,35 @@ $this->db->where('a.cod_prv' ,$proveed);
 $this->db->where('a.tipo_doc',$tipo_doc);
 $this->db->where('a.numero'  ,$numero);
 $this->db->where('a.fecha'   ,$row->fecha);
-$mSQL_2 = $this->db->get();
-$detalle  = $mSQL_2->result();
+$mSQL_2  = $this->db->get();
+$detalle = $mSQL_2->result();
+
+if($mSQL_2->num_rows()==0 && $tipo_doc=='NC'){
+	$dbafecta = $this->db->escape($row->afecta);
+	$dbsprv = $this->db->escape($proveed);
+
+	$mSQL   = "SELECT fecha, montonet AS monto FROM scst WHERE proveed=${dbsprv} AND serie=${dbafecta} AND tipo_doc='FC'";
+	$drow   = $this->datasis->damerow($mSQL);
+	if(empty($drow)){
+		$mSQL   = "SELECT fecha, totbruto AS monto FROM gser WHERE proveed=${dbsprv} AND serie=${dbafecta} AND tipo_doc='FC'";
+		$drow   = $this->datasis->damerow($mSQL);
+	}
+	if(empty($drow)) show_error('Registro sin relacion');
+
+	$obj  = new stdClass();
+	$obj->tipo_doc='FC';
+	$obj->numero  =$row->afecta;
+	$obj->fecha   =$drow['fecha'];
+	$obj->abono   =0;
+	$obj->monto   =$drow['monto'];
+	$obj->reten   =0;
+	$obj->ppago   =0;
+
+	$nota = '<b>**Nota de cr&eacute;dito a factura pagada, no afecta a ninguna transacci&oacute;n hasta el momento que se aplique.**</b>';
+	$detalle= array($obj);
+}else{
+	$detalle  = $mSQL_2->result();
+}
 
 
 $ittot['monto']=$ittot['reten']=$ittot['ppago']=$ittot['cambio']=$ittot['mora']=$ittot['reteiva']=$ittot['abono']=$lineas=0;
@@ -145,6 +172,9 @@ $encabezado = <<<encabezado
 								<td>Concepto de:</td>
 								<td><b>${observa}</b></td>
 							</tr>
+							<tr>
+								<td colspan='2' style='text-align:center;'><b>${nota}</b></td>
+							</tr>
 						</table>
 encabezado;
 
@@ -216,7 +246,7 @@ $mod     = $clinea = false;
 $npagina = true;
 $i       = 0;
 
-foreach ($detalle AS $items){ $i++;
+foreach ($detalle as $items){ $i++;
 	do {
 		if($npagina){
 			$this->incluir('X_CINTILLO');

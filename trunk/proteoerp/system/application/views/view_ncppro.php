@@ -151,6 +151,7 @@ $(function(){
 								$('#tasa'     ).val('');
 								$('#reducida' ).val('');
 								$('#sobretasa').val('');
+								$('#observa1').val('');
 
 							}else{
 								$.each(data,
@@ -167,32 +168,43 @@ $(function(){
 		minLength: 2,
 		select: function( event, ui ) {
 			$('#afecta').attr('readonly', 'readonly');
-			$('#afecta').val(ui.item.serie);
+			//$('#afecta').val(ui.item.value);
 			$('#montasa'  ).val(ui.item.montasa  );
 			$('#monredu'  ).val(ui.item.monredu  );
 			$('#monadic'  ).val(ui.item.monadic  );
 			$('#tasa'     ).val(ui.item.tasa     );
 			$('#reducida' ).val(ui.item.reducida );
 			$('#sobretasa').val(ui.item.sobretasa);
+			$('#exento').val(ui.item.exento);
 
 			if(ui.item.aplrete=='N'){
 				$('#reteiva').css('background-color', '#FFFF28');
-				$('#reteiva').attr('title', 'No se le realizo retención');
+				$('#reteiva').attr('title', 'No se le realizo retención a la factura afectada');
 				$('#reteiva').val('0');
+				$('#rivaobs').text('No se le realizo retención a la factura afectada');
+				$('#reteiva').attr('readonly', 'readonly');
 				retepasa=false;
 			}else if(ui.item.aplrete=='V'){
 				$('#reteiva').css('background-color', '#FFCF62');
 				$('#reteiva').attr('title', 'Período vencido para devolver retención');
 				$('#reteiva').val('0');
+				$('#rivaobs').text('Período vencido para devolver retención');
+				//$('#reteiva').attr('readonly', 'readonly');
+				$('#reteiva').removeAttr('readonly');
 				retepasa=false;
 			}else{
 				$('#reteiva').css('background-color', '#FFFFFF');
 				$('#reteiva').attr('title', '');
 				$('#reteiva').val(ui.item.reteiva);
+				$('#rivaobs').text('');
+				$('#reteiva').removeAttr('readonly');
 				retepasa=true;
 			}
 
 			totaliza();
+			var mascara= "AFECTA A "+ui.item.value;
+			$('#observa1').val(mascara);
+
 			setTimeout(function(){ $('#afecta').removeAttr('readonly'); }, 1500);
 		}
 	});
@@ -220,7 +232,6 @@ function calretiva(){
 
 function totaliza(){
 	var stota =0;
-	var mascara= "APLICA A "+$('#afecta').val();
 
 	var actualmontasa  = Number($('#montasa'  ).val());
 	var actualmonredu  = Number($('#monredu'  ).val());
@@ -233,12 +244,8 @@ function totaliza(){
 
 	$('#monto').val(roundNumber(actualtot  ,2));
 	$('#monto_val').text(nformat(actualtot ,2));
-	if(actualtot >0){
-		$("#observa1").val(mascara);
-	}else{
-		$("#observa1").val('');
-	}
-	 calretiva()
+
+	calretiva()
 }
 
 function chapltasa(){
@@ -266,7 +273,6 @@ function chapltasa(){
 	base = roundNumber(adicional*100/(100+objptasa[ind][2]),2);
 	$('#monadic').val(base);
 	$('#sobretasa').val(roundNumber(adicional-base,2));
-
 }
 
 </script>
@@ -337,6 +343,9 @@ echo $title;
 				<td align="right"></td>
 			</tr><tr>
 				<td align="center" colspan='3'><?php echo  $form->reteiva->label.' '.$form->reteiva->output;?></td>
+			</tr>
+			<tr>
+				<td align="center" colspan='3'><span style='color:red' id='rivaobs'></span></td>
 			</tr>
 		</table>
 		</td>
