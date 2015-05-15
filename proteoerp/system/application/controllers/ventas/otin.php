@@ -1611,7 +1611,7 @@ class Otin extends Controller {
 			$numero = $this->datasis->fprox_numero('ndcli');
 		}elseif($tipo_doc=='OC'){
 			$numero = $this->datasis->fprox_numero('notinf');
-		}elseif($tipo_doc=='OT'){{
+		}elseif($tipo_doc=='OT'){
 			$numero = $this->datasis->fprox_numero('notiot');
 		}
 
