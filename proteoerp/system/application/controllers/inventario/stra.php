@@ -1632,16 +1632,28 @@ class Stra extends Controller {
 				'recibe'     => 'PROD',
 				'observ1'    => 'ORDEN DE PRODUCCION NRO.'.$row->numero
 			);
-        
+
+
+		$mSQL = "SELECT c.codigo, c.descrip, SUM(a.cana * c.cantidad) cantidad  
+				FROM itprdo    a 
+				JOIN sinv      b ON a.codigo=b.codigo
+				JOIN sinvpitem c ON a.codigo = c.producto
+				WHERE a.numero = '".$row->numero."'
+				GROUP BY c.codigo";
+
+/*
 			$sel=array('a.codigo','b.descrip','a.cantidad');
 			$this->db->select($sel);
-			$this->db->from('ordpitem AS a');
+			$this->db->from(' AS a');
 			$this->db->join('sinv AS b','a.codigo=b.codigo');
 			$this->db->where('a.id_ordp' , $id_ordp);
-			$mSQL_2 = $this->db->get();
-			$ordpitem_row =$mSQL_2->result();
+*/
+		
+			
+			$mSQL_2 = $this->query($mSQL);
+			$items  = $mSQL_2->result();
         
-			foreach ($ordpitem_row as $id=>$itrow){
+			foreach ( $items as $id => $itrow ){
 				$ind='codigo_'.$id;
 				$_POST[$ind] = $itrow->codigo;
 				$ind='descrip_'.$id;
@@ -1649,7 +1661,7 @@ class Stra extends Controller {
 				$ind='cantidad_'.$id;
 				$_POST[$ind] = $itrow->cantidad*$cana;
 			}
-			$rt=$this->dataedit();
+			$rt = $this->dataedit();
 			if(strripos($rt,'Guardada')){
 				$data = array('status' => 'P','reserva'=>'S');
 				$this->db->where('id', $id_ordp);
@@ -1657,7 +1669,7 @@ class Stra extends Controller {
 			}
         
 			echo $rt.' '.anchor($back,'regresar');
-			//redirect($back);
+			redirect($back);
 		}else{
 			exit();
 		}

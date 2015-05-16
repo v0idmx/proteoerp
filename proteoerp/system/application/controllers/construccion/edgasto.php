@@ -129,13 +129,13 @@ class Edgasto extends Controller {
 
 		$bodyscript .= '
 		$("#gmedidor").click(function(){
-			$.prompt("<center>Fecha: '.$mano.'&nbsp; Mes: '.$mes.'</center><br/><b>Grupo: </b>'.$grupo.' ",{
+			$.prompt("<center>Fecha: '.$mano.'&nbsp; Mes: '.$mes.' <b> Medidor: </b> <input type=\'checkbox\' id=\'ali\' name=\'ali\' value=\'S\'><br/><b>Grupo: </b>'.$grupo.' </center>",{
 				buttons: { Aceptar: 1, Salir: 0},
 				submit: function(e,v,m,f){
 					if ( v == 1 ){
 						$.post("'.site_url($this->url.'gfmedidor').'",{ anomes : encodeURIComponent(f.mano+f.mmes), grupo: f.mgrupo },
 						function(data){
-							$("#fedita").dialog( {height: 400, width: 620, title: "Cargo por Medidor"} );
+							$("#fedita").dialog( {height: 500, width: 620, title: "Cargo por Medidor"} );
 							$("#fedita").html(data);
 							$("#fedita").dialog( "open" );
 						})
@@ -688,53 +688,135 @@ class Edgasto extends Controller {
 		$grupo  = intval($_POST['grupo']);
 		$anomes = intval($_POST['anomes']);
 		
+		$nomgru = $this->datasis->dameval("SELECT descrip FROM edgrupo WHERE id=${grupo} AND activo='S'");
+		$gcargo = $this->datasis->dameval("SELECT cargo   FROM edgrupo WHERE id=${grupo} AND activo='S'");
 	
 		$this->rapyd->load('dataform');  
 		$edit = new DataForm("construccion/edgasto/gfmedidor/process");  
+
+		$query  = $this->db->query('SELECT MAX(id) id, sum(importe) monto FROM gitser WHERE EXTRACT(YEAR_MONTH FROM fecha)='.$anomes.' AND gcargo = '.$gcargo);
+		$montos = array();
+		
+		foreach ($query->result() AS $row ){
+			$monto[$row->id] = $row->monto;
+		}
 	
 		$script = '
+		var montocargo = '.json_encode($monto).';
 		$(function() {
 			$("#fecha").datepicker({dateFormat:"dd/mm/yy"});
 			$("#vence").datepicker({dateFormat:"dd/mm/yy"});
 			$(".inputnum").numeric(".");
 		});
+		
+		$("#gasto").change(function(){
+			//alert( montocargo[$("#gasto").val()] );
+			totaliza();
+		});
+
+		function totaliza(){
+			var montocal = 0;
+			var lectucal = 0;
+			$("input[name^=\'monto_\']").each( 
+			function( index ){
+				montocal += Number($(this).val());
+			})
+			$("input[name^=\'lectura_\']").each( 
+			function( index ){
+				lectucal += Number($(this).val());
+			})
+			//$("#sumamont").html(montocargo[$("#gasto").val()] );
+			$("#sumamonto").html(montocal.toFixed(2));
+			$("#sumalectu").html(lectucal.toFixed(2));
+		}
+
+		function calcular(){
+			var montocal = 0;
+			var lectucal = 0;
+			var meco     = 0;
+			var mtotal   = montocargo[$("#gasto").val()];
+			// Calcula el Total
+			$("input[name^=\'lectura_\']").each( 
+			function( index ){
+				lectucal += Number($(this).val());
+			})
+			// Coloca cada monto
+			$("input[name^=\'lectura_\']").each( 
+			function( index ){
+				meco = Number($(this).val());
+				meco = meco*mtotal/lectucal;
+				$("#monto_"+index).val(meco.toFixed(2));
+			})
+			totaliza();
+		}
+		
 		';
 
 		$edit->script($script);
 
-		$edit->grupo = new inputField('Grupo','grupo');
-		$edit->grupo->rule      = 'integer';
-		$edit->grupo->css_class = 'inputonlynum';
-		$edit->grupo->size      = 13;
-		$edit->grupo->maxlength = 11;
+		$edit->grupo = new hiddenField('Grupo','grupo');
+		$edit->grupo->insertValue = $grupo;
+		$edit->grupo->type        = 'inputhidden';
 
-		$edit->gasto = new inputField('Gasto','gasto');
-		$edit->gasto->rule      = '';
-		$edit->gasto->size      = 52;
-		$edit->gasto->maxlength = 50;
+		$edit->anomes = new dropDownField('Ano Mes','anomes');
+		$edit->anomes->insertValue = $anomes;
+		$edit->anomes->type='inputhidden';
 
-		$edit->imueble = new inputField('Imueble','imueble');
-		$edit->imueble->rule      = 'integer';
-		$edit->imueble->css_class = 'inputonlynum';
-		$edit->imueble->size      = 13;
-		$edit->imueble->maxlength = 11;
+		$edit->gasto = new dropDownField('Gasto','gasto');
+		$edit->gasto->option('', 'Seleccione un gasto');
+		$edit->gasto->options('SELECT MAX(id) id, CONCAT(descrip," ", sum(importe)) FROM gitser WHERE EXTRACT(YEAR_MONTH FROM fecha)='.$anomes.' AND gcargo = '.$gcargo);
 
-		$edit->lectira = new inputField('Lectira','lectira');
-		$edit->lectira->rule      = '';
-		$edit->lectira->size      = 22;
-		$edit->lectira->maxlength = 20;
+		$mSQL = "
+		SELECT b.codigo, b.descripcion, a.inmueble 
+		FROM editgrupo a 
+		JOIN edinmue   b ON a.inmueble = b.id
+		WHERE grupo = ${grupo}
+		ORDER BY b.codigo";
+		$query = $this->db->query($mSQL);
+		$i = 0;
+		foreach ($query->result() as $row){
+			$obj = "inmueble_".$i;
+			$edit->$obj = new hiddenField('Imueble '.$i,'imueble_'.$i);
+			$edit->$obj->rule      = 'integer';
+			$edit->$obj->css_class = 'inputonlynum';
+			$edit->$obj->size      = 13;
+			$edit->$obj->maxlength = 11;
+			$edit->$obj->insertValue = $row->inmueble;
 
-		$edit->monto = new inputField('Monto','monto');
-		$edit->monto->rule      = 'numeric';
-		$edit->monto->css_class = 'inputnum';
-		$edit->monto->size      = 12;
-		$edit->monto->maxlength = 10;
+			$obj = "descrip_".$i;
+			$edit->$obj = new inputField('descrip '.$i,'descrip_'.$i);
+			$edit->$obj->size      = 13;
+			$edit->$obj->maxlength = 11;
+			$edit->$obj->insertValue = $row->descripcion;
+			$edit->$obj->type='inputhidden';
 
+			$obj = "lectura_".$i;
+			$edit->$obj = new inputField('Lectura '.$i,'lectura_'.$i);
+			$edit->$obj->rule      = 'numeric';
+			$edit->$obj->css_class = 'inputnum';
+			$edit->$obj->size      = 12;
+			$edit->$obj->maxlength = 10;
+			$edit->$obj->onkeyup  = 'totaliza()';
+
+			$obj = "monto_".$i;
+			$edit->$obj = new inputField('Monto','monto_'.$i);
+			$edit->$obj->rule      = 'numeric';
+			$edit->$obj->css_class = 'inputnum';
+			$edit->$obj->size      = 12;
+			$edit->$obj->maxlength = 10;
+			$edit->$obj->onkeyup  = 'totaliza()';
+			$i++;
+		}
+		//$i--;
 		$edit->fecha = new dateonlyField('Fecha','fecha');
 		$edit->fecha->rule      = 'chfecha';
 		$edit->fecha->calendar  = false;
 		$edit->fecha->size      = 10;
 		$edit->fecha->maxlength = 8;
+
+		$edit->longi = new dropDownField('Longitud','longi');
+		$edit->longi->insertValue = $i;
+		$edit->longi->type='inputhidden';
 
 /*
 		$edit->estampa = new autoUpdateField('estampa' ,date('Ymd'), date('Ymd'));
@@ -745,19 +827,39 @@ class Edgasto extends Controller {
 		$edit->build_form();
 
 		if($edit->on_success()){
+			// Guarda la vaina
+			$longi   = $this->input->post('longi');
+			$anomes  = $this->input->post('anomes');
+			$gasto   = $this->input->post('gasto');
+			$grupo   = $this->input->post('grupo');
+
+			$this->db->delete('edgasmed',array('grupo'=>$grupo,'fecha'=>$anomes.'01','gasto'=>$gasto));
+			
+			for ( $i=0; $i < $longi; $i++ ){
+				$data = array();
+				$data['fecha']    = $anomes.'01';
+				$data['grupo']    = $grupo;
+				$data['gasto']    = $gasto;
+				$data['inmueble'] = $this->input->post('inmueble_'.$i);
+				$data['lectura']  = $this->input->post('lectura_'.$i);
+				$data['monto']    = $this->input->post('monto_'.$i);
+				$this->db->insert('edgasmed',$data);
+			}
 			$rt=array(
 				'status' =>'A',
 				'mensaje'=>'Registro guardado',
 				'pk'     =>''
 			);
 			echo json_encode($rt);
-		}else{
+		} else {
 			//echo $edit->output;
-			$conten['form'] =&  $edit;
+			$conten['form']    =&  $edit;
+			$conten['grupo']  = $grupo;
+			$conten['nomgru'] = $nomgru;
+			$conten['longi']  = $i;
 			$this->load->view('view_edmedidor', $conten);
 		}
 	}
-
 
 
 	function instalar(){
@@ -777,6 +879,22 @@ class Edgasto extends Controller {
 			  PRIMARY KEY (`id`),
 			  UNIQUE KEY `numero` (`numero`)
 			) ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC COMMENT='Gastos de Condominio'";
+			$this->db->query($mSQL);
+		}
+
+		if (!$this->db->table_exists('edgasmed')) {
+			$mSQL="
+			CREATE TABLE edgasmed (
+				id       INT(11) NOT   NULL AUTO_INCREMENT,
+				grupo    INT(11) NOT   NULL DEFAULT '0',
+				gasto    VARCHAR(50)   NULL DEFAULT NULL,
+				inmueble INT(11)       NULL DEFAULT NULL,
+				lectura  VARCHAR(20)   NULL DEFAULT NULL,
+				monto    DECIMAL(10,2) NULL DEFAULT NULL,
+				fecha    DATE          NULL DEFAULT NULL,
+				PRIMARY  KEY (id)
+			)
+			COMMENT='Gastos por medidor' CHARSET=latin1 ENGINE=MyISAM ROW_FORMAT=DYNAMIC";
 			$this->db->query($mSQL);
 		}
 	}
