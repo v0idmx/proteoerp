@@ -1343,15 +1343,20 @@ class gser extends Controller {
 			'editoptions'   => '{ size:30, maxlength: 2 }',
 		));
 
+
+		$mSQL   = "SELECT id, CONCAT(codigo, ' ', nombre) nombre FROM usol ORDER BY codigo";
+		$cargo = $this->datasis->llenajqselect($mSQL, true );
+
 		$grid->addField('gcargo');
 		$grid->label('Cargo');
 		$grid->params(array(
 			'search'        => 'true',
-			'editable'      => $editar,
-			'width'         => 40,
-			'edittype'      => "'text'",
-			'editrules'     => '{ required:true}',
-			'editoptions'   => '{ size:30, maxlength: 2 }',
+			'editable'      => 'true',
+			'width'         => 120,
+			'edittype'      => "'select'",
+			'editrules'     => '{ required:false}',
+			'editoptions'   => '{ value: '.$cargo.',  style:"width:200px"}',
+			'stype'         => "'text'",
 		));
 
 /*
@@ -1577,7 +1582,7 @@ class gser extends Controller {
 					return false;
 				}
 
-				$posibles=array('descrip','codigo');
+				$posibles=array('descrip','codigo','gcargo');
 				foreach($data as $ind=>$val){
 					if(!in_array($ind,$posibles)){
 						echo 'Campo no permitido ('.$ind.')';
