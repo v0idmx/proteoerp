@@ -186,7 +186,7 @@ class Casi extends Controller {
 
 
 		$bodyscript .= $this->jqdatagrid->bswrapper($ngrid);
-		$bodyscript .= $this->jqdatagrid->bsfedita( $ngrid, $height = "450", $width = "750" );
+		$bodyscript .= $this->jqdatagrid->bsfedita( $ngrid, $height = "450", $width = "780" );
 		$bodyscript .= $this->jqdatagrid->bsfshow( $height = "500", $width = "700" );
 		$bodyscript .= $this->jqdatagrid->bsfborra( $ngrid, "300", "300" );
 

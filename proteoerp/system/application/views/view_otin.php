@@ -403,7 +403,7 @@ function autocod(id){
 				<td class="littletableheaderdet">Impuesto</td>
 				<td class="littletableheaderdet">Importe</td>
 				<?php if($form->_status!='show') {?>
-				<td class="littletableheaderdet">&nbsp;</td>
+					<td class="littletableheaderdet"><a href='#' id='addlink' onclick="add_itotin()" title='Agregar fila'><?php echo img(array('src' =>"images/agrega4.png", 'height' => 18, 'alt'=>'Agregar fila', 'title' => 'Agregar fila', 'border'=>'0')); ?></a></td>
 				<?php } ?>
 			</tr>
 			<?php for($i=0;$i<$form->max_rel_count['itotin'];$i++) {
@@ -446,7 +446,7 @@ function autocod(id){
 				<td class="littletableheaderdet">Banco</td>
 				<td class="littletableheaderdet">Monto</td>
 				<?php if($form->_status!='show') {?>
-					<td class="littletableheaderdet"></td>
+					<td class="littletableheaderdet"><a href='#' id='addlink' onclick="add_sfpa()" title='Agregar fila'><?php echo img(array('src' =>"images/agrega4.png", 'height' => 18, 'alt'=>'Agregar fila', 'title' => 'Agregar fila', 'border'=>'0')); ?></a></td>
 				<?php } ?>
 			</tr>
 			<?php

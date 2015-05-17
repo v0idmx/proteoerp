@@ -20,7 +20,7 @@ $scampos .='<td class="littletablerow" align="left" >'.$campos['referen']['field
 $scampos .='<td class="littletablerow" align="left" >'.$campos['concepto']['field'].'</td>';
 $scampos .='<td class="littletablerow" align="right">'.$campos['itdebe']['field'].  '</td>';
 $scampos .='<td class="littletablerow" align="right">'.$campos['ithaber']['field']. '</td>';
-$scampos .='<td rowspan="2" class="littletablerow"><a href=# onclick="del_itcasi(<#i#>);return false;">'.img("images/delete.jpg").'</a></td></tr>';
+$scampos .='<td rowspan="2" class="littletablerow"><a href=# onclick="del_itcasi(<#i#>);return false;">'.img('images/delete.jpg').'</a></td></tr>';
 $scampos .='</tr>';
 $scampos .='<tr id="tr_itcasi_<#i#>_<#i#>">';
 $scampos .='<td colspan="5" class="littletablerow" align="center"> <b>Centro de costo:</b> '.$campos['itccosto']['field'];
@@ -274,14 +274,14 @@ function traesaldo(cu){
 		<td>
 		<div id='grid_container' style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;height:230px'>
 		<table width='100%'>
-			<tr  id='__PTPL__' style='font-size:1.1em;font-weight:bold;'>
+			<tr  id='__PTPL__' style='font-size:1.1em;font-weight:bold;color:white'>
 				<td bgcolor='#7098D0' >Cuenta</td>
 				<td bgcolor='#7098D0' >Referencia</td>
 				<td bgcolor='#7098D0' >Concepto</td>
 				<td bgcolor='#7098D0' >Debe</td>
 				<td bgcolor='#7098D0' >Haber</td>
 				<?php if($form->_status!='show') {?>
-					<td bgcolor='#7098D0' ><a href='#' onclick="add_itcasi()" title='Agregar otra cuenta'><?php echo img('images/agrega4.png'); ?></a></td>
+					<td bgcolor='#7098D0' ><a href='#' onclick="add_itcasi()" title='Agregar otra cuenta'><?php echo img(array('src' =>'images/agrega4.png', 'height' => 18, 'alt'=>'Agregar fila', 'title' => 'Agregar fila', 'border'=>'0')); ?></a></td>
 				<?php } ?>
 			</tr>
 			<?php for($i=0;$i<$form->max_rel_count['itcasi'];$i++) {

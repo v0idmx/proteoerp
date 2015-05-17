@@ -1146,9 +1146,9 @@ datos vía telefónica.";
 
 
 				}
-				
-				
-				
+
+
+
 			}
 		');
 
@@ -1302,7 +1302,7 @@ datos vía telefónica.";
 		$vend=$this->secu->getvendedor();
 		$edit->vd = new  dropdownField ('Vendedor', 'vd');
 		$edit->vd->options('SELECT vendedor, CONCAT(vendedor,\' \',nombre) nombre FROM vend ORDER BY vendedor');
-		$edit->vd->style='width:120px;';
+		$edit->vd->style='width:170px;';
 		$edit->vd->insertValue=$vend;
 		$edit->vd->size = 5;
 
