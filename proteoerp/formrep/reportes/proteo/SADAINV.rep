@@ -19,20 +19,23 @@ $bsclid =$this->datasis->modbus($mSCLId);
 $filter = new DataFilter('Filtro del Reporte');
 $filter->attributes=array('onsubmit'=>'is_loaded()');
 
-$select=array('a.numero','a.fecha','d.descrip',
-'FORMAT((AVG(c.pesoneto*b.cana)-c.pesoneto*SUM(COALESCE(g.cana,0)))/1000,3) AS peso',
-'e.rifci','e.nombre','AVG(b.cana)-SUM(COALESCE(g.cana,0)) AS cana','a.reparto','d.codigo AS sadacod','a.nfiscal');
+$select=array(
+	'a.numero','a.fecha','d.descrip',
+	'c.pesoneto*b.cana AS peso',
+	'e.rifci','e.nombre','b.cana AS cana','a.reparto',
+	'd.codigo AS sadacod','a.nfiscal','c.sada'
+	);
+
 $filter->db->select($select);
 $filter->db->from('sfac    AS a');
 $filter->db->join('sitems  AS b','a.numero=b.numa AND a.tipo_doc=b.tipoa');
 $filter->db->join('sinv    AS c','c.codigo=b.codigoa');
 $filter->db->join('sadacod AS d','d.id=c.sada');
 $filter->db->join('scli    AS e','e.cliente=a.cod_cli');
-$filter->db->join('sfac    AS f','a.numero=f.factura AND f.tipo_doc="D"' ,'left');
-$filter->db->join('sitems  AS g','g.numa=f.numero AND g.tipoa=f.tipo_doc AND g.codigoa=b.codigoa','left');
+
 $filter->db->where("a.tipo_doc<>'X'");
-$filter->db->groupby('a.numero,c.sada');
-$filter->db->orderby('a.numero');
+//$filter->db->groupby('a.numero,c.sada');
+//$filter->db->orderby('a.numero');
 
 $filter->reparto = new inputField('Reparto', 'reparto');
 $filter->reparto->clause='where';
@@ -49,7 +52,32 @@ $filter->buttons('search');
 $filter->build();
 
 if($this->rapyd->uri->is_set('search')  && $filter->is_valid()){
-	$mSQL=$this->rapyd->db->_compile_select();
+	$dbreparto=$this->db->escape($filter->reparto->newValue);
+	$sql=array();
+	$sql[]=$this->rapyd->db->_compile_select();
+	$sql[]="SELECT a.numero,a.fecha,d.descrip,
+		(-1)*c.pesoneto*g.cana AS peso,
+		e.rifci, e.nombre, (-1)*g.cana AS cana, a.reparto,
+		d.codigo AS sadacod, a.nfiscal, c.sada
+	FROM sfac    AS a
+	JOIN sitems  AS b ON a.numero=b.numa AND a.tipo_doc=b.tipoa
+	JOIN sinv    AS c ON c.codigo=b.codigoa
+	JOIN sadacod AS d ON d.id=c.sada
+	JOIN scli    AS e ON e.cliente=a.cod_cli
+	JOIN sfac    AS f ON a.numero=f.factura AND f.tipo_doc='D'
+	JOIN sitems  AS g ON g.numa=f.numero AND g.tipoa=f.tipo_doc AND g.codigoa=b.codigoa
+	WHERE a.reparto=${dbreparto}";
+
+	$sql = implode(' UNION ALL ',$sql);
+
+	$mSQL="SELECT aa.numero,aa.fecha,aa.descrip,
+		FORMAT((SUM(aa.peso))/1000,3) AS peso, aa.rifci, aa.nombre, SUM(aa.cana) AS cana, aa.reparto,
+		aa.sadacod, aa.nfiscal, aa.sada
+	FROM (${sql}) AS aa
+	GROUP BY numero,sada
+	ORDER BY numero";
+
+
 	//echo $mSQL; exit();
 	$reparto=$filter->reparto->newValue;
 	$subtitu='';

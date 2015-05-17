@@ -87,6 +87,7 @@ function chtipodoc(){
 		$('#ppagotit').hide();
 		$('#trcodigo').show();
 		$('#trvende').hide();
+		$('input[name="btn_add_sfpa"]').hide();
 		totaliza();
 	}else if(tipo=='AN'){
 		$('#aplefectos').hide();
@@ -96,6 +97,7 @@ function chtipodoc(){
 		$('#aplpago').show();
 		$('#trcodigo').hide();
 		$('#trvende').hide();
+		$('input[name="btn_add_sfpa"]').show();
 		fitmonto();
 	}else{
 		$('#aplefectos').show();
@@ -104,6 +106,7 @@ function chtipodoc(){
 		$('#ppagotit').show();
 		$('#trcodigo').hide();
 		$('#trvende').show();
+		$('input[name="btn_add_sfpa"]').show();
 		totaliza();
 	}
 	$("#observa1").val('');

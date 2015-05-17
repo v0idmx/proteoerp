@@ -2103,6 +2103,7 @@ class Sprm extends Controller {
 		$tipo_doc  = $do->get('tipo_doc');
 		$cod_prv   = $do->get('cod_prv');
 		$afecta    = $do->get('afecta');
+		$codigo    = $do->get('codigo');
 
 		$impuesto= $tasa+$reducida+$sobretasa;
 		$monto   = $montasa+$monredu+$monadic+$tasa+$reducida+$sobretasa+$exento;
@@ -2171,6 +2172,10 @@ class Sprm extends Controller {
 		$do->set('abonos'  , 0);
 		$do->set('fecdoc'  ,$fecha);
 		$do->set('posdata' ,$fecha);
+
+		$dbcodigo = $this->db->escape($codigo);
+		$do->set('descrip' ,$this->datasis->dameval("SELECT TRIM(nombre) AS val FROM botr WHERE codigo=${dbcodigo}"));
+
 	}
 
 	function _post_ncppro_insert($do){
