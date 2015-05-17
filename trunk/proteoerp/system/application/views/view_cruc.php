@@ -79,11 +79,30 @@ function totaliza(){
 	});
 	$("#monto").val(roundNumber(tmonto,2));
 	$("#monto_val").text(nformat(tmonto,2));
+	colofdiff();
+}
+
+function colofdiff(){
+	var tmonto = Number($("#monto").val());
+	var tefect = totalizaapa();
+	var dife   = tmonto-tefect;
+
+	if(dife > 0){
+		$("#tasumidif").css('color', 'red');
+	}else if(dife < 0){
+		$("#tasumidif").css('color', '#740998');
+	}else{
+		$("#tasumidif").css('color', 'green');
+	}
+
+	$("#tasumidif").text(nformat(dife ,2));
+	$("#tasumido").text(nformat(tefect ,2));
 }
 
 function totalizaapa(){
 	var tmonto = 0;
 	var arr=$('input[name^="itmonto_"]');
+	var apas=0;
 	jQuery.each(arr, function() {
 		nom=this.name;
 		pos=this.name.lastIndexOf('_');
@@ -91,11 +110,18 @@ function totalizaapa(){
 			ind   = this.name.substring(pos+1);
 			ittipo=$('#ittipo_'+ind).val();
 			if(ittipo=='APA'){
-				abono = Number(this.value);
+				apas   = apas+1;
+				abono  = Number(this.value);
 				tmonto = tmonto+abono;
 			}
 		}
 	});
+
+	if(apas == 0){
+		tmonto=Number($("#monto").val());
+	}
+
+	$("#tasumido").text(nformat(tmonto,2));
 	return tmonto;
 }
 
@@ -151,12 +177,15 @@ $(function(){
 						}else{
 							$(this).val(aplsaldo);
 						}
+						montoapa= totalizaapa();
+						colofdiff();
 					}
 				});
 
 			}
 		}
 	});
+	colofdiff();
 });
 </script>
 <?php } ?>
@@ -291,9 +320,21 @@ $(function(){
 	<tr>
 		<td class="littletablerowth"><?php echo $form->concept1->label;  ?></td>
 		<td class="littletablerow"  ><?php echo $form->concept1->output; ?></td>
+		<?php if($form->_status!='show'){ ?>
+		<td class="littletablerowth">Total asumido:</td>
+		<td class="littletablerow" align='rigth' style='text-align:right;font-weight:bold;font-size:1.3em;'><span id='tasumido'></span></td>
+		<?php }else{ ?>
+		<td class="littletablerowth" colspan='2'></td>
+		<?php } ?>
 	</tr><tr>
 		<td class="littletablerowth"><?php echo $form->concept2->label;  ?></td>
 		<td class="littletablerow"  ><?php echo $form->concept2->output; ?></td>
+		<?php if($form->_status!='show'){ ?>
+		<td class="littletablerowth">Diferencia:</td>
+		<td class="littletablerow" align='rigth' style='text-align:right;font-weight:bold;font-size:1.3em;'><span id='tasumidif'></span></td>
+		<?php }else{ ?>
+		<td class="littletablerowth" colspan='2'></td>
+		<?php } ?>
 	</tr>
 </table>
 </fieldset>

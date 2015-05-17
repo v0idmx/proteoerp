@@ -2591,7 +2591,7 @@ class Sfac extends Controller {
 		foreach($query->result as $row)
 		$this->datasis->sinvcarga($row->codigoa,$row->almacen,$row->cana);
 
-		redirect("ventas/sfac/dataedit/show/$id_sfac");
+		redirect("ventas/sfac/dataedit/show/${id_sfac}");
 	}
 
 	function tabla() {
@@ -2900,7 +2900,7 @@ class Sfac extends Controller {
 		//$edit->factura->mode='autohide';
 		//$edit->factura->type='inputhidden';
 		$edit->factura->maxlength=8;
-		$edit->factura->rule='condi_required|callback_chfactura';
+		$edit->factura->rule='condi_required|chfechafut|callback_chfactura';
 
 		$edit->peso = new inputField('Peso', 'peso');
 		$edit->peso->css_class = 'inputnum';

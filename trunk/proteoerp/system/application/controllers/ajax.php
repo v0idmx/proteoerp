@@ -1822,6 +1822,7 @@ class Ajax extends Controller {
 				FROM gser AS a
 				LEFT JOIN sprm AS b ON a.tipo_doc=b.tipo_doc AND a.numero=b.numero AND a.transac=b.transac AND a.proveed=b.cod_prv
 				WHERE a.tipo_doc='FC' AND a.proveed=${dbsprv} AND a.serie LIKE ${qdb} AND (b.abonos>=b.monto OR b.monto IS NULL)
+				ORDER BY fecha DESC
 				LIMIT ".$this->autolimit;
 
 			$query = $this->db->query($mSQL);

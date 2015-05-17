@@ -326,6 +326,17 @@ class MY_Validation extends CI_Validation{
 		}
 	}
 
+	function chfechafut($fecha){
+		$d1 = DateTime::createFromFormat(RAPYD_DATE_FORMAT, $fecha); //Fecha de recepcion
+		$d2 = new DateTime();                                        //Fecha de hoy
+
+		if($d1>$d2){
+			$this->set_message('chfechafut', 'La fecha introducida en el campo <b>%s</b> no pueder ser futura');
+			return false;
+		}
+		return true;
+	}
+
 	function porcent($porcen){
 		$porcen=floatval($porcen);
 		if ($porcen<=100 && $porcen>=0) return true;

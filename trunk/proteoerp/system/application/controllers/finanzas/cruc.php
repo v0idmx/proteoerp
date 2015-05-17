@@ -128,6 +128,7 @@ class Cruc extends Controller {
 						try{
 							var json = JSON.parse(data);
 							if (json.status == "A"){
+								jQuery("#newapi'.$grid0.'").trigger("reloadGrid");
 								apprise("Registro eliminado");
 							}else{
 								apprise("Registro no se puede eliminado");
@@ -181,7 +182,7 @@ class Cruc extends Controller {
 		$("#fcp").click( function() {
 			$.post("'.site_url($this->url.'declipro/create').'",
 			function(data){
-				$("#fedita").dialog( {height: 500, width: 620, title: "Cruce Cliente Proveedor"} );
+				$("#fedita").dialog( {height: 550, width: 620, title: "Cruce Cliente Proveedor"} );
 				$("#fedita").html(data);
 				$("#fedita").dialog( "open" );
 			})
@@ -204,7 +205,7 @@ class Cruc extends Controller {
 		$("#fpc").click( function() {
 			$.post("'.site_url($this->url.'deprocli/create').'",
 			function(data){
-				$("#fedita").dialog( {height: 590, width: 620, title: "Cruce Proveedor Cliente"} );
+				$("#fedita").dialog( {height: 550, width: 620, title: "Cruce Proveedor Cliente"} );
 				$("#fedita").html(data);
 				$("#fedita").dialog( "open" );
 			})
@@ -917,6 +918,8 @@ class Cruc extends Controller {
 														}else{
 															$(this).val(aplsaldo);
 														}
+														montoapa=totalizaapa();
+														colofdiff();
 													}
 												}
 											}
@@ -1446,6 +1449,8 @@ class Cruc extends Controller {
 														}else{
 															$(this).val(aplsaldo);
 														}
+														montoapa=totalizaapa();
+														colofdiff();
 													}
 												}
 											}
@@ -1507,11 +1512,10 @@ class Cruc extends Controller {
 		$edit->numero->when      = array('show');
 
 		$edit->fecha = new dateonlyField('Fecha','fecha');
-		$edit->fecha->rule       = 'chfecha';
 		$edit->fecha->size       = 10;
 		$edit->fecha->maxlength  =  8;
 		$edit->fecha->calendar   = false;
-		$edit->fecha->rule       = 'required|chfecha';
+		$edit->fecha->rule       = 'required|chfecha|chfechafut';
 		$edit->fecha->insertValue= date('Y-m-d');
 
 		$edit->proveed = new inputField('Proveedor','proveed');

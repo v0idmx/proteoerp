@@ -878,7 +878,7 @@ class Ssal extends Controller {
 
 		$edit->fecha = new DateonlyField('Fecha', 'fecha','d/m/Y');
 		$edit->fecha->insertValue = date('Y-m-d');
-		$edit->fecha->rule = 'required';
+		$edit->fecha->rule = 'required|chfecha|chfechafut';
 		$edit->fecha->mode = 'autohide';
 		$edit->fecha->readonly = true;
 		$edit->fecha->calendar = false;
@@ -969,7 +969,7 @@ class Ssal extends Controller {
 
 		$edit->usuario = new autoUpdateField('usuario',$this->secu->usuario(),$this->secu->usuario());
 
-		$edit->buttons('modify', 'save', 'undo', 'delete', 'back','add_rel');
+		//$edit->buttons('modify', 'save', 'undo', 'delete', 'back','add_rel');
 		$edit->build();
 
 		if($edit->on_success()){

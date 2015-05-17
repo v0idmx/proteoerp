@@ -38,7 +38,7 @@ $filter->db->orderby('a.cobrador,f_factura');
 $filter->fechad = new dateField('Desde', 'fechad','d/m/Y');
 $filter->fechah = new dateField('Hasta', 'fechah','d/m/Y');
 $filter->fechad->clause  =$filter->fechah->clause='where';
-$filter->fechad->db_name =$filter->fechah->db_name='a.fecha';
+$filter->fechad->db_name =$filter->fechah->db_name='a.f_factura';
 $filter->fechad->insertValue = date('Y-m-d');
 $filter->fechah->insertValue = date('Y-m-d');
 $filter->fechad->operator='>=';

@@ -1563,7 +1563,7 @@ class Smov extends Controller {
 		$edit->fecdoc->maxlength =8;
 		$edit->fecdoc->insertValue=date('Y-m-d');
 		$edit->fecdoc->calendar = false;
-		$edit->fecdoc->rule ='chfecha|required';
+		$edit->fecdoc->rule ='chfecha|chfechafut|required|callback_chcierre';
 
 		$edit->monto = new inputField('Total','monto');
 		$edit->monto->rule='max_length[17]|numeric';
@@ -1820,7 +1820,8 @@ class Smov extends Controller {
 
 	function _pre_ccli_insert($do){
 
-		$cliente  =$do->get('cod_cli');
+		$cajero  = $this->secu->getcajero();
+		$cliente = $do->get('cod_cli');
 		$estampa = $do->get('estampa');
 		$hora    = $do->get('hora');
 		$usuario = $do->get('usuario');
@@ -1847,6 +1848,18 @@ class Smov extends Controller {
 			$do->set('dire1' ,$rrow['dire11']);
 			$do->set('dire2' ,$rrow['dire12']);
 		}
+
+		//Chequea si el cajero no esta cerrado para la fecha
+		if(in_array($tipo_doc,array('AN','AB'))){
+			$dbcajero = $this->db->escape($cajero);
+			$dbfecha  = $this->db->escape($fecha);
+			$cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM rcaj WHERE cajero=${dbcajero} AND fecha=${dbfecha}"));
+			if($cana>0){
+				$do->error_message_ar['pre_ins']="Ya existe un procedimiento de cierre para el cajero ${cajero} en la fecha ".dbdate_to_human($fecha);
+				return false;
+			}
+		}
+		//fin del chequeo del cajero
 
 		$cfecha=intval(str_replace('-','',$fecha));
 		//Totaliza el abonado
@@ -1892,7 +1905,6 @@ class Smov extends Controller {
 		$sfpamonto=round($sfpamonto,2);
 
 		//Realiza las validaciones
-		$cajero=$this->secu->getcajero();
 		$this->load->library('validation');
 		$rt=$this->validation->cajerostatus($cajero);
 		if(!$rt){
@@ -2943,7 +2955,6 @@ class Smov extends Controller {
 	}
 
 	function _pre_ncfac_insert($do){
-		$fecha    = $do->get('fecha');
 		$factura  = $do->get('num_ref');
 		$dbfactura= $this->db->escape($factura);
 		$codigo   = $do->get('codigo');
