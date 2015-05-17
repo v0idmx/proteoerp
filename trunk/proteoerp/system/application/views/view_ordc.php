@@ -23,7 +23,7 @@ $scampos .= $campos['iva']['field'];
 $scampos .= $campos['ultimo']['field'];
 $scampos .= $campos['pond']['field'];
 $scampos .= $campos['sinvpeso']['field'].'</td>';
-$scampos .= '<td class="littletablerow"><a href=# onclick="del_itordc(<#i#>);return false;">'.img("images/delete.jpg").'</a></td></tr>';
+$scampos .= '<td class="littletablerow" align="center"><a href=# onclick="del_itordc(<#i#>);return false;">'.img("images/delete.jpg").'</a></td></tr>';
 $campos=$form->js_escape($scampos);
 
 if(isset($form->error_string)) echo '<div class="alert">'.$form->error_string.'</div>';
@@ -90,6 +90,26 @@ $(function(){
 			$('#proveed').val(ui.item.proveed);
 
 			setTimeout(function() {  $('#proveed').removeAttr("readonly"); }, 1500);
+		}
+	});
+
+	$('input[name^="cantidad_"]').keypress(function(e) {
+		if(e.keyCode == 13) {
+			var nom=this.name
+			var pos=this.name.lastIndexOf('_');
+			if(pos>0){
+				var ind = this.name.substring(pos+1);
+				$('#costo_'+ind).focus();
+				$('#costo_'+ind).select();
+			}
+			return false;
+		}
+	});
+
+	$('input[name^="costo_"]').keypress(function(e) {
+		if(e.keyCode == 13) {
+		    add_itordc();
+			return false;
 		}
 	});
 });
@@ -222,6 +242,24 @@ function add_itordc(){
 	htm = htm.replace(/<#o#>/g,con);
 	$("#__PTPL__").after(htm);
 	$("#cantidad_"+can).numeric(".");
+	$("#codigo_"+can).focus();
+
+	$("#cantidad_"+can).keypress(function(e) {
+		if(e.keyCode == 13) {
+		    $('#costo_'+can).focus();
+			$('#costo_'+can).select();
+			return false;
+		}
+	});
+
+	$("#costo_"+can).keypress(function(e) {
+		if(e.keyCode == 13) {
+		    add_itordc();
+			return false;
+		}
+	});
+
+
 	itordc_cont=itordc_cont+1;
 	autocod(can);
 	return can;
@@ -243,15 +281,12 @@ function del_itordc(id){
 
 			<tr>
 				<td class="littletableheader" width="90"> <?php echo $form->proveed->label;  ?>&nbsp;</td>
-				<td class="littletablerow" colspan='3'>   <?php echo $form->proveed->output ?><b id='nombre_val'><?php echo $form->nombre->value ?></b><?php echo $form->nombre->output ?></td>
+				<td class="littletablerow" >   <?php echo $form->proveed->output ?><b id='nombre_val'><?php echo $form->nombre->value ?></b><?php echo $form->nombre->output ?></td>
 				<td class="littletableheader" width="110"><?php echo $form->fecha->label;    ?>*&nbsp;</td>
 				<td class="littletablerow"    width="150"><?php echo $form->fecha->output;   ?>&nbsp;</td>
-			</tr>
-			<tr>
-				<td class="littletableheader"><?php echo $form->status->label;    ?>&nbsp;</td>
-				<td class="littletablerow">   <?php echo $form->status->output;   ?>&nbsp;</td>
+			</tr><tr>
 				<td class="littletableheader"><?php echo $form->arribo->label     ?>&nbsp;</td>
-				<td class="littletablerow">   <?php echo $form->arribo->output    ?>&nbsp;</td>
+				<td class="littletablerow">   <?php echo $form->arribo->output.' '.$form->status->output;?>&nbsp;</td>
 				<td class="littletableheader"><?php echo $form->almacen->label  ?>&nbsp;</td>
 				<td class="littletablerow" >  <?php echo $form->almacen->output ?>&nbsp;</td>
 			</tr>
@@ -263,8 +298,8 @@ function del_itordc(id){
 		<td>
 		<table>
 			<tr>
-				<td>
-		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;height:230px;width:600px;'>
+				<td valign='top'>
+		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;height:230px;width:650px;'>
 		<table width='100%'>
 			<tr id='__PTPL__'>
 				<td class="littletableheaderdet">C&oacute;digo</td>
@@ -273,7 +308,7 @@ function del_itordc(id){
 				<td class="littletableheaderdet">Precio</td>
 				<td class="littletableheaderdet">Importe</td>
 				<?php if($form->_status!='show') {?>
-					<td class="littletableheaderdet">&nbsp;</td>
+					<td class="littletableheaderdet" align='center'><a href='#' onclick="add_itordc()" title='Agregar fila'><?php echo img(array('src' =>'images/agrega4.png', 'height' => 16, 'alt'=>'Agregar fila', 'title' => 'Agregar fila', 'border'=>'0')); ?></a></td>
 				<?php } ?>
 			</tr>
 
@@ -308,8 +343,8 @@ function del_itordc(id){
 				<td class="littletablerow" align="right"><?php echo $form->$it_importe->output.$pprecios;?></td>
 
 				<?php if($form->_status!='show') {?>
-				<td class="littletablerow">
-					<a href='#' onclick='del_itordc(<?php echo $i ?>);return false;'><?php echo img("images/delete.jpg");?></a>
+				<td class="littletablerow" align='center'>
+					<a href='#' onclick='del_itordc(<?php echo $i ?>);return false;'><?php echo img('images/delete.jpg');?></a>
 				</td>
 				<?php } ?>
 			</tr>
@@ -317,14 +352,14 @@ function del_itordc(id){
 		</table>
 		</div>
 
-		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;width:600px;'>
+		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;width:650px;'>
 		<table width='100%'>
 			<tr>
 				<td rowspan='3' align='center'>
 					<?php echo $container_bl.$container_br; ?>
 					<p>
 					<?php if($form->_status!='show'){ ?>
-						<a href="javascript:void(0);" style='font-size:1.2em;text-decoration:none;font-weight:bold;color:#166D05' onclick="bus_sug=window.open('/proteoerp/compras/ordc/bussug', 'bussug', 'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=0,screeny=">Sugerencias</a>
+						<a href="#" style='font-size:1.2em;text-decoration:none;font-weight:bold;color:#166D05' onclick="bus_sug=window.open('/proteoerp/compras/ordc/bussug', 'bussug', 'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=0,screeny=0')">Sugerencias</a>
 					<?php } ?>
 					</p>
 				</td>
@@ -350,14 +385,9 @@ function del_itordc(id){
 		</table>
 		</td>
 	</tr>
-	<!--tr>
-		<td>
-		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;width:600px;'>
-		<fieldset style='border: 2px outset #9AC8DA;background: #EFEFFF;'>
-		</div>
-		<?php echo $form_end; ?>
-		</td>
-	</tr-->
+
+<?php echo $form_end; ?>
+
 
 	<?php if($form->_status == 'show'){ ?>
 	<tr>
@@ -384,9 +414,6 @@ function del_itordc(id){
 					<td class="littletablerow" align='center'><?php echo $form->_dataobject->get('hora'); ?>&nbsp;</td>
 					<td class="littletablerow" align='center'><?php echo $form->_dataobject->get('transac'); ?>&nbsp;</td>
 				</tr>
-				<!--tr style='font-size:12px;color:#0B3B0B;background-color: #F7BE81;'>
-					<td colspan='5' >&nbsp;</td>
-				</tr-->
 			</table>
 			</fieldset>
 		</td>

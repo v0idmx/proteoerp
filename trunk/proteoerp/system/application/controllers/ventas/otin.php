@@ -1435,7 +1435,7 @@ class Otin extends Controller {
 		// Fin detalle 2 (sfpa)
 		//************************************************
 
-		$edit->buttons('add_rel');
+		//$edit->buttons('add_rel');
 		$edit->build();
 
 		if($edit->on_success()){

@@ -338,7 +338,7 @@ function cdescrip(nind){
 		ddeca.setAttribute("id"    , "desca_"+ind);
 		ddeca.setAttribute("name"  , "desca_"+ind);
 		ddeca.setAttribute("class" , "input");
-		ddeca.setAttribute("size"  , 36);
+		ddeca.setAttribute("style"  , 'width:100%');
 		ddeca.setAttribute("maxlength", 50);
 		ddeca.setAttribute("readonly" ,"readonly");
 		ddeca.setAttribute("value"    ,desca);
@@ -472,13 +472,13 @@ function del_itspre(id){
 		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;height:200px;width:100%;'>
 		<table width='100%' border='0'>
 			<tr id='__INPL__'>
-				<th bgcolor='#7098D0'><strong>C&oacute;digo</strong></th>
-				<th bgcolor='#7098D0'><strong>Descripci&oacute;n</strong></th>
-				<th bgcolor='#7098D0'><strong>Cantidad</strong></th>
-				<th bgcolor='#7098D0'><strong>Precio</strong></th>
-				<th bgcolor='#7098D0'><strong>Importe</strong></th>
+				<th bgcolor='#7098D0' style='color:white'><strong>C&oacute;digo</strong></th>
+				<th bgcolor='#7098D0' style='color:white'><strong>Descripci&oacute;n</strong></th>
+				<th bgcolor='#7098D0' style='color:white'><strong>Cantidad</strong></th>
+				<th bgcolor='#7098D0' style='color:white'><strong>Precio</strong></th>
+				<th bgcolor='#7098D0' style='color:white'><strong>Importe</strong></th>
 				<?php if($form->_status!='show') {?>
-					<th bgcolor='#7098D0'>&nbsp;</th>
+					<th bgcolor='#7098D0'><a href="#" onClick="add_itspre();"><?php echo image('add1-.png'); ?></a></th>
 				<?php } ?>
 			</tr>
 
@@ -523,15 +523,11 @@ function del_itspre(id){
 
 				<?php if($form->_status!='show') {?>
 				<td class="littletablerow" align='center'>
-					<a href='#' onclick='del_itspre(<?php echo $i ?>);return false;'><?php echo img("images/delete.jpg"); ?></a>
+					<a href='#' onclick='del_itspre(<?php echo $i ?>);return false;'><?php echo img('images/delete.jpg'); ?></a>
 				</td>
 				<?php } ?>
 			</tr>
 			<?php } ?>
-
-			<tr id='__UTPL__'>
-				<td id='cueca'></td>
-			</tr>
 		</table>
 		</div>
 		</td>
@@ -541,20 +537,14 @@ function del_itspre(id){
 		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;width:100%;'>
 		<table width='100%' border='0'>
 			<tr>
-				<td><?php if($form->_status!='show'){?>
-						<a href="#" onClick="add_itspre();"><?php echo image('add1-.png'); ?></a>
-					<?php } ?>
-				</td>
 				<td class="littletableheader" width='100' rowspan='2'><?php echo $form->observa->label;  ?></td>
 				<td class="littletablerow"    width='350' rowspan='2'><?php echo $form->observa->output; ?></td>
 				<td class="littletableheader"                        ><?php echo $form->totals->label;   ?></td>
 				<td class="littletablerow" align='right'             ><b id='totals_val'><?php echo nformat($form->totals->value); ?></b><?php echo $form->totals->output; ?></td>
 			</tr><tr>
-				<td>&nbsp;</td>
 				<td class="littletableheader"><?php echo $form->ivat->label;    ?></td>
 				<td class="littletablerow" align='right'><b id='ivat_val'><?php echo nformat($form->ivat->value); ?></b><?php echo $form->ivat->output; ?></td>
 			</tr><tr>
-				<td class="littletableheader">&nbsp;</td>
 				<td class="littletableheader"           ><?php echo $form->peso->label;  ?>&nbsp;</td>
 				<td class="littletablerow" align="left" ><?php echo $form->peso->output; ?>&nbsp;</td-->
 				<td class="littletableheader"><?php echo $form->totalg->label;  ?></td>

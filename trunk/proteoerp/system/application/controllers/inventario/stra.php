@@ -901,7 +901,7 @@ class Stra extends Controller {
 		$edit->hora    = new autoUpdateField('hora'    ,date('H:i:s'), date('H:i:s'));
 		$edit->usuario = new autoUpdateField('usuario',$this->session->userdata('usuario'),$this->session->userdata('usuario'));
 
-		$edit->buttons('save', 'undo', 'add','back','add_rel');
+		//$edit->buttons('save', 'undo', 'add','back','add_rel');
 
 		$edit->on_save_redirect=false;
 		$edit->build();
@@ -996,9 +996,8 @@ class Stra extends Controller {
 		$edit->numero->when=array('show','modify');
 
 		$edit->proveed = new inputField('Proveedor', 'proveed');
-		$edit->proveed->rule     = 'trim|required';
+		$edit->proveed->rule     = 'trim|required|existesprv';
 		$edit->proveed->size     = 8;
-		$edit->proveed->maxlength= 5;
 		$edit->proveed->autocomplete=false;
 		$edit->proveed->rule     = 'required';
 
@@ -1063,7 +1062,7 @@ class Stra extends Controller {
 		$edit->hora    = new autoUpdateField('hora',date('H:i:s'), date('H:i:s'));
 		$edit->usuario = new autoUpdateField('usuario',$this->session->userdata('usuario'),$this->session->userdata('usuario'));
 
-		$edit->buttons('save', 'undo', 'add','back','add_rel');
+		//$edit->buttons('save', 'undo', 'add','back','add_rel');
 
 		if($this->genesal){
 			$edit->on_save_redirect=false;
@@ -1608,7 +1607,7 @@ class Stra extends Controller {
 	//
 	function creaprdo($id_prdo){
 		$url='inventario/prdo/dataedit/show/'.$id_prdo;
-		
+
 		$this->rapyd->uri->keep_persistence();
 		$persistence = $this->rapyd->session->get_persistence($url, $this->rapyd->uri->gfid);
 		$back= (isset($persistence['back_uri'])) ? $persistence['back_uri'] : $url;
@@ -1634,8 +1633,8 @@ class Stra extends Controller {
 			);
 
 
-		$mSQL = "SELECT c.codigo, c.descrip, SUM(a.cana * c.cantidad) cantidad  
-				FROM itprdo    a 
+		$mSQL = "SELECT c.codigo, c.descrip, SUM(a.cana * c.cantidad) cantidad
+				FROM itprdo    a
 				JOIN sinv      b ON a.codigo=b.codigo
 				JOIN sinvpitem c ON a.codigo = c.producto
 				WHERE a.numero = '".$row->numero."'
@@ -1648,11 +1647,11 @@ class Stra extends Controller {
 			$this->db->join('sinv AS b','a.codigo=b.codigo');
 			$this->db->where('a.id_ordp' , $id_ordp);
 */
-		
-			
+
+
 			$mSQL_2 = $this->query($mSQL);
 			$items  = $mSQL_2->result();
-        
+
 			foreach ( $items as $id => $itrow ){
 				$ind='codigo_'.$id;
 				$_POST[$ind] = $itrow->codigo;
@@ -1667,7 +1666,7 @@ class Stra extends Controller {
 				$this->db->where('id', $id_ordp);
 				$this->db->update('ordp', $data);
 			}
-        
+
 			echo $rt.' '.anchor($back,'regresar');
 			redirect($back);
 		}else{

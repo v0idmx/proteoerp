@@ -23,7 +23,7 @@ $scampos .='<td class="littletablerow" align="right">'.$campos['costo']['field']
 $scampos .='<td class="littletablerow" align="right">'.$campos['importe']['field'];
 $scampos .= $campos['sinvpeso']['field'].$campos['iva']['field'].$campos['nentrega']['field'].'</td>';
 //$scampos .='<td class="littletablerow" align="right">'.$campos['precio1']['field'].'</td>';
-$scampos .='<td class="littletablerow"><a href=# onclick="del_itscst(<#i#>);return false;">'.img('images/delete.jpg').'</a></td></tr>';
+$scampos .='<td class="littletablerow" align="center"><a href=# onclick="del_itscst(<#i#>);return false;">'.img('images/delete.jpg').'</a></td></tr>';
 $campos=$form->js_escape($scampos);
 
 $ccampos=$form->detail_fields['gereten'];
@@ -888,7 +888,7 @@ if (!$solo){
 							</tr>
 						</table>
 					</td>
-					<td style='border-left: 1px solid grey;'>
+					<td style='border-left: 1px solid grey;' valign='top'>
 						<table width='100%' border='0'>
 							<tr>
 								<td class="littletablerowth" align='right'><?php echo $form->proveed->label ?>*</td>
@@ -951,15 +951,15 @@ if (!$solo){
 	<tr><td style="width:680px;">
 <div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;height:200px;width:680px'>
 <table width='100%'>
-	<tr id='__INPL__'>
-		<th bgcolor='#7098D0'>C&oacute;digo     </th>
-		<th bgcolor='#7098D0'>Descripci&oacute;n</th>
-		<th bgcolor='#7098D0'>Cantidad          </th>
-		<th bgcolor='#7098D0'>Precio            </th>
-		<th bgcolor='#7098D0'>Importe           </th>
+	<tr id='__INPL__' >
+		<th class="littletableheaderdet">C&oacute;digo     </th>
+		<th class="littletableheaderdet">Descripci&oacute;n</th>
+		<th class="littletableheaderdet">Cantidad          </th>
+		<th class="littletableheaderdet">Precio            </th>
+		<th class="littletableheaderdet">Importe           </th>
 		<!-- <th bgcolor='#7098D0'>PVP               </th> -->
 		<?php if($form->_status!='show') {?>
-			<th bgcolor='#7098D0'>&nbsp;</th>
+			<td class="littletableheaderdet" align='center'><a href='#' onclick="add_itscst()" title='Agregar fila'><?php echo img(array('src' =>'images/agrega4.png', 'height' => 16, 'alt'=>'Agregar fila', 'title' => 'Agregar fila', 'border'=>'0')); ?></a></td>
 		<?php } ?>
 	</tr>
 
@@ -986,7 +986,7 @@ if (!$solo){
 		<?php echo $form->$it_peso->output.$form->$it_iva->output.$form->$it_nentrega->output; ?>
 		</td>
 		<?php if($form->_status!='show') {?>
-		<td class="littletablerow">
+		<td class="littletablerow" align='center'>
 			<a href='#' onclick='del_itscst(<?php echo $i ?>);return false;'><?php echo img('images/delete.jpg');?></a>
 		</td>
 		<?php } ?>

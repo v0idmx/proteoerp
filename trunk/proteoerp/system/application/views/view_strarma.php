@@ -83,12 +83,12 @@ $(function(){
 	});
 
 
-	//$('input[name^="cantidad_"]').keypress(function(e) {
-	//	if(e.keyCode == 13) {
-	//	    add_itstra();
-	//		return false;
-	//	}
-	//});
+	$('input[name^="cantidad_"]').keypress(function(e) {
+		if(e.keyCode == 13) {
+		    add_itstra();
+			return false;
+		}
+	});
 });
 
 function traeitems(){
@@ -174,16 +174,16 @@ function add_itstra(){
 	con = (itstra_cont+1).toString();
 	htm = htm.replace(/<#i#>/g,can);
 	htm = htm.replace(/<#o#>/g,con);
-	$("#__UTPL__").before(htm);
+	$("#__PTPL__").after(htm);
 	$("#cantidad_"+can).numeric(".");
 	$("#codigo_"+can).focus();
 	autocod(can);
-	//$("#cantidad_"+can).keypress(function(e) {
-	//	if(e.keyCode == 13) {
-	//	    add_itstra();
-	//		return false;
-	//	}
-	//});
+	$("#cantidad_"+can).keypress(function(e) {
+		if(e.keyCode == 13) {
+		    add_itstra();
+			return false;
+		}
+	});
 
 	itstra_cont=itstra_cont+1;
 	return can;
@@ -228,11 +228,13 @@ function del_itstra(id){
 		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;height:200px'>
 
 		<table width='100%'>
-			<tr>
+			<tr id='__PTPL__' style='color:white;font-weight:bold'>
 				<td width="160" bgcolor='#7098D0'>C&oacute;digo</td>
 				<td bgcolor='#7098D0'>Descripci&oacute;n</td>
 				<td width="110" align="center" bgcolor='#7098D0'>Cantidad</td>
-				<td width="20" bgcolor='#7098D0'>&nbsp;</td>
+				<?php if($form->_status!='show') {?>
+					<td  width="20" style='background:#7098D0;'><a href='#' id='addlink' onclick="add_itstra()" title='Agregar otro articulo'><?php echo img(array('src' =>"images/agrega4.png", 'height' => 18, 'alt'=>'Agregar otro producto', 'title' => 'Agregar otro producto', 'border'=>'0')); ?></a></td>
+				<?php } ?>
 			</tr>
 			<?php for($i=0;$i<$form->max_rel_count['itstra'];$i++) {
 				$obj1="codigo_$i";

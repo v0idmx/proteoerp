@@ -226,7 +226,7 @@ class Ordc extends Controller {
 
 		$bodyscript .= '
 		$("#fedita").dialog({
-			autoOpen: false, height: 500, width: 800, modal: true,
+			autoOpen: false, height: 500, width: 850, modal: true,
 			buttons: {
 				"Guardar": function() {
 					var bValid = true;
@@ -1327,7 +1327,7 @@ class Ordc extends Controller {
 		//  Campos para el detalle
 		//
 		$edit->codigo = new inputField('C&oacute;digo', 'codigo_<#i#>');
-		$edit->codigo->size=10;
+		$edit->codigo->size=15;
 		$edit->codigo->db_name='codigo';
 		//$edit->codigo->append($this->datasis->p_modbus($modbus,'<#i#>'));
 		$edit->codigo->autocomplete=false;
@@ -1439,7 +1439,7 @@ class Ordc extends Controller {
 
 		$edit->usuario = new autoUpdateField('usuario',$this->session->userdata('usuario'),$this->session->userdata('usuario'));
 
-		$edit->buttons('add_rel');
+		//$edit->buttons('add_rel');
 
 		$edit->build();
 

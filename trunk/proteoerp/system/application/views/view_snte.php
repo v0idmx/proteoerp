@@ -22,7 +22,7 @@ for($o=1;$o<5;$o++){
 $scampos .= $campos['itiva']['field'];
 $scampos .= $campos['sinvpeso']['field'];
 $scampos .= $campos['sinvtipo']['field'].'</td>';
-$scampos .= '<td class="littletablerow"><a href=# onclick="del_itsnte(<#i#>);return false;">'.img("images/delete.jpg").'</a></td></tr>';
+$scampos .= '<td class="littletablerow"><a href=# onclick="del_itsnte(<#i#>);return false;">'.img('images/delete.jpg').'</a></td></tr>';
 $campos=$form->js_escape($scampos);
 
 if(isset($form->error_string)) echo '<div class="alert">'.$form->error_string.'</div>';
@@ -417,14 +417,14 @@ function autocod(id){
 		<td>
 		<div style='overflow:auto;border: 1px solid #9AC8DA;background: #FAFAFA;height:190px'>
 		<table width='100%'>
-			<tr id='__INPL__'>
+			<tr id='__INPL__' style='color:white;font-weight:bold'>
 				<td bgcolor='#7098D0'><b>C&oacute;digo</b></td>
 				<td bgcolor='#7098D0'><b>Descripci&oacute;n</b></td>
 				<td bgcolor='#7098D0'><b>Cantidad</b></td>
 				<td bgcolor='#7098D0'><b>Precio</b></td>
 				<td bgcolor='#7098D0'><b>Importe</b></td>
 				<?php if($form->_status!='show') {?>
-					<td bgcolor='#7098D0'><a href='#' onclick="add_itsnte()" title='Agregar otro pago'><?php echo img('images/agrega4.png'); ?></a></td>
+					<td bgcolor='#7098D0' align='center'><a href='#' onclick="add_itsnte()" title='Agregar otro pago'><?php echo img(array('src' =>'images/agrega4.png', 'height' => 18, 'alt'=>'Agregar otro producto', 'title' => 'Agregar otro producto', 'border'=>'0')); ?></a></td>
 				<?php } ?>
 			</tr>
 
@@ -456,7 +456,7 @@ function autocod(id){
 				<td class="littletablerow" align="right"><?php echo $form->$it_importe->output.$pprecios;?></td>
 
 				<?php if($form->_status!='show') {?>
-				<td class="littletablerow">
+				<td class="littletablerow" align='center'>
 					<a href='#' onclick='del_itsnte(<?=$i ?>);return false;'><?php echo img("images/delete.jpg");?></a>
 				</td>
 				<?php } ?>
