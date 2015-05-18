@@ -133,7 +133,8 @@ class Edgasto extends Controller {
 				buttons: { Aceptar: 1, Salir: 0},
 				submit: function(e,v,m,f){
 					if ( v == 1 ){
-						$.post("'.site_url($this->url.'gfmedidor').'",{ anomes : encodeURIComponent(f.mano+f.mmes), grupo: f.mgrupo, medidor : f.ali },
+						if ( !f.ali ) { f.ali="N" };
+						$.post("'.site_url($this->url.'gfmedidor').'",{ anomes : encodeURIComponent(f.mano+f.mmes), grupo: f.mgrupo, medidor: f.ali },
 						function(data){
 							$("#fedita").dialog( {height: 500, width: 620, title: "Cargo por Medidor"} );
 							$("#fedita").html(data);
@@ -143,7 +144,9 @@ class Edgasto extends Controller {
 				}
 			});
 		});
+		';
 		
+		$bodyscript .= '
 		function quitagasto(idgasto){
 			$.prompt("<h1>Eliminar Distribucion de Gasto?</h1>",{
 				buttons: { Aceptar: 1, Salir: 0},
@@ -156,6 +159,23 @@ class Edgasto extends Controller {
 					}
 				}
 			});
+		};
+		';
+
+		$bodyscript .= '
+		function gcargarec(idgr){
+			$.prompt("<h1>Cargar gasto a Recibos?</h1>",{
+				buttons: { Cargar: 1, Salir: 0},
+				submit: function(e,v,m,f){
+					if ( v == 1 ){
+						$.post("'.site_url($this->url.'gcargarec').'",{ id: idgr },
+						function(data){
+							alert(data);
+						})
+					}
+				}
+			});
+		
 		};
 		';
 
@@ -708,6 +728,30 @@ class Edgasto extends Controller {
 		logusu($do->table,"Elimino $this->tits $primary ");
 	}
 
+	//******************************************************************
+	// Carga la vaina
+	//
+	function gcargarec(){
+		$id    = intval($this->input->post('id'));
+		$reg   = $this->datasis->damereg("SELECT grupo, gasto, EXTRACT(YEAR_MONTH FROM fecha) anomes FROM edgasmed WHERE id=".$id);
+		$cargo = $this->datasis->dameval("SELECT cargo FROM edgrupo WHERE id=".$reg['grupo']);
+		
+		$ides  = $this->datasis->dameval('SELECT GROUP_CONCAT(id) FROM gitser WHERE EXTRACT(YEAR_MONTH FROM fecha)='.$reg['anomes'].' AND gcargo = '.$cargo.' ');
+
+		$mSQL = '
+		INSERT INTO edgasto (aplicacion,tipo_doc,numero,fecha,causado,proveed,partida,detalle,base,iva,total,rif,proveedor)
+		SELECT 	a.departa aplicacion, b.tipo_doc, a.numero, b.ffactura fecha, b.fecha causado, 
+				a.proveed, c.id partida, a.descrip detalle, a.precio base, a.iva, a.importe total, 
+				IF(a.rif="" OR a.rif IS NULL, d.rif, a.rif) rif, 
+				IF(a.rif="" OR a.rif IS NULL, d.nombre, a.proveedor) proveedor
+		FROM gitser a 
+		JOIN gser   b ON a.transac=b.transac AND a.fecha=b.fecha AND a.proveed=b.proveed
+		JOIN mgas   c ON a.codigo=c.codigo
+		JOIN sprv   d ON a.proveed=d.proveed
+		WHERE a.id IN ('.$ides.')';
+
+		echo $mSQL; 
+	}
 
 	//******************************************************************
 	// Elimina los gastos pendientes
@@ -721,7 +765,6 @@ class Edgasto extends Controller {
 		
 		echo 'Gasto Eliminado';
 	}
-
 
 
 	//******************************************************************
@@ -741,7 +784,7 @@ class Edgasto extends Controller {
 			$meco  = '<table width="100%" bgcolor="#F3D669">';
 			$meco .= '<tr bgcolor="#008000"><th colspan="3" style="color:#FFFFFF;">Gastos Pendientes</th>  </tr>';
 			foreach($query->result() AS $row){
-				$meco .= '<tr><td>'.$row->grupo.'</td><td>'.$row->monto.'</td><td>';
+				$meco .= '<tr><td><div onclick="gcargarec(\''.$row->id.'\')" id="gcarga">'.$row->grupo.'</div></td><td>'.$row->monto.'</td><td>';
 				$meco .= '<div><a onclick="quitagasto(\''.$row->id.'\')">'.img(array('src'=>"images/elimina4.png", 'height'=> 15, 'alt'=>'Elimina el cliente de la ruta', 'title'=>'Elimina el cliente de la ruta', 'border'=>'0'))."</a></div></td></tr>\n";
 				$meco .= '<tr><td colspan="3">'.$row->gasto."</td></tr>\n";
 			}
@@ -754,7 +797,7 @@ class Edgasto extends Controller {
 
 
 	//******************************************************************
-	//
+	// Medidor
 	//
 	function gfmedidor(){
 		$grupo   = intval($_POST['grupo']);
@@ -863,6 +906,18 @@ class Edgasto extends Controller {
 			$edit->$obj->insertValue = $row->descripcion;
 			$edit->$obj->type='inputhidden';
 
+			$alicuota = 0.00;
+			if ( $medidor != 'S' ){
+				$mSQL = "
+				SELECT alicuota 
+				FROM edalicuota 
+				WHERE inmueble=".$row->inmueble." AND EXTRACT(YEAR_MONTH FROM fecha) <= ${anomes}
+				ORDER BY fecha DESC 
+				LIMIT 1
+				";
+				$alicuota = $this->datasis->dameval($mSQL)+0;
+			}
+
 			$obj = "lectura_".$i;
 			$edit->$obj = new inputField('Lectura '.$i,'lectura_'.$i);
 			$edit->$obj->rule      = 'numeric';
@@ -870,6 +925,7 @@ class Edgasto extends Controller {
 			$edit->$obj->size      = 12;
 			$edit->$obj->maxlength = 10;
 			$edit->$obj->onkeyup  = 'totaliza()';
+			$edit->$obj->insertValue = $alicuota;
 
 			$obj = "monto_".$i;
 			$edit->$obj = new inputField('Monto','monto_'.$i);
@@ -960,7 +1016,7 @@ class Edgasto extends Controller {
 			CREATE TABLE edgasmed (
 				id       INT(11) NOT   NULL AUTO_INCREMENT,
 				grupo    INT(11) NOT   NULL DEFAULT '0',
-				gasto    VARCHAR(50)   NULL DEFAULT NULL,
+				gasto    INT(11)       NULL DEFAULT NULL,
 				inmueble INT(11)       NULL DEFAULT NULL,
 				lectura  VARCHAR(20)   NULL DEFAULT NULL,
 				monto    DECIMAL(10,2) NULL DEFAULT NULL,
