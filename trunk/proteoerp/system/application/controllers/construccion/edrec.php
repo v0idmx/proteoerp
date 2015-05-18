@@ -287,8 +287,6 @@ class Edrec extends Controller {
 			$.prompt(mgene);
 		});';
 
-
-
 		$bodyscript .= '
 		$("#imprime").click( function(){
 			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
@@ -1264,6 +1262,13 @@ class Edrec extends Controller {
 					WHERE EXTRACT(YEAR_MONTH FROM a.causado)=${anomes} AND d.codigo = ${inmueble} AND (a.aplicacion='CO' OR a.aplicacion=d.aplicacion)
 				GROUP BY a.aplicacion, d.codigo, a.partida ) aa
 				HAVING codigo<>'COMADM'
+				UNION ALL
+				SELECT '000002' numero, c.departa tipo, c.codigo, c.descrip, c.importe total, a.lectura alicuota, a.monto cuota,  
+				curdate() fecha, '321' usuario, curdate() estampa, curtime() hora, 0 transac, 0 id, 0 id_edrc, 'XXXX' grupo
+				FROM edgasmed a 
+				JOIN edinmue  b ON a.inmueble = b.id
+				JOIN gitser   c ON a.gasto    = c.id
+				WHERE a.status = 'P' AND a.monto>0 AND b.codigo=${inmueble}
 				";
 
 				// Reinicia Contadores
@@ -1278,10 +1283,14 @@ class Edrec extends Controller {
 					$data1['detalle']  = $row1->detalle;
 					$data1['total']    = $row1->total;
 					$data1['alicuota'] = $row1->alicuota;
-					if ( $row1->tipo == 'CO'){
+					if ( $row1->tipo == 'CO' ){
 						$data1['cuota'] = $row1->cuota;
 					} else {
-						$data1['cuota'] = round($row1->total*($row1->alicuota/$malit[$row1->tipo]),2);
+						if ( $row1->numero == '000002'){
+							$data1['cuota'] = $row1->cuota;
+						} else {
+							$data1['cuota'] = round($row1->total*($row1->alicuota/$malit[$row1->tipo]),2);
+						}
 					}
 					$data1['fecha']    = $row1->fecha;
 					$data1['usuario']  = $this->session->userdata('usuario');
