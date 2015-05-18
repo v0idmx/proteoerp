@@ -44,7 +44,7 @@ class Edgasto extends Controller {
 			array('id'=>'fedita',  'title'=>'Agregar/Editar Registro'),
 			array('id'=>'fshow' ,  'title'=>'Mostrar Registro'),
 			array('id'=>'fborra',  'title'=>'Eliminar Registro'),
-			array('id'=>'fmedidor', 'title'=>'Gastos por Medidor')
+			array('id'=>'fmedidor','title'=>'Gastos por Medidor')
 		);
 		$SouthPanel = $grid->SouthPanel($this->datasis->traevalor('TITULO1'), $adic);
 
@@ -133,7 +133,7 @@ class Edgasto extends Controller {
 				buttons: { Aceptar: 1, Salir: 0},
 				submit: function(e,v,m,f){
 					if ( v == 1 ){
-						$.post("'.site_url($this->url.'gfmedidor').'",{ anomes : encodeURIComponent(f.mano+f.mmes), grupo: f.mgrupo },
+						$.post("'.site_url($this->url.'gfmedidor').'",{ anomes : encodeURIComponent(f.mano+f.mmes), grupo: f.mgrupo, medidor : f.ali },
 						function(data){
 							$("#fedita").dialog( {height: 500, width: 620, title: "Cargo por Medidor"} );
 							$("#fedita").html(data);
@@ -142,7 +142,22 @@ class Edgasto extends Controller {
 					}
 				}
 			});
-		});';
+		});
+		
+		function quitagasto(idgasto){
+			$.prompt("<h1>Eliminar Distribucion de Gasto?</h1>",{
+				buttons: { Aceptar: 1, Salir: 0},
+				submit: function(e,v,m,f){
+					if ( v == 1 ){
+						$.post("'.site_url($this->url.'quitamed').'",{ id : idgasto },
+						function(data){
+							alert(data);
+						})
+					}
+				}
+			});
+		};
+		';
 
 		$bodyscript .= $this->jqdatagrid->bsshow('edgasto', $ngrid, $this->url );
 		$bodyscript .= $this->jqdatagrid->bsadd( 'edgasto', $this->url );
@@ -360,6 +375,19 @@ class Edgasto extends Controller {
 		$grid->setTitle($this->titp);
 		$grid->setfilterToolbar(true);
 		$grid->setToolbar('false', '"top"');
+
+		$grid->setOnSelectRow('
+			function(id){
+			if (id){
+				$.ajax({
+					url: "'.site_url('construccion/edgasto').'/gpendiente",
+					success: function(msg){
+						$("#ladicional").html(msg);
+					}
+				});
+			}}
+		');
+
 
 		$grid->setFormOptionsE('closeAfterEdit:true, mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
 		$grid->setFormOptionsA('closeAfterAdd:true,  mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
@@ -682,11 +710,56 @@ class Edgasto extends Controller {
 
 
 	//******************************************************************
+	// Elimina los gastos pendientes
+	//
+	function quitamed(){
+		$id = intval($this->input->post('id'));
+		$meco = 'Registros eliminados';
+		$reg = $this->datasis->damereg('SELECT grupo, gasto FROM edgasmed WHERE id='.$id);
+		if ( $reg )
+			$this->db->delete('edgasmed', array('grupo' => $reg['grupo'], 'gasto' => $reg['gasto'] )); 
+		
+		echo 'Gasto Eliminado';
+	}
+
+
+
+	//******************************************************************
+	// Muestra los gastos pendientes
+	//
+	function gpendiente(){
+		$meco = '';
+		$mSQL = '
+		SELECT c.descrip grupo, b.descrip gasto, sum(a.monto) monto, a.id
+		FROM edgasmed a
+		JOIN gitser   b ON a.gasto=b.id 
+		JOIN edgrupo  c ON a.grupo = c.id
+		WHERE a.status="P"
+		GROUP BY a.grupo, a.gasto';
+		$query=$this->db->query($mSQL);
+		if($query->num_rows() > 0){
+			$meco  = '<table width="100%" bgcolor="#F3D669">';
+			$meco .= '<tr bgcolor="#008000"><th colspan="3" style="color:#FFFFFF;">Gastos Pendientes</th>  </tr>';
+			foreach($query->result() AS $row){
+				$meco .= '<tr><td>'.$row->grupo.'</td><td>'.$row->monto.'</td><td>';
+				$meco .= '<div><a onclick="quitagasto(\''.$row->id.'\')">'.img(array('src'=>"images/elimina4.png", 'height'=> 15, 'alt'=>'Elimina el cliente de la ruta', 'title'=>'Elimina el cliente de la ruta', 'border'=>'0'))."</a></div></td></tr>\n";
+				$meco .= '<tr><td colspan="3">'.$row->gasto."</td></tr>\n";
+			}
+			$meco .= '</table>';
+		}
+		echo $meco;
+	}
+
+
+
+
+	//******************************************************************
 	//
 	//
 	function gfmedidor(){
-		$grupo  = intval($_POST['grupo']);
-		$anomes = intval($_POST['anomes']);
+		$grupo   = intval($_POST['grupo']);
+		$anomes  = intval($_POST['anomes']);
+		$medidor = intval($_POST['medidor']);
 		
 		$nomgru = $this->datasis->dameval("SELECT descrip FROM edgrupo WHERE id=${grupo} AND activo='S'");
 		$gcargo = $this->datasis->dameval("SELECT cargo   FROM edgrupo WHERE id=${grupo} AND activo='S'");
@@ -776,7 +849,7 @@ class Edgasto extends Controller {
 		$i = 0;
 		foreach ($query->result() as $row){
 			$obj = "inmueble_".$i;
-			$edit->$obj = new hiddenField('Imueble '.$i,'imueble_'.$i);
+			$edit->$obj = new hiddenField('Inmueble '.$i,'inmueble_'.$i);
 			$edit->$obj->rule      = 'integer';
 			$edit->$obj->css_class = 'inputonlynum';
 			$edit->$obj->size      = 13;
@@ -892,6 +965,7 @@ class Edgasto extends Controller {
 				lectura  VARCHAR(20)   NULL DEFAULT NULL,
 				monto    DECIMAL(10,2) NULL DEFAULT NULL,
 				fecha    DATE          NULL DEFAULT NULL,
+				status   CHAR(1) NULL DEFAULT 'P',
 				PRIMARY  KEY (id)
 			)
 			COMMENT='Gastos por medidor' CHARSET=latin1 ENGINE=MyISAM ROW_FORMAT=DYNAMIC";
