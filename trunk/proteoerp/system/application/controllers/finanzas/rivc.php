@@ -2139,7 +2139,7 @@ class Rivc extends Controller {
 				}else{
 					//Como tiene saldo suficiente crea una NC y la aplica a la FC
 
-					$mnumnc = $mNUMERO; //$this->datasis->fprox_numero('nccli');
+					$mnumnc = 'I'.$this->datasis->fprox_numero('ncint',-1); //$this->datasis->fprox_numero('nccli');
 					$data=array();
 					$data['cod_cli']    = $cod_cli;
 					$data['nombre']     = $nombre;
@@ -2201,7 +2201,7 @@ class Rivc extends Controller {
 					if($ban==false){ memowrite($mSQL,'rivc'); }
 				}
 
-				$mnumnd = $mNUMERO; //$this->datasis->fprox_numero('ndcli');
+				$mnumnd = 'I'.$this->datasis->fprox_numero('ndint',-1); //$this->datasis->fprox_numero('ndcli');
 				$data=array();
 				$data['cod_cli']    = 'REIVA';
 				$data['nombre']     = 'RETENCION DE I.V.A. POR COMPENSAR';
@@ -2230,7 +2230,7 @@ class Rivc extends Controller {
 			}else{
 			//Si es una devolucion
 				// Devoluciones genera un ND al cliente
-				$mnumnd = $mNUMERO; //$this->datasis->fprox_numero('ndcli');
+				$mnumnd = 'I'.$this->datasis->fprox_numero('ndint',-1); //$this->datasis->fprox_numero('ndcli');
 				$data=array();
 				$data['cod_cli']    = $cod_cli;
 				$data['nombre']     = $nombre;
@@ -2255,7 +2255,7 @@ class Rivc extends Controller {
 				if($ban==false){ memowrite($mSQL,'rivc'); }
 
 				//Devoluciones debe crear un NC si esta en el periodo
-				$mnumnc = $mNUMERO; //$this->datasis->fprox_numero('nccli');
+				$mnumnc = 'I'.$this->datasis->fprox_numero('ncint',-1); //$this->datasis->fprox_numero('nccli');
 				$data=array();
 				$data['cod_cli']    = 'REIVA';
 				$data['nombre']     = 'RETENCION DE I.V.A. POR COMPENSAR';
