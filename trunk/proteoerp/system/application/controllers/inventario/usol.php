@@ -482,36 +482,6 @@ class Usol extends Controller {
 		logusu($do->table,"Elimino $this->tits ${primary} ");
 	}
 
-	function instalar(){
-		if(!$this->db->table_exists('usol')){
-			$mSQL="CREATE TABLE `usol` (
-			  `codigo` char(2) NOT NULL DEFAULT '',
-			  `nombre` char(30) DEFAULT NULL,
-			  `gasto` char(6) DEFAULT NULL,
-			  `depto` char(3) DEFAULT NULL,
-			  `sucursal` char(2) DEFAULT NULL,
-			  PRIMARY KEY (`codigo`)
-			) ENGINE=MyISAM DEFAULT CHARSET=latin1";
-			$this->db->simple_query($mSQL);
-
-			$this->db->simple_query("INSERT INTO `usol` (`codigo`, `nombre`, `gasto`, `depto`, `sucursal`) VALUES ('01', 'PERDIDAS, ROBOS Y DESTRUCCION', '', '', '01')");
-			$this->db->simple_query("INSERT INTO `usol` (`codigo`, `nombre`, `gasto`, `depto`, `sucursal`) VALUES ('02', 'COMPRAS Y COSTEOS'            , '', '', '01')");
-			$this->db->simple_query("INSERT INTO `usol` (`codigo`, `nombre`, `gasto`, `depto`, `sucursal`) VALUES ('03', 'SOBRANTE DE INVENTARIO'       , '', '', '01')");
-
-		}
-
-		$campos=$this->db->list_fields('usol');
-		if(!in_array('id',$campos)){
-			$this->db->simple_query('ALTER TABLE usol DROP PRIMARY KEY');
-			$this->db->simple_query('ALTER TABLE usol ADD UNIQUE INDEX codigo (codigo)');
-			$this->db->simple_query('ALTER TABLE usol ADD COLUMN id INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
-		}
-		if(!in_array('id',$campos)){
-			$this->db->query('ALTER TABLE usol ADD COLUMN activo CHAR(1) NULL DEFAULT "S" AFTER sucursal');
-		}
-
-	}
-
 	//******************************************************************
 	// Forma de Grupos
 	//
@@ -671,8 +641,8 @@ class Usol extends Controller {
 				echo 'Fallo Agregado!!!';
 			}
 		}elseif($oper == 'edit'){
-			if($id<=0){ 
-				return false; 
+			if($id<=0){
+				return false;
 			}
 
 			$nuevo  = $data[$mcodp];
@@ -699,8 +669,8 @@ class Usol extends Controller {
 			echo $nuevo." Modificada";
 
 		}elseif($oper == 'del'){
-			if($id<=0){ 
-				return false; 
+			if($id<=0){
+				return false;
 			}
 			//$ruta  = $this->datasis->dameval("SELECT $ FROM sclirut WHERE id=${id}");
 			//$dbruta= $this->db->escape($ruta);
@@ -719,4 +689,33 @@ class Usol extends Controller {
 		}
 	}
 
+	function instalar(){
+		if(!$this->db->table_exists('usol')){
+			$mSQL="CREATE TABLE `usol` (
+			  `codigo` char(2) NOT NULL DEFAULT '',
+			  `nombre` char(30) DEFAULT NULL,
+			  `gasto` char(6) DEFAULT NULL,
+			  `depto` char(3) DEFAULT NULL,
+			  `sucursal` char(2) DEFAULT NULL,
+			  PRIMARY KEY (`codigo`)
+			) ENGINE=MyISAM DEFAULT CHARSET=latin1";
+			$this->db->simple_query($mSQL);
+
+			$this->db->simple_query("INSERT INTO `usol` (`codigo`, `nombre`, `gasto`, `depto`, `sucursal`) VALUES ('01', 'PERDIDAS, ROBOS Y DESTRUCCION', '', '', '01')");
+			$this->db->simple_query("INSERT INTO `usol` (`codigo`, `nombre`, `gasto`, `depto`, `sucursal`) VALUES ('02', 'COMPRAS Y COSTEOS'            , '', '', '01')");
+			$this->db->simple_query("INSERT INTO `usol` (`codigo`, `nombre`, `gasto`, `depto`, `sucursal`) VALUES ('03', 'SOBRANTE DE INVENTARIO'       , '', '', '01')");
+
+		}
+
+		$campos=$this->db->list_fields('usol');
+		if(!in_array('id',$campos)){
+			$this->db->simple_query('ALTER TABLE usol DROP PRIMARY KEY');
+			$this->db->simple_query('ALTER TABLE usol ADD UNIQUE INDEX codigo (codigo)');
+			$this->db->simple_query('ALTER TABLE usol ADD COLUMN id INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
+		}
+
+		if(!in_array('activo',$campos)){
+			$this->db->query('ALTER TABLE usol ADD COLUMN activo CHAR(1) NULL DEFAULT "S" AFTER sucursal');
+		}
+	}
 }
