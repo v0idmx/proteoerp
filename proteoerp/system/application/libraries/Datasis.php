@@ -199,7 +199,7 @@ class Datasis {
 
 	// TRAE EL SIGUIENTE NUMERO FORMATEADO A 8 DIGITOS
 	function fprox_numero($mcontador,$long=0){
-		if($long==0) $long=$this->long;
+		if($long<=0) $long=$this->long+$long;
 		$numero=$this->prox_numero($mcontador);
 		return str_pad($numero, $long, '0', STR_PAD_LEFT);
 	}
