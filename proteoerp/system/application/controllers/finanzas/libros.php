@@ -20,7 +20,10 @@ class Libros extends Controller {
 		$this->rapyd->load('datagrid');
 		$this->load->helper('fecha');
 
-		for($i=1;$i<=12;$i++) $mmes[ str_pad($i, 2, "0", STR_PAD_LEFT)]=mesLetra($i);
+		for($i=1;$i<=12;$i++){
+			$pivot= str_pad($i, 2, '0', STR_PAD_LEFT);
+			$mmes[$pivot]=$pivot.'-'.mesLetra($i);
+		}
 		for($i=date('Y'); $i>=date('Y')-6;$i--) $anhos[$i]=$i;
 
 		$descarga=$genera=array();
@@ -119,9 +122,12 @@ class Libros extends Controller {
 		if(empty($_POST['generar'])) return;
 		foreach($_POST['generar'] AS $gene){
 			$this->$gene($_POST['year'].$_POST['mes']);
-			$mSQL = "UPDATE libros SET estampa=NOW(), fgenera=$_POST[year]$_POST[mes] WHERE metodo = '$gene'";
+			$dbgene  = $this->db->escape($gene);
+			$dbfgene = $this->db->escape($_POST['year'].$_POST['mes']);
+
+			$mSQL = "UPDATE libros SET estampa=NOW(), fgenera=${dbfgene} WHERE metodo = ${dbgene}";
 			$this->db->simple_query($mSQL);
-			echo "Generado $gene";
+			echo "Generado ${gene}";
 		}
 	}
 
