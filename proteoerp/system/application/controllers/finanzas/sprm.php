@@ -1415,7 +1415,7 @@ class Sprm extends Controller {
 				$mSQL='SELECT a.id
 				FROM riva AS a
 				JOIN sprm AS b ON a.transac=b.transac AND a.emision=b.fecha
-				WHERE (b.codigo IS NULL OR b.codigo='') AND  a.numero=b.numero AND b.id='.$dbid;
+				WHERE (b.codigo IS NULL OR b.codigo="") AND  a.numero=b.numero AND b.id='.$dbid;
 				$rivc_id = $this->datasis->dameval($mSQL);
 				if(!empty($rivc_id)){
 					redirect('formatos/ver/RIVA/'.$rivc_id);
