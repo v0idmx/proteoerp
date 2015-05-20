@@ -1204,13 +1204,26 @@ class Rivc extends Controller {
 				$mSQL = "
 				INSERT INTO smov (cod_cli,nombre,tipo_doc,numero,fecha,monto,impuesto,abonos,vence,tipo_ref,num_ref,observa1,codigo,descrip,usuario,estampa,hora,transac,nroriva,emiriva,fecdoc ) 
 				SELECT b.cod_cli, b.nombre, 'NC' tipo_doc, '${mnumnc}' numero, b.fecha, a.reiva monto, 0 impuesto, 
-				a.reiva abonos, b.fecha vence, if(a.tipo_doc='F','FC','NC') tipo_ref, a.numero num_ref, 
+				0 abonos, b.fecha vence, if(a.tipo_doc='F','FC','NC') tipo_ref, a.numero num_ref, 
 				CONCAT('APLICACION DE RET/IVA A ',if(a.tipo_doc='F','FC','NC'),a.numero) observa1, 'NOCON' codigo, 'NOTA DE CONTABILIDAD' descrip, a.usuario, a.estampa, a.hora, a.transac, CONCAT(b.periodo,b.nrocomp) nroriva, b.emision emiriva, a.fecha fecdoc
 				FROM itrivc a 
 				JOIN rivc b ON a.transac=b.transac
 				WHERE a.transac='${transac}' AND a.numero='${numero}'";
 				$ban = $this->db->simple_query($mSQL);
 				if($ban==false){ memowrite($mSQL,'RIVCFIXNC'); }
+				$idi = $this->db->insert_id();
+				
+				
+				// Arregla el itccli
+				$mSQL = "SELECT COUNT(*) FROM itccli WHERE transac='${transac}' AND numccli='${numero}' ";
+				$hay  = $this->datasis->dameval($mSQL);
+				if ( $hay == 1 && $idi > 0 ){
+					$mSQL = "UPDATE itccli SET numero='${mnumnc}' WHERE transac='${transac}' AND numccli='${numero}' ";
+					$ban = $this->db->simple_query($mSQL);
+					if($ban==false){ memowrite($mSQL,'RIVCFIXCC'); }
+					$mSQL = "UPDATE smov SET abonos=monto WHERE id=${idi} ";
+					$ban = $this->db->simple_query($mSQL);
+				}
 
 				$mSQL = "
 				INSERT INTO smov (cod_cli,nombre,tipo_doc,numero,fecha,monto,impuesto,abonos,vence,tipo_ref,num_ref,observa1,codigo,descrip,usuario,estampa,hora,transac,nroriva,emiriva,fecdoc ) 
