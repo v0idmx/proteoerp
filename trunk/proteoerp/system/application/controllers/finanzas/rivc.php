@@ -745,8 +745,6 @@ class Rivc extends Controller {
 							$("#ladicional").html(msg);
 						}
 					});
-
-
 				}
 			},afterInsertRow:
 			function( rid, aData, rowe){
@@ -755,25 +753,6 @@ class Rivc extends Controller {
 				}
 			}'
 		);
-
-
-
-/*
-
-
-
-
-*/
-
-
-
-
-
-
-
-
-
-
 
 		$grid->setFormOptionsE('closeAfterEdit:true, mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
 		$grid->setFormOptionsA('closeAfterAdd:true,  mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
@@ -1189,8 +1168,11 @@ class Rivc extends Controller {
 	//
 	function tabla( $id = 0){
 		$id = intval($id);
-		$transac = $this->datasis->dameval('SELECT transac FROM rivc WHERE id='.$id);
 		$salida = '';
+		$hay = $this->datasis->dameval('SELECT count(*) FROM rivc WHERE anulado="N" AND id='.$id);
+		if ( $hay != 1 ) return;
+		$transac = $this->datasis->dameval('SELECT transac FROM rivc WHERE anulado="N" AND id='.$id);
+
 		$mSQL = '
 		SELECT a.numero FROM itrivc a LEFT JOIN smov b ON a.transac=b.transac AND a.numero=b.num_ref
 		WHERE a.transac='.$transac.' AND b.cod_cli IS NULL';
