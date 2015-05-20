@@ -1411,11 +1411,11 @@ class Sprm extends Controller {
 
 		switch($tipo){
 			case 'NC':
-				//Chequea si viene de una retencion
+				//Chequea si viene de una retension
 				$mSQL='SELECT a.id
 				FROM riva AS a
 				JOIN sprm AS b ON a.transac=b.transac AND a.emision=b.fecha
-				WHERE b.id='.$dbid;
+				WHERE a.numero=b.numero AND b.id='.$dbid;
 
 				$rivc_id=$this->datasis->dameval($mSQL);
 				if(!empty($rivc_id)){
