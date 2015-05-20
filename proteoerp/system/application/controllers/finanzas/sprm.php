@@ -392,7 +392,7 @@ class Sprm extends Controller {
 									//$.prompt("Registro Guardado");
 									grid.trigger("reloadGrid");
 									if(!esapan){
-										'.$this->datasis->jwinopen(site_url('formatos/ver/PPRONC').'/\'+json.pk.id+\'/id\'').';
+										'.$this->datasis->jwinopen(site_url($this->url.'sprmprint').'/\'+json.pk.id+\'/id\'').';
 									}
 
 									return true;
