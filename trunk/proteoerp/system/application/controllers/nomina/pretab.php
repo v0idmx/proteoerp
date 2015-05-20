@@ -964,7 +964,7 @@ class Pretab extends Controller {
 		$row = $this->datasis->damerow($sql);
 		if(!empty($row)){
 			if(intval($row['cana'])>0){
-				echo 'Nomina no se pudo guardar, faltan el maestro de gasto para los codigos: '.$row['mgas'].' asociados a los conceptos :'.$row['conc'].' como cuenta deudora.';
+				echo 'Nomina no se pudo guardar, faltan el maestro de gasto para los codigos: '.$row['mgas'].' asociados a los conceptos: '.$row['conc'].' como cuenta deudora.';
 				return false;
 			}
 		}
