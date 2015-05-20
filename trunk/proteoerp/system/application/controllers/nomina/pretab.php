@@ -954,7 +954,7 @@ class Pretab extends Controller {
 			}
 		}
 
-		$sql = 'SELECT GROUP_CONCAT( DISTINCT b.ctade) AS mgas, COUNT(*) AS cana
+		$sql = 'SELECT GROUP_CONCAT( DISTINCT b.ctade) AS mgas,GROUP_CONCAT( DISTINCT b.concepto) AS conc, COUNT(*) AS cana
 		FROM prenom a
 		JOIN conc b ON a.concepto=b.concepto
 		JOIN pers c ON a.codigo=c.codigo
@@ -964,7 +964,7 @@ class Pretab extends Controller {
 		$row = $this->datasis->damerow($sql);
 		if(!empty($row)){
 			if(intval($row['cana'])>0){
-				echo 'Nomina no se pudo guardar, faltan los conceptos de gasto '.$row['mgas'];
+				echo 'Nomina no se pudo guardar, faltan el maestro de gasto para los codigos: '.$row['mgas'].' asociados a los conceptos :'.$row['conc'].' como cuenta deudora.';
 				return false;
 			}
 		}
