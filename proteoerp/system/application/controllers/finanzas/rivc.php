@@ -737,8 +737,16 @@ class Rivc extends Controller {
 		$grid->setOnSelectRow('
 			function(id){
 				if (id){
-					jQuery(gridId2).jqGrid("setGridParam",{url:"'.site_url($this->url.'getdatait/').'/"+id+"/", page:1});
-					jQuery(gridId2).trigger("reloadGrid");
+					$(gridId2).jqGrid("setGridParam",{url:"'.site_url($this->url.'getdatait/').'/"+id+"/", page:1});
+					$(gridId2).trigger("reloadGrid");
+					$.ajax({
+						url: "'.base_url().$this->url.'tabla/"+id,
+						success: function(msg){
+							$("#ladicional").html(msg);
+						}
+					});
+
+
 				}
 			},afterInsertRow:
 			function( rid, aData, rowe){
@@ -747,6 +755,25 @@ class Rivc extends Controller {
 				}
 			}'
 		);
+
+
+
+/*
+
+
+
+
+*/
+
+
+
+
+
+
+
+
+
+
 
 		$grid->setFormOptionsE('closeAfterEdit:true, mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
 		$grid->setFormOptionsA('closeAfterAdd:true,  mtype: "POST", width: 520, height:300, closeOnEscape: true, top: 50, left:20, recreateForm:true, afterSubmit: function(a,b){if (a.responseText.length > 0) $.prompt(a.responseText); return [true, a ];},afterShowForm: function(frm){$("select").selectmenu({style:"popup"});} ');
@@ -1158,7 +1185,73 @@ class Rivc extends Controller {
 		}
 	}
 
-	/**
+	//******************************************************************
+	//
+	function tabla( $id = 0){
+		$id = intval($id);
+		$transac = $this->datasis->dameval('SELECT transac FROM rivc WHERE id='.$id);
+		$salida = '';
+		$mSQL = '
+		SELECT a.numero FROM itrivc a LEFT JOIN smov b ON a.transac=b.transac AND a.numero=b.num_ref
+		WHERE a.transac='.$transac.' AND b.cod_cli IS NULL';
+		$query = $this->db->query($mSQL);
+		if ($query->num_rows() > 0){
+			foreach( $query->result_array() as  $row ) {
+				$numero = $row['numero'];
+				$mnumnc = 'I'.$this->datasis->fprox_numero('ncint',-1);
+				$mnumnd = 'I'.$this->datasis->fprox_numero('ndint',-1);
+				
+				$mSQL = "
+				INSERT INTO smov (cod_cli,nombre,tipo_doc,numero,fecha,monto,impuesto,abonos,vence,tipo_ref,num_ref,observa1,codigo,descrip,usuario,estampa,hora,transac,nroriva,emiriva,fecdoc ) 
+				SELECT b.cod_cli, b.nombre, 'NC' tipo_doc, '${mnumnc}' numero, b.fecha, a.reiva monto, 0 impuesto, 
+				a.reiva abonos, b.fecha vence, if(a.tipo_doc='F','FC','NC') tipo_ref, a.numero num_ref, 
+				CONCAT('APLICACION DE RET/IVA A ',if(a.tipo_doc='F','FC','NC'),a.numero) observa1, 'NOCON' codigo, 'NOTA DE CONTABILIDAD' descrip, a.usuario, a.estampa, a.hora, a.transac, CONCAT(b.periodo,b.nrocomp) nroriva, b.emision emiriva, a.fecha fecdoc
+				FROM itrivc a 
+				JOIN rivc b ON a.transac=b.transac
+				WHERE a.transac='${transac}' AND a.numero='${numero}'";
+				$ban = $this->db->simple_query($mSQL);
+				if($ban==false){ memowrite($mSQL,'RIVCFIXNC'); }
+
+				$mSQL = "
+				INSERT INTO smov (cod_cli,nombre,tipo_doc,numero,fecha,monto,impuesto,abonos,vence,tipo_ref,num_ref,observa1,codigo,descrip,usuario,estampa,hora,transac,nroriva,emiriva,fecdoc ) 
+				SELECT c.cliente,  c.nombre, 'ND' tipo_doc, '${mnumnd}' numero, b.fecha, a.reiva monto, 0 impuesto, 
+				0 abonos, LAST_DAY(b.fecha) vence, if(a.tipo_doc='F','FC','NC') tipo_ref, a.numero num_ref, 
+				CONCAT('RET/IVA DE 01136 A DOC. ',if(a.tipo_doc='F','FC','NC'),a.numero)       observa1, 'NOCON' codigo, 'NOTA DE CONTABILIDAD' descrip, a.usuario, a.estampa, a.hora, a.transac, CONCAT(b.periodo,b.nrocomp) nroriva, b.emision emiriva, NULL fecdoc
+				FROM itrivc a 
+				JOIN rivc b ON a.transac=b.transac
+				JOIN scli c ON c.cliente='REIVA'
+				WHERE a.transac='${transac}' AND a.numero='${numero}'";
+				$ban=$this->db->simple_query($mSQL);
+				if($ban==false){ memowrite($mSQL,'RIVCFIXND'); }
+				$salida = 'Arreglado';
+
+			}
+		}
+
+		echo $salida;
+
+/*		
+SELECT b.cod_cli, b.nombre, 'NC' tipo_doc, ' 0' numero, b.fecha, a.reiva monto, 0 impuesto, 
+a.reiva abonos, b.fecha vence, if(a.tipo_doc='F','FC','NC') tipo_ref, a.numero num_ref, 
+CONCAT('APLICACION DE RET/IVA A ',if(a.tipo_doc='F','FC','NC'),a.numero) observa1, 'NOCON' codigo, 'NOTA DE CONTABILIDAD' descrip, a.usuario, a.estampa, a.hora, a.transac, CONCAT(b.periodo,b.nrocomp) nroriva, b.emision emiriva, a.fecha fecdoc
+FROM itrivc a 
+JOIN rivc b ON a.transac=b.transac
+WHERE a.transac='01707884' AND a.numero='01314300'
+
+UNION ALL
+SELECT c.cliente,  c.nombre, 'ND' tipo_doc, ' 0' numero, b.fecha, a.reiva monto, 0 impuesto, 
+0 abonos, LAST_DAY(b.fecha) vence, if(a.tipo_doc='F','FC','NC') tipo_ref, a.numero num_ref, 
+CONCAT('RET/IVA DE 01136 A DOC. ',if(a.tipo_doc='F','FC','NC'),a.numero)       observa1, 'NOCON' codigo, 'NOTA DE CONTABILIDAD' descrip, a.usuario, a.estampa, a.hora, a.transac, CONCAT(b.periodo,b.nrocomp) nroriva, b.emision emiriva, NULL fecdoc
+FROM itrivc a 
+JOIN rivc b ON a.transac=b.transac
+JOIN scli c ON c.cliente='REIVA'
+WHERE a.transac='01707884' AND a.numero='01314300'
+*/	
+		
+	}
+
+
+	/*******************************************************************
 	* Busca la data en el Servidor por json
 	*/
 	function getdatait( $id = 0 ){
@@ -1192,10 +1285,9 @@ class Rivc extends Controller {
 	function setDatait(){
 	}
 
-	//***********************************
+	//******************************************************************
 	// DataEdit
-	//***********************************
-
+	//
 	function dataedit(){
 		$this->rapyd->load('datadetails','dataobject');
 
@@ -1450,9 +1542,9 @@ class Rivc extends Controller {
 		}
 	}
 
-	//*****************************
+	//******************************************************************
 	// Metodos de chequeo
-	//*****************************
+	//
 	function chrepetidos($numero){
 		if(!isset($this->ch_repetido)) $this->ch_repetido=array();
 
@@ -2503,42 +2595,42 @@ class Rivc extends Controller {
 
 	function instalar(){
 		if (!$this->db->table_exists('rivc')) {
-			$mSQL="CREATE TABLE `rivc` (
-			`id` int(6) NOT NULL AUTO_INCREMENT,
-			`nrocomp` varchar(8) NOT NULL DEFAULT '',
-			`emision` date DEFAULT NULL,
-			`periodo` char(8) DEFAULT NULL,
-			`fecha` date DEFAULT NULL,
-			`cod_cli` varchar(5) DEFAULT NULL,
-			`nombre` varchar(200) DEFAULT NULL,
-			`rif` varchar(14) DEFAULT NULL,
-			`exento` decimal(15,2) DEFAULT NULL,
-			`tasa` decimal(5,2) DEFAULT NULL,
-			`general` decimal(15,2) DEFAULT NULL,
-			`geneimpu` decimal(15,2) DEFAULT NULL,
-			`tasaadic` decimal(5,2) DEFAULT NULL,
-			`adicional` decimal(15,2) DEFAULT NULL,
-			`adicimpu` decimal(15,2) DEFAULT NULL,
-			`tasaredu` decimal(5,2) DEFAULT NULL,
-			`reducida` decimal(15,2) DEFAULT NULL,
-			`reduimpu` decimal(15,2) DEFAULT NULL,
-			`stotal` decimal(15,2) DEFAULT NULL,
-			`impuesto` decimal(15,2) DEFAULT NULL,
-			`gtotal` decimal(15,2) DEFAULT NULL,
-			`reiva` decimal(15,2) DEFAULT NULL,
-			`estampa` date DEFAULT NULL,
-			`hora` char(8) DEFAULT NULL,
-			`usuario` varchar(12) DEFAULT NULL,
-			`modificado` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			`transac` varchar(8) DEFAULT NULL,
-			`origen` char(1) DEFAULT NULL,
-			`codbanc` char(2) DEFAULT NULL,
-			`tipo_op` char(2) DEFAULT NULL,
-			`numche` varchar(12) DEFAULT NULL,
-			`sprmreinte` varchar(8) DEFAULT NULL,
-			PRIMARY KEY (`id`),
-			KEY `modificado` (`modificado`),
-			KEY `nrocomp_cod_cli` (`nrocomp`,`cod_cli`)
+			$mSQL="CREATE TABLE rivc (
+			id         INT(6)        NOT NULL AUTO_INCREMENT,
+			nrocomp    VARCHAR(8)    NOT NULL DEFAULT '',
+			emision    DATE          DEFAULT NULL,
+			periodo    CHAR(8)       DEFAULT NULL,
+			fecha      DATE          DEFAULT NULL,
+			cod_cli    VARCHAR(5)    DEFAULT NULL,
+			nombre     VARCHAR(200)  DEFAULT NULL,
+			rif        VARCHAR(14)   DEFAULT NULL,
+			exento     DECIMAL(15,2) DEFAULT NULL,
+			tasa       DECIMAL(5,2)  DEFAULT NULL,
+			general    DECIMAL(15,2) DEFAULT NULL,
+			geneimpu   DECIMAL(15,2) DEFAULT NULL,
+			tasaadic   DECIMAL(5,2)  DEFAULT NULL,
+			adicional  DECIMAL(15,2) DEFAULT NULL,
+			adicimpu   DECIMAL(15,2) DEFAULT NULL,
+			tasaredu   DECIMAL(5,2)  DEFAULT NULL,
+			reducida   DECIMAL(15,2) DEFAULT NULL,
+			reduimpu   DECIMAL(15,2) DEFAULT NULL,
+			stotal     DECIMAL(15,2) DEFAULT NULL,
+			impuesto   DECIMAL(15,2) DEFAULT NULL,
+			gtotal     DECIMAL(15,2) DEFAULT NULL,
+			reiva      DECIMAL(15,2) DEFAULT NULL,
+			estampa    DATE          DEFAULT NULL,
+			hora       CHAR(8)       DEFAULT NULL,
+			usuario    VARCHAR(12)   DEFAULT NULL,
+			modificado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			transac    VARCHAR(8)    DEFAULT NULL,
+			origen     CHAR(1)       DEFAULT NULL,
+			codbanc    CHAR(2)       DEFAULT NULL,
+			tipo_op    CHAR(2)       DEFAULT NULL,
+			numche     VARCHAR(12)   DEFAULT NULL,
+			sprmreinte VARCHAR(8)    DEFAULT NULL,
+			PRIMARY KEY (id),
+			KEY modificado (modificado),
+			KEY nrocomp_cod_cli (nrocomp, cod_cli)
 			) ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED";
 			$this->db->simple_query($mSQL);
 		}
