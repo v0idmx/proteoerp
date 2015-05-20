@@ -142,7 +142,7 @@ class Dispmoviles extends Controller {
 			TRIM(a.cliente) AS cliente, TRIM(a.nombre) AS nombre,CONCAT_WS('-',TRIM(a.dire11),TRIM(a.dire12)) AS direc,
 			TRIM(a.ciudad) AS ciudad,TRIM(a.telefono) AS telefono,TRIM(a.rifci) AS rifci,TRIM(a.email) AS email,
 			TRIM(a.repre) AS repre,TRIM(a.tipo) AS tipo,
-			COALESCE(SUM((b.monto-b.abonos)*(b.vence<=CURDATE())),0) AS vsaldo,
+			COALESCE(SUM(b.monto-b.abonos),0) AS vsaldo,
 			0 AS csaldo,formap
 			,COALESCE((SELECT SUM(aa.tipo_doc='F') FROM sfac AS aa WHERE cod_cli=a.cliente AND fecha>=CONCAT(EXTRACT(YEAR_MONTH FROM CURDATE()),'01')),0) AS numfac
 			,COALESCE((SELECT SUM(aa.tipo_doc='D') FROM sfac AS aa WHERE cod_cli=a.cliente AND fecha>=CONCAT(EXTRACT(YEAR_MONTH FROM CURDATE()),'01')),0) AS numdev
