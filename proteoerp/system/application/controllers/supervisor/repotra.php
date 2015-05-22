@@ -89,7 +89,7 @@ class repotra extends validaciones{
 				}).change();
 			});
 			</script>';
-		
+
 		$data['content'] = $filter->output.form_open('').$grid->output.form_close().$script;
 		$data['title']   = heading('Reporte de Trabajo');
 		$data['head']    = script('jquery-1.2.6.pack.js');
@@ -108,14 +108,14 @@ class repotra extends validaciones{
 		$this->db->simple_query($mSQL);
 	}
 
-	function dataedit(){ 
+	function dataedit(){
 		$this->rapyd->load("dataedit");
 
 		$mSCLId=array(
 			'tabla'   =>'scli',
 			'columnas'=>array(
 			'cliente' =>'C&oacute;digo Cliente',
-			'nombre'=>'Nombre', 
+			'nombre'=>'Nombre',
 			'cirepre'=>'Rif/Cedula',
 			'dire11'=>'Direcci&oacute;n'),
 			'filtro'  =>array('cliente'=>'C&oacute;digo Cliente','nombre'=>'Nombre'),
@@ -130,7 +130,7 @@ class repotra extends validaciones{
 		$edit->fecha = new DateonlyField("Fecha","fecha");
 		$edit->fecha->rule = "trim|strtoupper|required";
 		$edit->fecha->size = 12;
-		$edit->fecha->insertValue = date("Y-m-d"); 
+		$edit->fecha->insertValue = date("Y-m-d");
 
 		$edit->t1horae  = new inputField("Hora Entrada", "t1horae");
 		$edit->t1horae->maxlength=8;
@@ -190,7 +190,7 @@ class repotra extends validaciones{
 
 		$edit->empresa = new inputField("Cliente", "empresa");
 		$edit->empresa->rule = "trim|strtoupper|required";
-		$edit->empresa->size = 12;  
+		$edit->empresa->size = 12;
 		$edit->empresa->maxlength = 60;
 		$edit->empresa->append($boton);
 
@@ -201,7 +201,7 @@ class repotra extends validaciones{
 
 		$edit->tecnico1 = new inputField("Realizado por","tecnico1");
 		$edit->tecnico1->rule = "trim|strtoupper|required";
-		$edit->tecnico1->size = 50;     
+		$edit->tecnico1->size = 50;
 		$edit->tecnico1->maxlength = 50;
 
 		$edit->tecnico2 = new inputField("Realizado por","tecnico2");
@@ -211,7 +211,7 @@ class repotra extends validaciones{
 
 		$edit->tecnico3 = new inputField("Realizado por","tecnico3");
 		$edit->tecnico3->rule = "trim|strtoupper";
-		$edit->tecnico3->size = 50;     
+		$edit->tecnico3->size = 50;
 		$edit->tecnico3->maxlength = 50;
 
 		$edit->informe = new textareaField("Actividad","informe");
@@ -228,7 +228,7 @@ class repotra extends validaciones{
 		$edit->cobrado->option('N','No');
 		$edit->cobrado->option('S','Si');
 		$edit->cobrado->style='width:70px';
- 
+
 		$edit->buttons("modify", "save", "undo", "delete", "back");
 		$edit->build();
 
@@ -241,7 +241,30 @@ class repotra extends validaciones{
 	}
 
 	function instalar(){
-		$mSQL="CREATE TABLE IF NOT EXISTS `repotra` (`id` TINYINT AUTO_INCREMENT, `estampa` TIMESTAMP, `fecha` DATE, `t1horae` VARCHAR (8),`t2horae` VARCHAR (8), `t1horas` VARCHAR (8),`t2horas` VARCHAR (8),`empresa` VARCHAR (50), `tecnico1` VARCHAR (50), `tecnico2` VARCHAR (50), `tecnico3` VARCHAR (50), `informe` TEXT,`observa` TEXT, `t1tipos` VARCHAR(10),`t2tipos` VARCHAR(10),`t1tipoe` VARCHAR(10),`t2tipoe` VARCHAR(10),`nombre` VARCHAR(60),PRIMARY KEY(`id`)) TYPE = MyISAM";
-		var_dump($this->db->simple_query($mSQL));
+
+		if (!$this->db->table_exists('repotra')){
+			$mSQL="CREATE TABLE IF NOT EXISTS `repotra` (
+				`id` TINYINT AUTO_INCREMENT,
+				`estampa` TIMESTAMP,
+				`fecha` DATE,
+				`t1horae` VARCHAR (8),
+				`t2horae` VARCHAR (8),
+				`t1horas` VARCHAR (8),
+				`t2horas` VARCHAR (8),
+				`empresa` VARCHAR (50),
+				`tecnico1` VARCHAR (50),
+				`tecnico2` VARCHAR (50),
+				`tecnico3` VARCHAR (50),
+				`informe` TEXT,
+				`observa` TEXT,
+				`t1tipos` VARCHAR(10),
+				`t2tipos` VARCHAR(10),
+				`t1tipoe` VARCHAR(10),
+				`t2tipoe` VARCHAR(10),
+				`nombre` VARCHAR(60),
+				PRIMARY KEY(`id`)
+				) ENGINE=MyISAM";
+			$this->db->simple_query($mSQL);
+		}
 	}
 }
