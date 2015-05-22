@@ -7,8 +7,13 @@
 $filter = new DataFilter('Filtro del Reporte');
 $filter->attributes=array('onsubmit'=>'is_loaded()');
 
-$filter->db->select(array('SUM(b.grupo IS NOT NULL) AS cana','SUM(b.grupo IS NOT NULL AND b.tipo<>0) AS activo',
-'a.grupo','a.gr_desc', 'a.cuenta'));
+$sel = array(
+	'SUM(b.grupo IS NOT NULL) AS cana',
+	'SUM(b.grupo IS NOT NULL AND b.tipo<>0) AS activo',
+	'a.grupo','a.gr_desc', 'a.cuenta'
+);
+
+$filter->db->select($sel);
 $filter->db->from('grcl AS a');
 $filter->db->join('scli AS b','a.grupo=b.grupo','left');
 $filter->db->group_by('a.grupo');

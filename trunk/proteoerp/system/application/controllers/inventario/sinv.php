@@ -3980,17 +3980,22 @@ class Sinv extends Controller {
 	//  -- Aumento de Precios al Mayor --  //
 	//
 	function auprecm($porcent = 0) {
-		$data = $this->datasis->damesesion();
-		$where = $data['data1'];
-		if ( $porcent > 0 ){
-			$mSQL = "SET mmargen=round(round(ultimo*(100+mmargen)/100,2)*100/(100-$porcent),2)*100/ultimo -100 ";
+		$porcent = floatval($porcent);
+		if($porcent==0) return '';
+		$data    = $this->datasis->damesesion();
+		$where   = $data['data1'];
+
+		if($porcent > 0){
+			$mSQL = "SET mmargen=round(round(ultimo*(100+mmargen)/100,2)*100/(100-${porcent}),2)*100/ultimo -100 ";
 			$this->db->simple_query("UPDATE sinv a ".$mSQL." ".$where);
 			echo " Aumento Concluido";
-		} else {
-			$mSQL = "SET mmargen=round( round(ultimo*(100+mmargen)/100,2)*(100+$porcent)/100,2)*100/ultimo -100 ";
+		}else{
+			$mSQL = "SET mmargen=round( round(ultimo*(100+mmargen)/100,2)*(100+${porcent})/100,2)*100/ultimo -100 ";
 			$this->db->simple_query("UPDATE sinv a ".$mSQL." ".$where);
 			echo " Descuento  Concluido";
 		}
+		$this->datasis->sinvredondear();
+		logusu('sinv','Aumento de precio '.$porcent.'% : '.$where);
 	}
 
 
@@ -4011,9 +4016,9 @@ class Sinv extends Controller {
 			a.iva=${dbiva}";
 
 		$this->db->query("UPDATE sinv a ".$mSQL." ".$where);
-		$this->datasis->sinvrecalcular("M");
+		$this->datasis->sinvrecalcular('M');
 		$this->datasis->sinvredondear();
-
+		logusu('sinv','Cambio de iva: '.$where);
 		echo "Cambio Concluido ($iva) ";
 	}
 
@@ -4030,7 +4035,7 @@ class Sinv extends Controller {
 		if ( !empty($where)){
 			$mSQL = "SET ubica=".$this->db->escape($mubica)." ";
 			$this->db->query("UPDATE sinv a ".$mSQL." ".$where);
-			echo "Aumento Concluido";
+			echo 'Aumento Concluido';
 		} else
 			echo "No se filtraron los registros";
 	}
@@ -4077,11 +4082,11 @@ class Sinv extends Controller {
 		$data   = $this->datasis->damesesion();
 
 		$where = ' WHERE standard>0 ';
-		if ( isset($data['data1']) ) $where = $data['data1'].' AND standard>0 ';
+		if(isset($data['data1'])) $where = $data['data1'].' AND standard>0 ';
 
 
 		$cambio = floatval($cambio);
-		if( $cambio > 0 ){
+		if($cambio > 0){
 			$mSQL = "UPDATE sinv SET standard=ultimo WHERE dolar>0 AND formcal='S' AND standard=0";
 			$this->db->query($mSQL);
 
@@ -4097,12 +4102,14 @@ class Sinv extends Controller {
 			$this->db->query("UPDATE sinv ".$mSQL." ".$where." AND dolar > 0 AND formcal='S'");
 
 
-			$this->datasis->sinvrecalcular("P");
+			$this->datasis->sinvrecalcular('P');
 			$this->datasis->sinvredondear();
-			echo " Cambio Concluido ";
-		} else
-			echo " Cambio debe ser mayor que 0 ";
 
+			echo ' Cambio Concluido ';
+		}else{
+			echo ' Cambio debe ser mayor que 0 ';
+		}
+		logusu('sinv','Recalculo en base al valor del dolar');
 
 		//} else echo " Debe filtrar los productos!  ";
 		//} else	echo " Debe filtrar los productos!  ";
@@ -4432,7 +4439,7 @@ class Sinv extends Controller {
 		$mSQL = "UPDATE IGNORE sinvpromo SET codigo=$mcodigo WHERE codigo=$mviejo";
 		$this->db->simple_query($mSQL);
 
-		logusu("SINV","Cambio codigo ".$mmviejo."-->".$mmcodigo);
+		logusu('sinv',"Cambio codigo ".$mmviejo."-->".$mmcodigo);
 	}
 
 
@@ -4467,7 +4474,7 @@ class Sinv extends Controller {
 		$dbcodigo = $this->db->escape($codigo);
 		$mSQL = "DELETE FROM barraspos WHERE suplemen=${dbcodigo}";
 		$this->db->simple_query($mSQL);
-		logusu("SINV","Eliminado Codigo Suplementario ".$codigo);
+		logusu('sinv',"Eliminado Codigo Suplementario ".$codigo);
 		echo 'Codigo Eliminado';
 	}
 
@@ -5284,7 +5291,7 @@ class Sinv extends Controller {
 		$data['script']  .= $script;
 
 		$data['style']    = style('gt_grid.css');
-		$data["subtitle"] = "
+		$data['subtitle'] = "
 			<div align='center' style='border: 2px outset #EFEFEF;background: #EFEFEF;font-size:18px'>
 				<a href='javascript:javascript:history.go(-1)'>(".addslashes($mCodigo).") ".$descrip."</a>
 			</div>";
@@ -5447,8 +5454,6 @@ class Sinv extends Controller {
 		$data['head']  = $this->rapyd->get_head();
 		$this->load->view('view_ventanas', $data);
 	}
-
-
 
 
 	function consulta_ventas() {
