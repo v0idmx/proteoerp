@@ -41,7 +41,10 @@ class Vend extends Controller {
 		//Botones Panel Izq
 		//$grid->wbotonadd(array("id"=>"edocta",   "img"=>"images/pdf_logo.gif",  "alt" => "Formato PDF", "label"=>"Ejemplo"));
 		$grid->wbotonadd(array('id'=>'bgrupo',   'img'=>'images/star.png',     'alt' => 'Gestionar grupos', 'tema'=>'anexos', 'label'=>'Grupos'));
-		$grid->wbotonadd(array('id'=>'bzona' ,   'img'=>'images/arrow_up.png' ,   'alt' => 'Asignar zona', 'tema'=>'anexos', 'label'=>'Asignar a Zona'));
+		if($this->datasis->sidapuede('VEND','MODIFICA%')){
+			$grid->wbotonadd(array('id'=>'bzona' ,   'img'=>'images/arrow_up.png' ,   'alt' => 'Asignar zona', 'tema'=>'anexos', 'label'=>'Asignar a Zona'));
+			$grid->wbotonadd(array('id'=>'bvend' ,   'img'=>'images/arrow_up.png' ,   'alt' => 'Intercambiar Vend.', 'tema'=>'anexos', 'label'=>'Intercambiar Vend.'));
+		}
 		$WestPanel = $grid->deploywestp();
 
 		$adic = array(
@@ -49,7 +52,7 @@ class Vend extends Controller {
 			array('id'=>'fshow' ,  'title'=>'Mostrar Registro'),
 			array('id'=>'fborra',  'title'=>'Eliminar Registro'),
 			array('id'=>'fgrupo',  'title'=>'Gestionar Grupos'),
-			array('id'=>'fzona' ,  'title'=>'Asginar Zona a vendedor')
+			array('id'=>'fzona' ,  'title'=>'Operaciones con vendedores')
 		);
 		$SouthPanel = $grid->SouthPanel($this->datasis->traevalor('TITULO1'), $adic);
 
@@ -102,6 +105,18 @@ class Vend extends Controller {
 			}
 		});';
 
+		$bodyscript .= '
+		$("#bvend").click(function(){
+			var id     = jQuery("'.$ngrid.'").jqGrid(\'getGridParam\',\'selrow\');
+			if (id)	{
+				var ret    = $("'.$ngrid.'").getRowData(id);
+				mId = id;
+				$.post("'.site_url($this->url.'intercambiar').'/"+ret.vendedor, function(data){
+					$("#fzona").html(data);
+					$("#fzona").dialog( "open" );
+				});
+			} else { $.prompt("<h1>Por favor Seleccione un Registro</h1>");}
+		});';
 
 		$bodyscript .= '
 		$("#bzona").click(function(){
@@ -132,11 +147,11 @@ class Vend extends Controller {
 							try{
 								var json = JSON.parse(r);
 								if(json.status == "A"){
-									apprise("Zona asignada");
+									apprise("Operaci&oacute;n realizada");
 									$("#fzona").html("");
 									$("#fzona").dialog("close");
 								}else{
-									apprise("No se pudo asignar la zona");
+									apprise("No realizar la operaci&oacute;n");
 								}
 							}catch(e){
 								$("#fzona").html(r);
@@ -695,9 +710,12 @@ class Vend extends Controller {
 			$form->zona->style = 'width:166px';
 			$form->zona->rule  = 'required';
 
+			$form->container = new containerField('alert','<p style="color:red;margin:0;text-align:center;font-size:1.3em;">Esta operaci&oacute;n asignara al vendedor '.htmlspecialchars($row['nombre']).' a todos los clientes pertenecientes a la zona elejida, esta operacion puede resultar irreversible, proceda con precauci&oacute;n.</p>');
+			$form->container->when = array('create','show','modify');
+
 			$form->build_form();
 
-			if($form->on_success()){
+			if($form->on_success() && $this->datasis->sidapuede('VEND','MODIFICA%')){
 				$tipo   = $form->tipo->newValue;
 				$dbzona = $this->db->escape($form->zona->newValue);
 				if($tipo=='C'){
@@ -709,6 +727,70 @@ class Vend extends Controller {
 				$mSQL="UPDATE scli SET ${opt}=${dbvd} WHERE zona=${dbzona}";
 				$ban=$this->db->simple_query($mSQL);
 				if($ban){
+					logusu('vend','Asigno los clientes de la zona '.$form->zona->newValue.' al vendedor '.$vd);
+					$rt=array(
+							'status' =>'A',
+							'mensaje'=>'Zona asignada.',
+							'pk'     =>null
+						);
+				}else{
+					$rt=array(
+							'status' =>'B',
+							'mensaje'=>'No se pudo asignar la zona al vendedor',
+							'pk'     =>null
+						);
+				}
+				echo json_encode($rt);
+			}else{
+				echo $form->output;
+			}
+		}else{
+			echo 'Registro inexistente';
+		}
+	}
+
+	function intercambiar($vd){
+		$this->rapyd->load('dataform');
+		$vd   = trim($vd);
+		$dbvd = $this->db->escape($vd);
+
+		$form = new DataForm($this->url."intercambiar/${vd}/process");
+		//$form->script($script);
+
+		$row = $this->datasis->damerow("SELECT nombre FROM vend WHERE vendedor=${dbvd}");
+		if(!empty($row)){
+			$htmltabla="<table width='100%' style='background-color:#FBEC88;text-align:center;font-size:12px'>
+				<tr>
+					<td>Vendedor:</td>
+					<td><b>(".htmlspecialchars($vd).") ".htmlspecialchars($row['nombre'])."</b></td>
+				</tr>
+			</table>";
+
+			$form->tablafo = new containerField('tablafo',$htmltabla);
+
+			$form->vend = new dropdownField('Asignado al vendedor', 'vend');
+			$form->vend->rule = 'trim|required';
+			$form->vend->option('','Seleccionar');
+			$form->vend->options('SELECT TRIM(vendedor) AS codigo, CONCAT(vendedor," ", nombre) nombre FROM vend WHERE vendedor<> '.$dbvd.' ORDER BY nombre');
+			$form->vend->style = 'width:166px';
+			$form->vend->rule  = 'required|existevend';
+
+			$form->container = new containerField('alert','<p style="color:red;margin:0;text-align:center;font-size:1.3em;">Esta operaci&oacute;n le asignara al vendedor electo todos los clientes que pertenecen actualmente al vendedor'.htmlspecialchars($row['nombre']).' esta operacion puede resultar irreversible, proceda con precauci&oacute;n.</p>');
+			$form->container->when = array('create','show','modify');
+
+			$form->build_form();
+
+			if($form->on_success() && $this->datasis->sidapuede('VEND','MODIFICA%')){
+				$dbvd = $this->db->escape($form->vend->newValue);
+				$dbvda= $this->db->escape($vd);
+
+				$mSQL="UPDATE scli SET cobrador=${dbvd} WHERE cobrador=${dbvda}";
+				$ban=$this->db->simple_query($mSQL);
+
+				$mSQL="UPDATE scli SET vendedor=${dbvd} WHERE vendedor=${dbvda}";
+				$ban=$this->db->simple_query($mSQL);
+				if($ban){
+					logusu('vend',"Asigno los clientes del vendedor ${vd} al vendedor ".$form->vend->newValue);
 					$rt=array(
 							'status' =>'A',
 							'mensaje'=>'Zona asignada.',
@@ -816,7 +898,7 @@ class Vend extends Controller {
 		}
 
 		if(!in_array('vendsup',$campos)){
-			$this->db->simple_query("ALTER TABLE `vend` ADD COLUMN `vendsup` INT(11) NOT NULL DEFAULT '1' COMMENT 'Supervisor de venta'");
+			$this->db->simple_query("ALTER TABLE `vend` ADD COLUMN `vendsup` INT(11) NULL DEFAULT '1' COMMENT 'Supervisor de venta'");
 		}
 
 		if(!$this->db->table_exists('grvd')){
