@@ -1588,10 +1588,10 @@ WHERE a.transac='01707884' AND a.numero='01314300'
 
 		if($tipo_doc=='NC' || $tipo_doc=='ND'){
 			$ww=' WHERE numero='.$this->db->escape($numero).' AND cod_cli='.$this->db->escape($cod_cli).' AND tipo_doc='.$this->db->escape($tipo_doc);
-			$mSQL='SELECT COUNT(*) FROM smov '.$ww;
+			$mSQL='SELECT COUNT(*) AS cana FROM smov '.$ww;
 		}else{
 			$ww=' WHERE numero='.$this->db->escape($numero).' AND cod_cli='.$this->db->escape($cod_cli).' AND tipo_doc='.$this->db->escape($tipo_doc);
-			$mSQL='SELECT COUNT(*) FROM sfac '.$ww;
+			$mSQL='SELECT COUNT(*) AS cana FROM sfac '.$ww;
 		}
 		$cana=intval($this->datasis->dameval($mSQL));
 

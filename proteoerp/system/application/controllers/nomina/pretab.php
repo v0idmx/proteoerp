@@ -1095,7 +1095,8 @@ class Pretab extends Controller {
 			foreach($query->result() as $row){
 
 				$mCONTROL = $this->datasis->fprox_numero('nsmov');
-				$mNOTACRE = $this->datasis->fprox_numero('nccli');
+				//$mNOTACRE = $this->datasis->fprox_numero('nccli');
+				$mNOTACRE = 'I'.$this->datasis->fprox_numero('ncint',-1);
 
 				$data = array();
 				$data['cod_cli']  = $row->cod_cli;
@@ -1190,7 +1191,7 @@ class Pretab extends Controller {
 
 		$this->db->query('TRUNCATE prenom');
 		$this->db->query('TRUNCATE pretab');
-		logusu('NOMI',"NOMINA ${mNOMINA} CREADA");
+		logusu('nomi',"NOMINA ${mNOMINA} CREADA");
 
 		echo 'Nomina Guardada';
 

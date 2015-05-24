@@ -1056,12 +1056,12 @@ class Retc extends Controller {
 
 		if($tipo_doc=='NC' || $tipo_doc=='ND'){
 			$ww=' WHERE numero='.$this->db->escape($numero).' AND cod_cli='.$this->db->escape($cod_cli).' AND tipo_doc='.$this->db->escape($tipo_doc);
-			$mSQL='SELECT COUNT(*) FROM smov '.$ww;
+			$mSQL='SELECT COUNT(*) AS cana FROM smov '.$ww;
 		}else{
 			$ww=' WHERE numero='.$this->db->escape($numero).' AND cod_cli='.$this->db->escape($cod_cli).' AND tipo_doc='.$this->db->escape($tipo_doc);
-			$mSQL='SELECT COUNT(*) FROM sfac '.$ww;
+			$mSQL='SELECT COUNT(*) AS cana FROM sfac '.$ww;
 		}
-		$cana=$this->datasis->dameval($mSQL);
+		$cana=intval($this->datasis->dameval($mSQL));
 
 		if($cana!=1){
 			$this->validation->set_message('chfac', 'El documento '.$numero.' no pertenece al cliente '.$cod_cli);
@@ -1589,7 +1589,8 @@ class Retc extends Controller {
 				}else{
 					//Como tiene saldo suficiente crea una NC y la aplica a la FC
 
-					$mnumnc = $this->datasis->fprox_numero('nccli');
+					//$mnumnc = $this->datasis->fprox_numero('nccli');
+					$mnumnc = 'I'.$this->datasis->fprox_numero('ncint',-1);
 					$data=array();
 					$data['cod_cli']    = $cod_cli;
 					$data['nombre']     = $nombre;
@@ -1646,7 +1647,8 @@ class Retc extends Controller {
 					if($ban==false){ memowrite($mSQL,'retc'); }
 				}
 
-				$mnumnd = $this->datasis->fprox_numero('ndcli');
+				//$mnumnd = $this->datasis->fprox_numero('ndcli');
+				$mnumnd = 'I'.$this->datasis->fprox_numero('ndint',-1);
 				$data=array();
 				$data['cod_cli']    = 'RETEN';
 				$data['nombre']     = 'RETENCION DE I.S.L.R.';
@@ -1674,7 +1676,8 @@ class Retc extends Controller {
 			}else{
 			//Si es una devolucion
 				// Devoluciones genera un ND al cliente
-				$mnumnd = $this->datasis->fprox_numero('ndcli');
+				$mnumnd = 'I'.$this->datasis->fprox_numero('ndint',-1);
+				//$mnumnd = $this->datasis->fprox_numero('ndcli');
 				$data=array();
 				$data['cod_cli']    = $cod_cli;
 				$data['nombre']     = $nombre;
@@ -1697,7 +1700,8 @@ class Retc extends Controller {
 				if($ban==false){ memowrite($mSQL,'retc'); }
 
 				//Devoluciones debe crear un NC si esta en el periodo
-				$mnumnc = $this->datasis->fprox_numero('nccli');
+				//$mnumnc = $this->datasis->fprox_numero('nccli');
+				$mnumnc = 'I'.$this->datasis->fprox_numero('ncint',-1);
 				$data=array();
 				$data['cod_cli']    = 'RETEN';
 				$data['nombre']     = 'RETENCION DE I.S.L.R. POR COMPENSAR';
