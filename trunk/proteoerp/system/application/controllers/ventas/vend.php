@@ -775,7 +775,7 @@ class Vend extends Controller {
 			$form->vend->style = 'width:166px';
 			$form->vend->rule  = 'required|existevend';
 
-			$form->container = new containerField('alert','<p style="color:red;margin:0;text-align:center;font-size:1.3em;">Esta operaci&oacute;n le asignara al vendedor electo todos los clientes que pertenecen actualmente al vendedor'.htmlspecialchars($row['nombre']).' esta operacion puede resultar irreversible, proceda con precauci&oacute;n.</p>');
+			$form->container = new containerField('alert','<p style="color:red;margin:0;text-align:center;font-size:1.3em;">Esta operaci&oacute;n le asignara al vendedor electo todos los clientes que pertenecen actualmente al vendedor '.htmlspecialchars($row['nombre']).' esta operacion puede resultar irreversible, proceda con precauci&oacute;n.</p>');
 			$form->container->when = array('create','show','modify');
 
 			$form->build_form();
