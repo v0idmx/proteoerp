@@ -1243,9 +1243,7 @@ class Smov extends Controller {
 
 		$apanpuede=$this->datasis->sidapuede('APAN','INCLUIR%');
 		$script="
-		$('#df1').keypress(function(e){
-			if(e.which == 13) return false;
-		});
+		$('#df1').keypress(function(e){	if(e.which == 13) return false; });
 
 		$('#cod_cli').autocomplete({
 			source: function( req, add){
@@ -1257,26 +1255,20 @@ class Smov extends Controller {
 					success:
 						function(data){
 							var sugiere = [];
-
 							if(data.length==0){
 								$('#id_scli').val('');
-
 								$('#nombre').val('');
 								$('#nombre_val').text('');
-
 								$('#rifci').val('');
 								$('#rifci_val').text('');
-
 								$('#direc').val('');
 								$('#direc_val').text('');
-
 								$('#saldo_val').text('');
 							}else{
 								if(data[0].cod_cli==$('#cod_cli').val()){
 									$('#cod_cli').data('ui-autocomplete')._trigger('select', 'autocompleteselect', {item : data[0]});
 									$('#cod_cli').autocomplete('close');
 								}
-
 								$.each(data,
 									function(i, val){
 										sugiere.push( val );
@@ -1284,7 +1276,6 @@ class Smov extends Controller {
 								);
 							}
 							add(sugiere);
-
 						},
 				})
 			},
@@ -1306,7 +1297,7 @@ class Smov extends Controller {
 				$('#direc_val').text(ui.item.direc);
 				setTimeout(function() {  $('#cod_cli').removeAttr('readonly'); }, 1500);
 
-				var saldo= jQuery.parseJSON($.ajax({ type: 'POST',dataType: 'json', url: '".site_url($this->url.'ajaxsaldo')."/'+ui.item.id, async: false, data: {cod_cli: ui.item.cod_cli } }).responseText);
+				var saldo= $.parseJSON($.ajax({ type: 'POST',dataType: 'json', url: '".site_url($this->url.'ajaxsaldo')."/'+ui.item.id, async: false, data: {cod_cli: ui.item.cod_cli } }).responseText);
 
 				$('#saldo_val').text(nformat(saldo.debe,2));
 
@@ -1487,10 +1478,10 @@ class Smov extends Controller {
 			echo 'Cliente inexistente';
 			return '';
 		}
-			$cliente     = $row['cliente'];
-			$dbcliente   = $this->db->escape($cliente);
-			$scli_nombre = $row['nombre'];
-			$scli_rif    = $row['rifci'];
+		$cliente     = $row['cliente'];
+		$dbcliente   = $this->db->escape($cliente);
+		$scli_nombre = $row['nombre'];
+		$scli_rif    = $row['rifci'];
 
 
 		$cajero=$this->secu->getcajero();
@@ -1599,9 +1590,9 @@ class Smov extends Controller {
 		$edit->hora    = new autoUpdateField('hora'    ,date('H:i:s'), date('H:i:s'));
 		//$edit->fecha   = new autoUpdateField('fecha'   ,date('Ymd'), date('Ymd'));
 
-		//************************************************
+		//**************************************************************
 		//inicio detalle itccli
-		//************************************************
+		//
 		$i=0;
 		$arr_ivas=array();
 		$edit->detail_expand_except('itccli');
@@ -1722,9 +1713,9 @@ class Smov extends Controller {
 		$edit->tipo_doc->onchange='chtipodoc()';
 		$edit->tipo_doc->rule ='enum[AB,NC,AN]|required';
 
-		//************************************************
+		//**************************************************************
 		//fin de campos para detalle,inicio detalle2 sfpa
-		//************************************************
+		//
 		$edit->tipo = new  dropdownField('Tipo <#o#>', 'tipo_<#i#>');
 		$edit->tipo->option('','Ninguno');
 		$edit->tipo->options('SELECT tipo, nombre FROM tarjeta WHERE activo=\'S\' ORDER BY nombre');
@@ -1772,10 +1763,9 @@ class Smov extends Controller {
 		$edit->itmonto->rule        = 'condi_required|positive|callback_chmontosfpa[<#i#>]';
 		$edit->itmonto->showformat  = 'decimal';
 		$edit->itmonto->autocomplete= false;
-		//************************************************
+		//**************************************************************
 		// Fin detalle 2 (sfpa)
-		//************************************************
-
+		//
 		$edit->buttons('add_rel');
 		$edit->build();
 
@@ -2208,8 +2198,8 @@ class Smov extends Controller {
 					$ban=$this->db->simple_query($mSQL);
 					if($ban==false){ memowrite($mSQL,'ccli'); }
 				}
-				//echo 'Numero: '.$numero.' Tipo: '.$tipo_doc;
-				// VER SI EXISTE EN EDREC
+
+				// Para Inmobiliaras 
 				if( $tipo_doc=='ND' && substr($numero,0,1) == 'R' ){
 					$numref = $this->datasis->dameval('SELECT num_ref FROM smov WHERE tipo_doc="ND" AND numero='.$dbnumero);
 					$an = $this->datasis->dameval('SELECT COUNT(*) FROM edrec WHERE numero='.$this->db->escape($numref));

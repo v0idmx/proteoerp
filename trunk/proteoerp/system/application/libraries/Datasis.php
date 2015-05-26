@@ -581,7 +581,6 @@ class Datasis {
 		$dbmfecha = $CI->db->escape($mfecha);
 		$qq = $CI->db->query("SELECT 0 exento, tasa, redutasa, sobretasa FROM civa WHERE fecha < ${dbmfecha} ORDER BY fecha DESC LIMIT 1");
 		$rr = $qq->row_array();
-		//$aa = each($rr);
 		return $rr;
 	}
 

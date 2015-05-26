@@ -24,7 +24,7 @@ class Restaurante extends Controller {
 	
 	function index(){
 		$this->rapyd->load("datatable");
-		$mesonero=$this->session->userdata['mesonero'];
+		$mesonero = $this->session->userdata['mesonero'];
 
 		$table = new DataTable(null);
 		$table->cell_attributes = 'style="vertical-align:middle; text-align: center;"';
@@ -419,7 +419,7 @@ scriptab;
 		$rform->mesa->size=6;
 		$rform->mesa->maxlength=4;
 		$rform->mesonero= new dropdownField("Mesonero", "mesonero");  
-		$rform->mesonero->options("SELECT mesonero,nombre FROM meso ORDER BY nombre ");
+		$rform->mesonero->options("SELECT vendedor, nombre FROM vend ORDER BY nombre ");
 		$rform->mesonero->status = "modify";
 		$rform->mesonero->insertValue = $mesonero;
 		$rform->mesonero->style='font-size:28';
@@ -565,10 +565,9 @@ scriptab;
 	}
 	
 	function _autentificar($mesoclave){
-		$query=$this->db->query("SELECT b.us_codigo,b.us_nombre,a.mesonero FROM meso AS a JOIN usuario AS b ON b.us_codigo=a.usuario WHERE CONCAT(RPAD(a.mesonero,5,'0'),b.us_clave)='$mesoclave'");
+		$query=$this->db->query("SELECT b.us_codigo,b.us_nombre,a.vendedor mesonero FROM vend AS a JOIN usuario AS b ON b.vendedor=a.vendedor WHERE CONCAT(RPAD(a.vendedor,5,'0'),b.us_clave)='$mesoclave'");
 		if($query->num_rows() > 0){
 			$row = $query->row();
-			
 			$sess_data = array('usuario' => $row->us_codigo,'mesonero' => $row->mesonero,'nombre'=> $row->us_nombre,'rlogged_in'=> TRUE );
 		} else {
 			$sess_data = array('rlogged_in'=> FALSE);
@@ -590,7 +589,7 @@ scriptab;
 
 	function cimprin($numero){
 		// F impreso
-		$mesonero=$this->session->userdata['mesonero'];
+		$mesonero = $this->session->userdata['mesonero'];
 		$where = "numero = '$numero' AND impstatus = 'E'";
 		$mSQL="SELECT COUNT(*) FROM ritems WHERE $where";
 		$cant=$this->datasis->dameval($mSQL);
@@ -662,6 +661,7 @@ scriptab;
 	}
 
 	function instalar(){
+		/*
 		$mSQL='ALTER TABLE `meso` DROP `clave`';
 		$this->db->simple_query($mSQL);
 		$mSQL='ALTER TABLE `meso` ADD `usuario` CHAR(12) NULL';
@@ -676,6 +676,7 @@ scriptab;
 		$this->db->simple_query($mSQL);
 		$mSQL='ALTER TABLE `ritems` ADD `impstatus` CHAR(1) DEFAULT "E" NULL AFTER `id`';
 		$this->db->simple_query($mSQL);
+		*/
 	}
 }
 ?>
