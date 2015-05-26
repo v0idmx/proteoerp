@@ -163,12 +163,8 @@ var reporte = CodeMirror.fromTextArea(document.getElementById("repo"), {
 	enterMode: "keep",
 	//tabMode: "shift",
 	extraKeys: {
-		"F11": function(cm) {
-			cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-		},
-		"Esc": function(cm) {
-			if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
-		}
+		"F11": function(cm) {cm.setOption("fullScreen", !cm.getOption("fullScreen"));},
+		"Esc": function(cm) {if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);}
 	}
 });
 
@@ -177,10 +173,8 @@ $(function() {
 });
 
 $('#guardar').click(function(){
-
 	var forma = $('#fprog');
 	$('#code').val(editor.getValue()); 
-
 	forma.submit(function(event) {
 		event.preventDefault();
 		$.ajax({
@@ -195,10 +189,31 @@ $('#guardar').click(function(){
 		});
 		return false;
 	});
-
 	forma.submit();
-
 });
+
+
+$('#vguardar').click(function(){
+	var forma = $('#vprog');
+	$('#view').val(vista.getValue()); 
+	forma.submit(function(event) {
+		event.preventDefault();
+		$.ajax({
+			type: forma.attr('method'),
+			url: '<?php echo site_url('desarrollo/jqguardav'); ?>',
+			data: forma.serialize(),
+			success: function(resulta){ alert(resulta);}		
+		}).done( function() {
+				alert('Guardado');
+			}).fail( function(){
+				alert('Error');
+			});
+		return false;
+	});
+	forma.submit();
+});
+
+
 
 $('#generar').click(function(){
 	//alert('Generar '+$('#bd').val()+" "+$('#contro').val());

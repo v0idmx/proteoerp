@@ -1965,6 +1965,8 @@ $tabla .= '
 		$crud.="\t\t".'	echo json_encode($rt);'."\n";
 		$crud.="\t\t".'}else{'."\n";
 		$crud.="\t\t".'	echo $edit->output;'."\n";
+		$crud.="\t\t".'	//$conten[\'form\']  =&  $edit;'."\n";
+		$crud.="\t\t".'	//$data[\'content\']  =  $this->load->view(\'view_'.$tabla.'\', $conten, false);'."\n";
 		$crud.="\t\t".'}'."\n";
 
 		$crud.="\t".'}'."\n";
@@ -2430,9 +2432,16 @@ $tabla .= '
 		$db     = $this->input->post('bd');
 		$contro = $this->input->post('contro');
 		file_put_contents('system/application/controllers/'.$contro.'/'.$db.'.php',$code);
-		//redirect(base_url.'desarrollo/jqcargar/'.$db.'/'.$contro);
 		echo 'Guardado';
 	}
+
+	function jqguardav(){
+		$code   = $this->input->post('view');
+		$db     = $this->input->post('vbd');
+		file_put_contents('system/application/views/'.$db.'.php',$code);
+		echo 'Vista guardada '.$db.'.php';
+	}
+
 
 	function jqcargar(){
 		$db = $this->uri->segment(3);

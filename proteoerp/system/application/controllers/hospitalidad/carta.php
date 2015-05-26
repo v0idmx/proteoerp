@@ -16,7 +16,7 @@ class Carta extends validaciones {
 		$this->rapyd->load("datafilter","datagrid");
 		//$this->rapyd->uri->keep_persistence();
 	
-		$filter = new DataFilter("Filtro de Carta", 'menu');
+		$filter = new DataFilter("Filtro de Carta", 'hcarta');
 	 	
 		$filter->codigo = new inputField("C&oacute;digo", "codigo");	
 		$filter->codigo->size=15;		
@@ -58,7 +58,7 @@ class Carta extends validaciones {
 	function dataedit(){ 
 		$this->rapyd->load("dataedit");
 		
-		$edit = new DataEdit("Carta", "menu");
+		$edit = new DataEdit("Carta", "hcarta");
 		$edit->back_url = site_url("hospitalidad/carta/filteredgrid");
 		
 		$qformato=$this->qformato=$this->datasis->formato_cpla();

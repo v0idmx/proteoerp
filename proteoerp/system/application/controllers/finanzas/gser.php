@@ -3533,6 +3533,7 @@ class gser extends Controller {
 		$tipo_doc= $do->get('tipo_doc');
 		$monto1  = $do->get('monto1');
 		$serie   = $do->get('serie');
+		$fondo   = $do->get('fondo');
 
 		if($tipo_doc=='FC'){
 			$do->set('afecta','');
@@ -3779,6 +3780,7 @@ class gser extends Controller {
 		$nombre   = $do->get('nombre');
 		$totiva   = $do->get('totiva');
 		$credito  = $do->get('credito');
+		$fondo    = $do->get('fondo');
 
 		$totbruto = $do->get('totbruto');
 		$totneto  = $do->get('totneto');
@@ -3880,6 +3882,51 @@ class gser extends Controller {
 			$this->_bmovgser($codbanc,$codprv,$codbanc,$negreso,$cheque,$fecha,$monto1,$benefi,$transac,$tipo_op,$msj);
 		}
 		//Fin del movimiento en el banco
+
+
+		//Crea el movimiento en el fondo
+		if( $fondo ){
+			$benefi= 'FONDOS';
+			$msj = "DESCARGO DEL FONDO SEGUN FACTURA ${numero}";
+			$tipo_op='ND';
+			$this->_bmovgser($fondo,$codprv,$fondo,$negreso,$cheque,$fecha,$monto1,$benefi,$transac,$tipo_op,$msj);
+			
+			// Crea la NC en proveedores
+			$control = $this->datasis->fprox_numero('nsprm');
+			$nfondo  = $this->datasis->dameval('SELECT banco FROM banc WHERE codbanc='.$this->db->escape($fondo));
+
+			$data=array();
+			$data['cod_prv']    = $fondo;
+			$data['nombre']     = $nfondo;
+			$data['tipo_doc']   = $tipo;
+			$data['numero']     = $numero ;
+			$data['fecha']      = $fecha ;
+			$data['monto']      = $totbruto;
+			$data['impuesto']   = $totiva ;
+			$data['abonos']     = 0;
+			$data['vence']      = $fecha;
+			$data['observa1']   = '';
+			$data['transac']    = $transac;
+			$data['estampa']    = $estampa;
+			$data['hora']       = $hora;
+			$data['usuario']    = $usuario;
+			$data['reteiva']    = $reiva;
+			$data['reten']      = $reten;
+			$data['montasa']    = $montasa;
+			$data['monredu']    = $monredu;
+			$data['monadic']    = $monadic;
+			$data['tasa']       = $tasa;
+			$data['reducida']   = $reducida;
+			$data['sobretasa']  = $sobretasa;
+			$data['exento']     = $exento;
+			$data['control']    = $control;
+
+			$sql=$this->db->insert_string('sprm', $data);
+			$ban=$this->db->simple_query($sql);
+			if($ban==false){ memowrite($sql,'gser');}
+		}
+		//Fin del movimiento en el banco
+
 
 
 		//Crea la cuenta por pagar si es necesario
