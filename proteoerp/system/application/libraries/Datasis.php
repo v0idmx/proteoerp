@@ -786,6 +786,26 @@ class Datasis {
 		return false;
 	}
 
+	//******************************************************************
+	// Reversa movimiento de banco
+	function reverbmov( $id = 0 ){
+		$id = intval($id);
+		if ( $id > 0 ){
+			$CI =& get_instance();
+			$mSQL = "SELECT COUNT(*) FROM bmov WHERE id=${id}";
+			if ( $this->dameval($mSQL) == 1 ){
+				$reg = $this->damereg("SELECT * FROM bmov WHERE id=${id}");
+				if ( $reg['tipo_op'] == 'DE' || $reg['tipo_op'] == 'NC' )
+					$this->actusal($reg['fondo'], $reg['fecha'], -$reg['monto'] );
+				else 
+					$this->actusal($reg['fondo'], $reg['fecha'], $reg['monto'] );
+			
+				$CI->db->query("DELETE FROM bmov WHERE id=${id}");
+			}
+		}
+	}
+
+	//******************************************************************
 	// GUARDA DATOS DE SESION EN MYSQL
 	function guardasesion($datos){
 		$CI =& get_instance();

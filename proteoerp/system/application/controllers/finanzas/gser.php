@@ -711,7 +711,7 @@ class gser extends Controller {
 			'editoptions'   => '{ size:30, maxlength: 8 }',
 		));
 
-
+/*
 		$grid->addField('anticipo');
 		$grid->label('Anticipo');
 		$grid->params(array(
@@ -737,7 +737,7 @@ class gser extends Controller {
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:30, maxlength: 40 }',
 		));
-
+*/
 
 		$grid->addField('usuario');
 		$grid->label('Usuario');
@@ -854,7 +854,7 @@ class gser extends Controller {
 			'editrules'     => '{ required:true}',
 			'editoptions'   => '{ size:30, maxlength: 1 }',
 		));
-
+/*
 		$grid->addField('montasa');
 		$grid->label('Base G.');
 		$grid->params(array(
@@ -943,7 +943,7 @@ class gser extends Controller {
 			'formatter'     => "'number'",
 			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }'
 		));
-
+*/
 
 		$grid->addField('exento');
 		$grid->label('Exento');
@@ -971,6 +971,24 @@ class gser extends Controller {
 			'formoptions'   => '{ label:"Nro. de Factura" }'
 		));
 
+		$mSQL = "SELECT COUNT(*) FROM banc WHERE activo='S' AND tbanco='FO' ORDER BY codbanc ";
+		if ( $this->datasis->dameval($mSQL) > 0 ){
+			$mSQL = "SELECT codbanc, concat( codbanc, ' ',TRIM(banco)) nombre FROM banc WHERE activo='S' AND tbanco='FO' ORDER BY codbanc ";
+			$afondo  = $this->datasis->llenajqselect($mSQL, true );
+			$grid->addField('fondo');
+			$grid->label('Fondo');
+			$grid->params(array(
+				'search'        => 'true',
+				'editable'      => 'true',
+				'width'         => 50,
+				'edittype'      => "'select'",
+				'editrules'     => '{ required:false}',
+				'editoptions'   => '{ value: '.$afondo.',  style:"width:200px"}',
+				'stype'         => "'text'",
+			));
+		}
+
+/*
 		$grid->addField('modificado');
 		$grid->label('Modificado');
 		$grid->params(array(
@@ -997,7 +1015,7 @@ class gser extends Controller {
 			'formatter'     => "'number'",
 			'formatoptions' => '{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }'
 		));
-
+*/
 
 		$grid->addField('negreso');
 		$grid->label('N.Egreso');
@@ -1125,7 +1143,7 @@ class gser extends Controller {
 					return false;
 				}
 
-				$posibles=array('nfiscal','serie');
+				$posibles=array('nfiscal','serie','fondo');
 				foreach($data as $ind=>$val){
 					if(!in_array($ind,$posibles)){
 						echo 'Campo no permitido ('.$ind.')';
@@ -1133,9 +1151,9 @@ class gser extends Controller {
 					}
 				}
 
-				$dbid=$this->db->escape($id);
+				$dbid = $this->db->escape($id);
 
-				$row = $this->datasis->damerow("SELECT fecha,tipo_doc, numero, proveed,transac,cajachi FROM gser WHERE id=${dbid}");
+				$row = $this->datasis->damerow("SELECT fecha,tipo_doc, numero, proveed, transac, cajachi, fondo, totbruto FROM gser WHERE id=${dbid}");
 				if(!empty($row)){
 					$data['numero'] = substr($data['serie'],-8);
 					$transac = $row['transac'];
@@ -1164,6 +1182,18 @@ class gser extends Controller {
 						}
 					}
 
+					//Reversa el fondo si lo hay
+					$fondo = $row['fondo'];
+					if ( $row['fondo'] <> $data['fondo'] ){
+						// Elimina el movimiento en banco
+						$mSQL = "SELECT b.id FROM gser a JOIN bmov b ON a.transac = b.transac AND b.codbanc=a.fondo WHERE a.id=${id} ";
+						$hay = $this->datasis->dameval($mSQL);
+						$this->datasis->reverbmov($hay);
+						// Elimina el cargo en cxp
+						$mSQL = "DELETE FROM sprm WHERE transac='".$row['transac']."' AND cod_prv='".$row['fondo']."'";
+						$this->db->query($mSQL);
+					}
+
 					//Cambia el gasto
 					$this->db->where('id'   ,$id);
 					$this->db->update('gser',$data);
@@ -1189,12 +1219,33 @@ class gser extends Controller {
 					$this->db->where('transac',$transac);
 					$this->db->update('riva'  ,array('numero'=>$data['numero'],'nfiscal'=>$data['nfiscal']));
 
+
 					//Cambia la CxC
 					$this->db->where('transac' ,$transac);
 					$this->db->where('tipo_doc',$row['tipo_doc']);
 					$this->db->where('fecha'   ,$row['fecha']);
 					$this->db->where('cod_prv' ,$row['proveed']);
 					$this->db->update('sprm'   ,array('numero'=>$data['numero'],'nfiscal'=>$data['nfiscal']));
+
+					if ( $data['fondo'] ){
+						$mSQL = "
+						INSERT IGNORE INTO sprm (cod_prv, nombre, tipo_doc, numero, fecha, monto, impuesto, abonos, vence, transac, estampa, hora, usuario, reteiva, reten, montasa, monredu, monadic, tasa, reducida, sobretasa, exento)
+						SELECT a.fondo proveed, b.banco nombre, 'NC' tipo_doc, a.numero, a.fecha, a.totbruto monto, 0 impuesto, 0 abonos, a.vence, a.transac, a.estampa, a.hora, a.usuario, 0 reteiva, 0 reten, 0 montasa, 0 monredu, 0 monadic, 0 tasa, 0 reducida, 0 sobretasa, 0 exento 
+						FROM gser a JOIN banc b ON a.fondo=b.codbanc
+						WHERE a.id=${id} ";
+						$this->db->query($mSQL);
+
+						$num = $this->datasis->banprox($row['fondo']);
+						$mSQL = "
+						INSERT INTO bmov (codbanc, codcp, banco, negreso, numero, fecha, monto, benefi, transac, tipo_op, concepto)
+						SELECT fondo, proveed codcp, fondo, 0 negreso, ${num} cheque, fecha, totbruto, 
+						   'FONDOS' benefi, transac, 'ND' tipo_op, 
+						   CONCAT('DESCARGO DEL FONDO SEGUN FACTURA' ,numero)  concepto
+						FROM gser WHERE id=${id} ";
+						$this->db->query($mSQL);
+						$this->datasis->actusal($row['fondo'], $row['fecha'], -$row['totbruto'] );
+						
+					}
 
 					logusu('GSER','Gasto/Egreso '.$row['fecha'].'-'.$row['tipo_doc'].'-'.$row['numero'].'-'.$row['proveed'].' MODIFICADO');
 					echo 'Gasto Modificado';
@@ -3889,7 +3940,8 @@ class gser extends Controller {
 			$benefi= 'FONDOS';
 			$msj = "DESCARGO DEL FONDO SEGUN FACTURA ${numero}";
 			$tipo_op='ND';
-			$this->_bmovgser($fondo,$codprv,$fondo,$negreso,$cheque,$fecha,$monto1,$benefi,$transac,$tipo_op,$msj);
+			$num = $this->datasis->banprox($row['fondo']);
+			$this->_bmovgser($fondo,$codprv,$fondo,$negreso,$num,$fecha,$monto1,$benefi,$transac,$tipo_op,$msj);
 			
 			// Crea la NC en proveedores
 			$control = $this->datasis->fprox_numero('nsprm');
@@ -3898,9 +3950,9 @@ class gser extends Controller {
 			$data=array();
 			$data['cod_prv']    = $fondo;
 			$data['nombre']     = $nfondo;
-			$data['tipo_doc']   = $tipo;
+			$data['tipo_doc']   = 'NC';
 			$data['numero']     = $numero ;
-			$data['fecha']      = $fecha ;
+			$data['fecha']      = $fecha;
 			$data['monto']      = $totbruto;
 			$data['impuesto']   = $totiva ;
 			$data['abonos']     = 0;
@@ -3926,8 +3978,6 @@ class gser extends Controller {
 			if($ban==false){ memowrite($sql,'gser');}
 		}
 		//Fin del movimiento en el banco
-
-
 
 		//Crea la cuenta por pagar si es necesario
 		if($totcred > 0.0){

@@ -15,6 +15,7 @@ class Edgasto extends Controller {
 		parent::Controller();
 		$this->load->library('rapyd');
 		$this->load->library('jqdatagrid');
+		$this->instalar();
 		$this->datasis->modulo_nombre( 'EDGASTO', $ventana=0 );
 	}
 

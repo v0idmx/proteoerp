@@ -10,12 +10,12 @@ class Edrec extends Controller {
 		$this->load->library('rapyd');
 		$this->load->library('jqdatagrid');
 		$this->datasis->modulo_nombre( 'EDREC', $ventana=0 );
+		$this->instalar();
 	}
 
 	function index(){
 		$this->datasis->creaintramenu(array('modulo'=>'A07','titulo'=>'Recibos de Cobro','mensaje'=>'Recibos de Cobro','panel'=>'CONDOMINIO','ejecutar'=>'construccion/edrec','target'=>'popu','visible'=>'S','pertenece'=>'A','ancho'=>900,'alto'=>600));
 		$this->datasis->modintramenu( 800, 600, substr($this->url,0,-1) );
-		$this->instalar();
 		redirect($this->url.'jqdatag');
 	}
 
