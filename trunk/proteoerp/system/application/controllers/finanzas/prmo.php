@@ -1561,6 +1561,7 @@ class Prmo extends Controller {
 
 	function _pre_delete($do){
 		$transac   = $do->get('transac');
+		$numero    = $do->get('numero');
 		$transacdb = $this->db->escape($transac);
 
 		$cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM casi WHERE comprob=${transacdb}"));
@@ -1569,17 +1570,11 @@ class Prmo extends Controller {
 			return false;
 		}
 
-		$reg = $this->datasis->damereg("SELECT * FROM prmo WHERE transac=${transacdb}");
+		/*$reg = $this->datasis->damereg("SELECT * FROM prmo WHERE transac=${transacdb}");
 		if(empty($reg)){
 			$do->error_message_ar['pre_del'] = 'Transaccion no valida '.$transac;
 			return false;
-		}
-
-		$codban    = $reg['codban'];
-		$codbancdb = $this->db->escape($codban);
-
-		$fecha     = $reg['fecha'];
-		$tipo      = $reg['fecha'];
+		}*/
 
 		$mSQL = "SELECT COUNT(*) AS cana FROM sprm WHERE transac=${transacdb} AND abonos>0";
 		$cana = intval($this->datasis->dameval($mSQL));
@@ -1594,81 +1589,6 @@ class Prmo extends Controller {
 			$do->error_message_ar['pre_del'] = 'Registros relacionados tienen ;movimientos posteriores (CxC)';
 			return false;
 		}
-
-		$mTBANCO = $this->datasis->dameval("SELECT tbanco FROM banc WHERE codbanc=${codbancdb}");
-
-		//LOGUSU("ELIMINA MOV. DE CAJA Y BANCOS "+XTIPOP+" "+XNUMERO+", TRANSACCION "+mTRANSAC )
-		logusu( 'PRMO', "ELIMINA MOV. DE CAJA Y BANCOS ".$reg['tipop'].$reg['numero']." transac=${transac}");
-
-		// SIEMPRE HACE BANCOS GUARDA EN BANCO
-
-		//ACTUSAL(XCODBAN, XFECHA, XMONTO*IF(XTIPO$'CH,ND',1,-1) )
-		if ( $reg['tipo'] == 'CH' || $reg['tipo'] == 'ND' )
-			$this->datasis->actusal($codban, $reg['fecha'], $reg['monto'] );
-		else
-			$this->datasis->actusal($codban, $reg['fecha'], -1*$reg['monto'] );
-
-		$mSQL = "DELETE FROM bmov WHERE transac=${transacdb}";
-		$this->db->query($mSQL);
-
-		if ( $reg['tipop'] == '4' ){   // CHEQUE DEVUELTO A PROVEEDOR
-			$dbdocum=$this->db->escape($reg['docum']);
-			$mSQL  = "SELECT transac FROM bmov WHERE tipo_op='CH' AND numero=${dbdocum} AND codbanc=${codbancdb}";
-			$mTRAN = $this->datasis->dameval($mSQL);
-
-			$mSQL = "UPDATE bmov SET liable='S' WHERE tipo_op='CH' AND numero=${dbdocum} AND codbanc=${codbancdb}";
-			$this->db->query($mSQL);
-
-			if (!empty($mTRAN)){
-				$dbmTRAN=$this->db->escape($mTRAN);
-				$mSQL = "UPDATE bmov SET liable='S' WHERE transac=${dbmTRAN}";
-				$this->db->query($mSQL);
-				$mSQL = "SELECT monto FROM bmov WHERE transac=${dbmTRAN} AND MID(numero,1,3)='IDB'";
-				$mIDB = $this->datasis->dameval($mSQL);
-				$mIDB = floatval($mIDB);
-				// DEVUELVE EL IDB
-				if ( $mIDB <> 0 ){
-					//BORRA EN OTIN
-					$mSQL = "DELETE FROM otin   WHERE transac=${transacdb}";
-					$this->db->query($mSQL);
-					$mSQL = "DELETE FROM itotin WHERE transac=${transacdb}";
-					$this->db->query($mSQL);
-					//SELECT BANC
-					$this->datasis->actusal($codban, $reg['fecha'], -1*$mIDB );
-					//ACTUSAL(XCODBAN, XFECHA, -mIDB)
-					$mSQL = "DELETE FROM bmov WHERE transac=${transacdb}";
-					$this->db->query($mSQL);
-					//SELECT BANC
-					$mSQL = "DELETE FROM sfpa WHERE transac=${transacdb}";
-					$this->db->query($mSQL);
-				}
-			}
-		}
-
-		// DEBITO BANCARIO
-		if ( $mTBANCO != 'CAJ' && $reg['tipop'] == '1' ){
-			// QUITA IDB
-			$mSQL = "DELETE FROM gser WHERE transac=${transacdb}";
-			$this->db->query($mSQL);
-			$mSQL = "DELETE FROM gitser WHERE transac=${transacdb}";
-			$this->db->query($mSQL);
-			$this->datasis->actusal($codban, $reg['fecha'], -1*$reg['monto'] );
-		}
-
-		if ( strpos('245', $reg['tipop']) > 0 ){
-			// GENERA SPRM UNA ND
-			$mSQL = "DELETE FROM sprm WHERE transac=${transacdb}";
-			$this->db->query($mSQL);
-		}
-
-
-		if ( strpos('136', $reg['tipop']) > 0 ){
-			$mSQL = "DELETE FROM smov WHERE transac=${transacdb}";
-			$this->db->query($mSQL);
-		}
-
-		$mSQL = "DELETE FROM prmo WHERE transac=${transacdb}";
-		$this->db->query($mSQL);
 
 		return true;
 	}
@@ -2173,8 +2093,88 @@ class Prmo extends Controller {
 	}
 
 	function _post_delete($do){
-		$primary =implode(',',$do->pk);
-		logusu($do->table,"Elimino $this->tits ${primary} ");
+		$transac   = $do->get('transac');
+		$tipop     = $do->get('tipop');
+		$clipro    = $do->get('clipro');
+		$fecha     = $do->get('fecha');
+		$tipo      = $do->get('tipo');
+		$codban    = $do->get('codban');
+		$numero    = $do->get('numero');
+		$docum     = $do->get('docum');
+		$monto     = floatval($do->get('monto'));
+
+		$dbclipro  = $this->db->escape($clipro);
+		$transacdb = $this->db->escape($transac);
+		$codbancdb = $this->db->escape($codban);
+
+		$mTBANCO = $this->datasis->dameval("SELECT tbanco FROM banc WHERE codbanc=${codbancdb}");
+
+		// SIEMPRE HACE BANCOS GUARDA EN BANCO
+		if($tipo  == 'CH' || $tipo  == 'ND'){
+			$this->datasis->actusal($codban, $fecha, $monto);
+		}else{
+			$this->datasis->actusal($codban, $fecha, (-1)*$monto);
+		}
+
+		$mSQL = "DELETE FROM bmov WHERE transac=${transacdb}";
+		$this->db->query($mSQL);
+
+		if($tipop == '4'){   // CHEQUE DEVUELTO A PROVEEDOR
+			$dbdocum=$this->db->escape($docum);
+			$mSQL  = "SELECT transac FROM bmov WHERE tipo_op='CH' AND numero=${dbdocum} AND codbanc=${codbancdb}";
+			$mTRAN = $this->datasis->dameval($mSQL);
+
+			$mSQL = "UPDATE bmov SET liable='S' WHERE tipo_op='CH' AND numero=${dbdocum} AND codbanc=${codbancdb}";
+			$this->db->query($mSQL);
+
+			if(!empty($mTRAN)){
+				$dbmTRAN=$this->db->escape($mTRAN);
+				$mSQL = "UPDATE bmov SET liable='S' WHERE transac=${dbmTRAN}";
+				$this->db->query($mSQL);
+				$mSQL = "SELECT monto FROM bmov WHERE transac=${dbmTRAN} AND MID(numero,1,3)='IDB'";
+				$mIDB = $this->datasis->dameval($mSQL);
+				$mIDB = floatval($mIDB);
+				// DEVUELVE EL IDB
+				if($mIDB <> 0){
+					//BORRA EN OTIN
+					$mSQL = "DELETE FROM otin   WHERE transac=${transacdb}";
+					$this->db->query($mSQL);
+					$mSQL = "DELETE FROM itotin WHERE transac=${transacdb}";
+					$this->db->query($mSQL);
+					$this->datasis->actusal($codban, $fecha, -1*$mIDB );
+					$mSQL = "DELETE FROM bmov WHERE transac=${transacdb}";
+					$this->db->query($mSQL);
+					$mSQL = "DELETE FROM sfpa WHERE transac=${transacdb}";
+					$this->db->query($mSQL);
+				}
+			}
+		}
+
+		// DEBITO BANCARIO
+		if($mTBANCO != 'CAJ' && $tipop == '1'){
+			// QUITA IDB
+			$mSQL = "DELETE FROM gser WHERE transac=${transacdb}";
+			$this->db->query($mSQL);
+			$mSQL = "DELETE FROM gitser WHERE transac=${transacdb}";
+			$this->db->query($mSQL);
+			$this->datasis->actusal($codban, $fecha, (-1)*$monto);
+		}
+
+		if(strpos('245', $tipop) !== false){
+			// GENERA SPRM UNA ND
+			$mSQL = "DELETE FROM sprm WHERE cod_prv=${dbclipro} AND transac=${transacdb}";
+			$this->db->query($mSQL);
+		}
+
+		if(strpos('136', $tipop) !== false){
+			$mSQL = "DELETE FROM smov WHERE cod_cli=${dbclipro} AND transac=${transacdb}";
+			$this->db->query($mSQL);
+		}
+
+		/*$mSQL = "DELETE FROM prmo WHERE transac=${transacdb}";
+		$this->db->query($mSQL);*/
+
+		logusu( 'prmo', "ELIMINA MOV. DE CAJA Y BANCOS ${tipop}${numero} transac=${transac}");
 	}
 
 	//******************************************************************

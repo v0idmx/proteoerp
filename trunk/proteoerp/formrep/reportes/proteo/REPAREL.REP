@@ -1,3 +1,9 @@
+/**
+ * ProteoERP
+ *
+ * @autor    Andres Hocevar
+ * @license  GNU GPL v3
+*/
 $filter = new DataFilter2('Filtro del Reporte');
 $filter->attributes=array('onsubmit'=>'is_loaded()');
 
@@ -57,7 +63,7 @@ if($this->rapyd->uri->is_set("search")){
 	$pdf->setType('id','string');
 	$pdf->setHeadValores('TITULO1');
 	$pdf->setSubHeadValores('TITULO2','TITULO3');
-	$pdf->setTitulo('Detalle de Reparto');
+	$pdf->setTitulo('Relacion de Reparto');
 	$pdf->setSubTitulo($subtitu);
 	$pdf->setSobreTabla($sobretabla,6);
 	$pdf->AddPage();
@@ -79,7 +85,7 @@ if($this->rapyd->uri->is_set("search")){
 
 }else{
 	$data['filtro'] = $filter->output;
-	$data['titulo'] = '<h2 class="mainheader">Ventas Por Artículo</h2>';
+	$data['titulo'] = '<h2 class="mainheader">Relacion de reparto</h2>';
 	$data['head'] = $this->rapyd->get_head();
 	$this->load->view('view_freportes', $data);
 }
