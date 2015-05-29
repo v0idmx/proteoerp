@@ -45,15 +45,15 @@ $dbfecha   = $this->db->escape($row->fecha);
 $dbtransac = $this->db->escape($row->transac);
 if($row->cajachi=='S'){
 	$cachi = true;
-	$mSQL_2  = $this->db->query("SELECT numero,fecha,proveed,codigo,descrip,precio,iva,importe,rif,proveedor,numfac,fechafac,nfiscal
-	FROM gitser
-	WHERE numero=${dbnumero} AND proveed=${dbproveed} AND fecha=${dbfecha} AND transac=${dbtransac}");
+	$mSQL_2  = $this->db->query("SELECT a.numero,a.fecha,a.proveed,a.codigo,a.descrip,a.precio,a.iva,a.importe,a.rif,a.proveedor,a.numfac,a.fechafac,a.nfiscal
+	FROM gitser AS a
+	WHERE a.numero=${dbnumero} AND a.proveed=${dbproveed} AND a.fecha=${dbfecha} AND a.transac=${dbtransac}");
 	//WHERE idgser=${dbid}");
 }else{
 	$cachi = false;
-	$mSQL_2  = $this->db->query("SELECT numero,fecha,proveed,codigo,descrip,precio,iva,importe
-	FROM gitser
-	WHERE numero=${dbnumero} AND proveed=${dbproveed} AND fecha=${dbfecha} AND transac=${dbtransac}");
+	$mSQL_2  = $this->db->query("SELECT a.numero,a.fecha,a.proveed,a.codigo,a.descrip,a.precio,a.iva,a.importe
+	FROM gitser AS a
+	WHERE a.numero=${dbnumero} AND a.proveed=${dbproveed} AND a.fecha=${dbfecha} AND a.transac=${dbtransac}");
 	//WHERE idgser=${dbid}");
 }
 $ndetalle=$mSQL_2->num_rows();

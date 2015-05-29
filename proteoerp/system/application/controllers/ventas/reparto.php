@@ -1995,6 +1995,16 @@ class Reparto extends Controller {
 			$this->db->simple_query($mSQL);
 		}
 
+		if(!in_array('entregado',$campos)){
+			$mSQL="ALTER TABLE `reparto` ADD COLUMN `entregado` DATE NULL DEFAULT NULL AFTER `carga`;";
+			$this->db->simple_query($mSQL);
+		}
+
+		if(!in_array('carga',$campos)){
+			$mSQL="ALTER TABLE `reparto` ADD COLUMN `carga` DATE NULL DEFAULT NULL AFTER `facturas`";
+			$this->db->simple_query($mSQL);
+		}
+
 		//Campos en sfac
 		$campos=$this->db->list_fields('sfac');
 		if(!in_array('reparto',$campos)){
@@ -2010,5 +2020,6 @@ class Reparto extends Controller {
 			ADD COLUMN `paradas` INT NOT NULL DEFAULT '0.00' COMMENT 'Cantidad de paradas por reparto' AFTER `volumen`";
 			$this->db->simple_query($mSQL);
 		}
+
 	}
 }
