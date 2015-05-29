@@ -16,6 +16,7 @@ class Edcont extends Controller {
 		parent::Controller();
 		$this->load->library('rapyd');
 		$this->load->library('jqdatagrid');
+		$this->instalar();
 		$this->datasis->modulo_nombre( 'EDCONT', $ventana=0 );
 	}
 
@@ -551,7 +552,7 @@ class Edcont extends Controller {
 
 		$edit->edificacion = new dropdownField('Edificaci&oacute;n','edificacion');
 		$edit->edificacion->option('','Seleccionar');
-		$edit->edificacion->options('SELECT id,TRIM(nombre) AS nombre FROM `edif` ORDER BY nombre');
+		$edit->edificacion->options('SELECT id,TRIM(nombre) AS nombre FROM edif ORDER BY nombre');
 		$edit->edificacion->style='width:150px;';
 		$edit->edificacion->rule='max_length[11]|required';
 
@@ -561,7 +562,7 @@ class Edcont extends Controller {
 		if($edif!==false){
 			$dbedif=$this->db->escape($edif);
 			$edit->inmueble->option('','Seleccionar');
-			$edit->inmueble->options("SELECT id,TRIM(descripcion) AS nombre FROM `edinmue` WHERE status='D' AND edificacion=$dbedif ORDER BY descripcion");
+			$edit->inmueble->options("SELECT id,TRIM(descripcion) AS nombre FROM edinmue WHERE status='D' AND edificacion=$dbedif ORDER BY descripcion");
 		}else{
 			$edit->inmueble->option('','Seleccione una edificacion');
 		}
@@ -1026,14 +1027,15 @@ class Edcont extends Controller {
 		}
 
 		if (!$this->db->table_exists('itedcont')) {
-			$mSQL="CREATE TABLE `itedcont` (
-			  `id` int(11) NOT NULL AUTO_INCREMENT,
-			  `id_edcont` int(11) NOT NULL,
-			  `vencimiento` date NOT NULL,
-			  `monto` decimal(10,2) NOT NULL,
-			  PRIMARY KEY (`id`),
-			 KEY `id_edcont` (`id_edcont`)
-			) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1";
+			$mSQL="
+			CREATE TABLE itedcont (
+				id          INT(11)       NOT NULL AUTO_INCREMENT,
+				id_edcont   INT(11)       NOT NULL,
+				vencimiento DATE          NOT NULL,
+				monto       DECIMAL(10,2) NOT NULL,
+			PRIMARY KEY (id),
+			KEY `id_edcont` (id_edcont)
+			) ENGINE=MyISAM DEFAULT CHARSET=latin1";
 			$this->db->simple_query($mSQL);
 		}
 

@@ -1212,10 +1212,10 @@ class Otin extends Controller {
 
 		$edit->tipo_doc = new dropdownField('Tipo', 'tipo_doc');
 		$edit->tipo_doc->option('OT','Otro Ingreso');
-		$edit->tipo_doc->option('OC','Otro Ingreso a Cr&eacute;dito');
+		$edit->tipo_doc->option('OC','O.I. a Cr&eacute;dito');
 		$edit->tipo_doc->option('ND','Nota de D&eacute;bito');
 		$edit->tipo_doc->rule ='enum[ND,OC,OT]|required';
-		$edit->tipo_doc->style='width:170px;';
+		$edit->tipo_doc->style='width:100px;';
 
 		$edit->cajero= new dropdownField('Cajero', 'cajero');
 		$edit->cajero->options('SELECT cajero,TRIM(nombre) AS nombre FROM scaj ORDER BY nombre');
@@ -1295,11 +1295,11 @@ class Otin extends Controller {
 		$edit->orden  = new inputField('Orden','orden');
 		$edit->orden->size = 12;
 
-		$edit->dpto =  new dropdownField('Departamento', 'dpto');
+		$edit->dpto =  new dropdownField('Depto.', 'dpto');
 		$edit->dpto->option('','Seleccionar');
 		$edit->dpto->options('SELECT TRIM(depto) AS codigo, CONCAT_WS(\'-\',depto,TRIM(descrip)) AS label FROM dpto WHERE tipo=\'G\' ORDER BY depto');
 		$edit->dpto->rule  ='required';
-		$edit->dpto->style = 'width:100px';
+		$edit->dpto->style = 'width:140px';
 
 		$edit->sucu =  new dropdownField('Sucursal', 'sucu');
 		$edit->sucu->options('SELECT codigo,CONCAT(codigo,\'-\', sucursal) AS sucursal FROM sucu ORDER BY codigo');
@@ -1319,6 +1319,12 @@ class Otin extends Controller {
 		$edit->fafecta->calendar=false;
 		$edit->fafecta->rule = 'condi_required|callback_chobliga[ND]';
 
+		$edit->libro =  new dropdownField('Enviar al Libro de ventas', 'libro');
+		$edit->libro->option( 'S', 'Si' );
+		$edit->libro->option( 'N', 'No' );
+		$edit->libro->db_name  ='libro';
+		$edit->libro->style    ='30px';
+
 		//******************************
 		//Campos para el detalle
 		//******************************
@@ -1334,13 +1340,12 @@ class Otin extends Controller {
 		$edit->descrip->db_name  = 'descrip';
 		$edit->descrip->rel_id   = 'itotin';
 		$edit->descrip->type     = 'inputhidden';
-		//$edit->descrip->maxlength= 12;
 
 		$edit->larga = new textareaField('', 'larga_<#i#>');
 		$edit->larga->db_name  = 'larga';
 		$edit->larga->rel_id   = 'itotin';
 		$edit->larga->rows     = 2;
-		$edit->larga->cols     = 35;
+		$edit->larga->cols     = 45;
 
 		$ivas=$this->datasis->ivaplica();
 		$edit->tasaiva =  new dropdownField('IVA <#o#>', 'tasaiva_<#i#>');
@@ -1357,7 +1362,7 @@ class Otin extends Controller {
 		$edit->precio = new inputField('Precio', 'precio_<#i#>');
 		$edit->precio->css_class = 'inputnum';
 		$edit->precio->rule      = 'numeric|mayorcero';
-		$edit->precio->size      = 10;
+		$edit->precio->size      = 12;
 		$edit->precio->onkeyup   = 'importe(<#i#>)';
 		$edit->precio->rel_id    = 'itotin';
 		$edit->precio->showformat= 'decimal';
@@ -1415,10 +1420,10 @@ class Otin extends Controller {
 		$edit->banco->options('SELECT cod_banc,nomb_banc
 			FROM tban
 			WHERE cod_banc<>\'CAJ\'
-		UNION ALL
+			UNION ALL
 			SELECT codbanc,CONCAT_WS(\' \',TRIM(banco),numcuent)
 			FROM banc
-			WHERE tbanco <> \'CAJ\' ORDER BY nomb_banc');
+			WHERE tbanco <> \'CAJ\' AND activo="S" ORDER BY nomb_banc');
 		$edit->banco->db_name='banco';
 		$edit->banco->rel_id ='sfpa';
 		$edit->banco->style  ='width:180px;';
@@ -1434,7 +1439,6 @@ class Otin extends Controller {
 		//************************************************
 		// Fin detalle 2 (sfpa)
 		//************************************************
-
 		//$edit->buttons('add_rel');
 		$edit->build();
 
@@ -1887,5 +1891,8 @@ class Otin extends Controller {
 			$this->db->simple_query('ALTER TABLE `otin` ADD UNIQUE INDEX `numero` (`tipo_doc`, `numero`)');
 			$this->db->simple_query('ALTER TABLE `otin` ADD COLUMN id INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
 		}
+
+		if(!in_array('libro',  $campos)) $this->db->query("ALTER TABLE otin ADD COLUMN libro CHAR(1) NULL DEFAULT 'S' COMMENT 'Enviar al libro de ventas'");
+
 	}
 }

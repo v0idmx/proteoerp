@@ -213,21 +213,19 @@ class sfpach extends Controller {
 						bValid = bValid && probar( efbanco, "Banco" );
 						bValid = bValid && probar( efmonto, "Monto" );
 						if ( bValid ) {
-		                                        $.ajax({
-		                                                type: "POST",
-		                                                url:"'.site_url("finanzas/sfpach/efectivo").'",
-		                                                processData: true,
-		                                                data: "caja="+escape(efcaja.val())+"&banco="+escape(efbanco.val())+"&monto="+escape(efmonto.val()),
-		                                                success: function(a){
+							$.ajax({
+								type: "POST",
+								url:"'.site_url("finanzas/sfpach/efectivo").'",
+								processData: true,
+								data: "caja="+escape(efcaja.val())+"&banco="+escape(efbanco.val())+"&monto="+escape(efmonto.val()),
+								success: function(a){
 									var res = $.parseJSON(a);
 									$.prompt(res.mensaje,
-										{ submit: function(e,v,m,f){
+									{ submit: function(e,v,m,f){
 											window.open(\''.base_url().'formatos/ver/BANCAJA/\'+res.numero, \'_blank\', \'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-400), screeny=((screen.availWidth/2)-300)\');
-											}
-										}
-									);
+									}});
 									return [true, a ];
-									}
+								}
 							})
 							$( this ).dialog( "close" );
 						}
@@ -722,9 +720,7 @@ class sfpach extends Controller {
 
 
 	//******************************************************************
-	//
 	//  Depositar Efectivo
-	//
 	function efectivo(){
 		// Genera el deposito pendiente
 		$envia   = $this->input->get_post('caja');

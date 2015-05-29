@@ -361,31 +361,35 @@ function autocod(id){
 		<fieldset style='border: 1px outset #9AC8DA;background: #FFFFFF;'>
 		<table width="100%" style="margin: 0; width: 100%;">
 			<tr>
-				<th colspan='4' class="littletableheader">Otros Ingresos <b><?php if($form->_status=='show' or $form->_status=='modify' ) echo str_pad($form->numero->output,8,0,0); ?></b></th>
-			</tr>
-			<tr>
 				<td class="littletableheader"><?php echo $form->tipo_doc->label  ?>*&nbsp;</td>
 				<td class="littletablerow"   ><?php echo $form->tipo_doc->output ?>&nbsp;</td>
-				<td class="littletableheader"><?php echo $form->cliente->label;  ?>*&nbsp;</td>
-				<td class="littletablerow"   ><?php echo $form->cliente->output.$form->rifci->output; ?>&nbsp;</td>
-			</tr>
-			<tr>
 				<td class="littletableheader"><?php echo $form->fecha->label;    ?>*&nbsp;</td>
 				<td class="littletablerow"   ><?php echo $form->fecha->output;   ?>&nbsp;</td>
-				<td class="littletableheader"><?php echo $form->nombre->label;   ?>&nbsp;</td>
+				<td class="littletableheader"><?php echo $form->vence->label;    ?>&nbsp;</td>
+				<td class="littletablerow"   ><?php echo $form->vence->output;   ?>&nbsp;</td>
+				<td class="littletableheader"><?php echo $form->dpto->label      ?>*&nbsp;</td>
+				<td class="littletablerow"   ><?php echo $form->dpto->output     ?>&nbsp;</td>
+			</tr>
+		</table>
+		</fieldset>
+		</td>
+	</tr>
+	<tr>
+		<td>
+		<fieldset style='border: 1px outset #9AC8DA;background: #FFFFFF;'>
+		<table width="100%" style="margin: 0; width: 100%;">
+			<tr>
+				<td class="littletableheader" width= '80'><?php echo $form->cliente->label;  ?>*&nbsp;</td>
+				<td class="littletablerow"    width='110'><?php echo $form->cliente->output ?>&nbsp;</td>
+				<td class="littletablerow"    width= '70'><?php echo $form->rifci->output; ?>&nbsp;</td>
+				<td class="littletableheader" width= '70'><?php echo $form->nombre->label;   ?>&nbsp;</td>
 				<td class="littletablerow"   ><?php echo $form->nombre->output;  ?>&nbsp;</td>
 			</tr>
 			<tr>
-				<td class="littletableheader"><?php echo $form->vence->label;    ?>&nbsp;</td>
-				<td class="littletablerow"   ><?php echo $form->vence->output;   ?>&nbsp;</td>
-				<td class="littletableheader"><?php echo $form->direc->label     ?>&nbsp;</td>
-				<td class="littletablerow"   ><?php echo $form->direc->output    ?>&nbsp;</td>
-			</tr>
-			<tr>
-				<td class="littletableheader"><?php echo $form->dpto->label      ?>*&nbsp;</td>
-				<td class="littletablerow"   ><?php echo $form->dpto->output     ?>&nbsp;</td>
 				<td class="littletableheader"><?php echo $form->sucu->label      ?>*&nbsp;</td>
 				<td class="littletablerow"   ><?php echo $form->sucu->output     ?>&nbsp;</td>
+				<td class="littletableheader"><?php echo $form->direc->label     ?>&nbsp;</td>
+				<td class="littletablerow"   colspan='2'><?php echo $form->direc->output    ?>&nbsp;</td>
 			</tr>
 		</table>
 		</fieldset>
@@ -479,8 +483,6 @@ function autocod(id){
 				</td>
 			</tr>
 		</table>
-
-
 		<fieldset style='border: 1px outset #9AC8DA;background: #FFFFFF;' id='ffafecta'>
 		<table width="100%" style="margin: 0; width: 100%;">
 			<tr>
@@ -491,8 +493,6 @@ function autocod(id){
 			</tr>
 		</table>
 		</fieldset>
-
-
 		</td>
 	</tr><tr>
 		<td>
@@ -500,14 +500,17 @@ function autocod(id){
 		<table width='100%'>
 			<tr>
 				<td class="littletablerowth"><?php echo $form->observa1->label  ?></td>
+				<td class="littletablerowth">&nbsp;</td>
 				<td class="littletablerowth"><?php echo $form->totals->label    ?></td>
 				<td class="littletablerow" align="right" style='font-size:1.2em;font-weight:bold;' ><?php echo $form->totals->output   ?></td>
 			</tr><tr>
 				<td class="littletablerow"  ><?php echo $form->observa1->output ?></td>
+				<td class="littletablerowth">&nbsp;</td>
 				<td class="littletablerowth"><?php echo $form->iva->label       ?></td>
 				<td class="littletablerow" align="right" style='font-size:1.2em;font-weight:bold;' ><?php echo $form->iva->output      ?></td>
 			</tr><tr>
 				<td class="littletablerow"  ><?php echo $form->observa2->output ?></td>
+				<td class="littletablerowth"><?php echo $form->libro->label.' '.$form->libro->output;  ?>&nbsp;</td>
 				<td class="littletablerowth"><?php echo $form->totalg->label    ?></td>
 				<td class="littletablerow" align="right" style='font-size:1.5em;font-weight:bold;' ><?php echo $form->totalg->output   ?></td>
 			</tr>
