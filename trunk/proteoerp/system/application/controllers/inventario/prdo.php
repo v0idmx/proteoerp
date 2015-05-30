@@ -45,10 +45,11 @@ class Prdo extends Controller {
 		$bodyscript = $this->bodyscript( $param['grids'][0]['gridname'], $param['grids'][1]['gridname'] );
 
 		//Botones Panel Izq
-		$grid->wbotonadd(array("id"=>"ordene" , "img"=>"images/engrana.png",  "alt" => "Orden Estimada",     "label"=>"Orden Estimada"));
-		$grid->wbotonadd(array("id"=>"descar",  "img"=>"images/engrana.png",  "alt" => "Descargar Ingredientes", "label"=>"Descargar Ingred."));
-		$grid->wbotonadd(array("id"=>"recibir", "img"=>"images/engrana.png",  "alt" => "Recibir Produccion", "label"=>"Recibir Produccion"));
-		$grid->wbotonadd(array("id"=>"cerraro", "img"=>"images/engrana.png",  "alt" => "Cerrar Orden", "label"=>"Cerrar Orden"));
+		$grid->wbotonadd(array('id'=>'fimprime', 'img'=>'assets/default/images/print.png','alt'=> 'Imprimir transferencia', 'label'=>'Reimprimir'));
+		$grid->wbotonadd(array("id"=>"ordene" ,  "img"=>"images/engrana.png",  "alt" => "Orden Estimada",     "label"=>"Orden Estimada"));
+		$grid->wbotonadd(array("id"=>"descar",   "img"=>"images/engrana.png",  "alt" => "Descargar Ingredientes", "label"=>"Descargar Ingred."));
+		$grid->wbotonadd(array("id"=>"recibir",  "img"=>"images/engrana.png",  "alt" => "Recibir Produccion", "label"=>"Recibir Produccion"));
+		$grid->wbotonadd(array("id"=>"cerraro",  "img"=>"images/engrana.png",  "alt" => "Cerrar Orden", "label"=>"Cerrar Orden"));
 
 		$WestPanel = $grid->deploywestp();
 
@@ -303,6 +304,15 @@ class Prdo extends Controller {
 			grid.trigger("reloadGrid");
 		}
 		';
+
+		$bodyscript .= '
+		$("#fimprime").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			if (id)	{
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				window.open(\''.site_url('formatos/ver/PRDO').'/\'+id, \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
+			} else { $.prompt("<h1>Por favor Seleccione una tranferencia</h1>");}
+		});';
 
 		$bodyscript .= "\n</script>\n";
 		$bodyscript .= "";
