@@ -1224,7 +1224,7 @@ class Prmo extends Controller {
 	}
 
 	//******************************************************************
-	// Dataedit para Depositos por Analizar
+	// Dataedit para Deposito por Analizar
 	//
 	function deprmo5(){
 
@@ -1244,10 +1244,12 @@ class Prmo extends Controller {
 		$edit->tipop = new hiddenField('Tipop','tipop');
 		$edit->tipop->insertValue = '5';
 
+/*
 		$edit->clipro = new inputField('Proveedor','clipro');
 		$edit->clipro->rule  = 'required||existesprv';
 		$edit->clipro->size =7;
 		$edit->clipro->maxlength =15;
+*/
 
 		$edit->tipo = new dropdownField('Tipo','tipo');
 		$edit->tipo->option('DE','Deposito');
@@ -1466,7 +1468,7 @@ class Prmo extends Controller {
 			$do->set('numero' , $numero);
 			$do->set('transac', $transac);
 
-		//Validaciones DEPOSITOS POR ANALIZAR
+		//Validaciones DEPOSITO POR ANALIZAR
 		}elseif($tipop == '5'){
 
 			if(empty($numche)){
