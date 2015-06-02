@@ -1612,18 +1612,19 @@ class Stra extends Controller {
 		$persistence = $this->rapyd->session->get_persistence($url, $this->rapyd->uri->gfid);
 		$back= (isset($persistence['back_uri'])) ? $persistence['back_uri'] : $url;
 
-		$this->genesal=false;
+		$this->genesal = false;
 
+		// Por si falta el Almacen
 		$mSQL="INSERT IGNORE INTO caub  (ubica,ubides,gasto) VALUES ('PROD','PRODUCCION','S')";
 		$this->db->simple_query($mSQL);
 
 		$this->db->select(array('a.fecha','a.almacen','a.numero','a.status'));
 		$this->db->from('prdo AS a');
-		$this->db->where('a.id' , $id_ordp);
+		$this->db->where('a.id' , $id_prdo);
 		$mSQL_1 = $this->db->get();
 
 		if($mSQL_1->num_rows() == 1 ){
-		$row = $mSQL_1->row();
+			$row = $mSQL_1->row();
 			$_POST=array(
 				'btn_submit' => 'Guardar',
 				'envia'      => $row->almacen,
@@ -1632,24 +1633,14 @@ class Stra extends Controller {
 				'observ1'    => 'ORDEN DE PRODUCCION NRO.'.$row->numero
 			);
 
-
-		$mSQL = "SELECT c.codigo, c.descrip, SUM(a.cana * c.cantidad) cantidad
+			$mSQL = "SELECT c.codigo, c.descrip, SUM(a.cana * c.cantidad) cantidad
 				FROM itprdo    a
 				JOIN sinv      b ON a.codigo=b.codigo
 				JOIN sinvpitem c ON a.codigo = c.producto
 				WHERE a.numero = '".$row->numero."'
 				GROUP BY c.codigo";
 
-/*
-			$sel=array('a.codigo','b.descrip','a.cantidad');
-			$this->db->select($sel);
-			$this->db->from(' AS a');
-			$this->db->join('sinv AS b','a.codigo=b.codigo');
-			$this->db->where('a.id_ordp' , $id_ordp);
-*/
-
-
-			$mSQL_2 = $this->query($mSQL);
+			$mSQL_2 = $this->db->query($mSQL);
 			$items  = $mSQL_2->result();
 
 			foreach ( $items as $id => $itrow ){
@@ -1658,17 +1649,16 @@ class Stra extends Controller {
 				$ind='descrip_'.$id;
 				$_POST[$ind] = $itrow->descrip;
 				$ind='cantidad_'.$id;
-				$_POST[$ind] = $itrow->cantidad*$cana;
+				$_POST[$ind] = $itrow->cantidad;
 			}
 			$rt = $this->dataedit();
 			if(strripos($rt,'Guardada')){
-				$data = array('status' => 'P','reserva'=>'S');
-				$this->db->where('id', $id_ordp);
-				$this->db->update('ordp', $data);
+				$data = array('status' => 'I');
+				$this->db->where('id', $id_prdo);
+				$this->db->update('prdo', $data);
 			}
-
 			echo $rt.' '.anchor($back,'regresar');
-			redirect($back);
+			//redirect($back);
 		}else{
 			exit();
 		}
