@@ -906,7 +906,6 @@ class Stra extends Controller {
 		$edit->on_save_redirect=false;
 		$edit->build();
 
-
 		if($this->genesal){
 			if($edit->on_success()){
 				$rt=array(
@@ -1605,14 +1604,15 @@ class Stra extends Controller {
 	//******************************************************************
 	// Carga los ingredientes
 	//
-	function creaprdo($id_prdo){
+	function creaprdo($status,$id_prdo){
 		$url='inventario/prdo/dataedit/show/'.$id_prdo;
 
 		$this->rapyd->uri->keep_persistence();
 		$persistence = $this->rapyd->session->get_persistence($url, $this->rapyd->uri->gfid);
-		$back= (isset($persistence['back_uri'])) ? $persistence['back_uri'] : $url;
+		//$back= (isset($persistence['back_uri'])) ? $persistence['back_uri'] : $url;
+		$back= $url;
 
-		$this->genesal = false;
+		$this->genesal = true;
 
 		// Por si falta el Almacen
 		$mSQL="INSERT IGNORE INTO caub  (ubica,ubides,gasto) VALUES ('PROD','PRODUCCION','S')";
@@ -1651,13 +1651,39 @@ class Stra extends Controller {
 				$ind='cantidad_'.$id;
 				$_POST[$ind] = $itrow->cantidad;
 			}
-			$rt = $this->dataedit();
-			if(strripos($rt,'Guardada')){
-				$data = array('status' => 'I');
+			ob_start();
+				$this->dataedit();
+				$sal = ob_get_contents();
+			@ob_end_clean();
+			$jsal=json_decode($sal);
+			if($jsal->status=='B'){
+				$rt['status']  = 'B';
+				$rt['mensaje'] = 'Problema al descontar: '.$jsal->mensaje;
+			}else{
+				$data = array('status' => 'A');
 				$this->db->where('id', $id_prdo);
 				$this->db->update('prdo', $data);
+				$rt['status']  = 'A';
+				$rt['mensaje'] = 'Descuento : '.$jsal->mensaje;
+
 			}
-			echo $rt.' '.anchor($back,'regresar');
+			echo json_encode($rt);;
+/*
+			$rt = $this->dataedit();
+			if(strripos($rt,'Guardada')){
+				$data = array('status' => 'A');
+				$this->db->where('id', $id_prdo);
+				$this->db->update('prdo', $data);
+			} else {
+				$rt1=array(
+					'status' =>'B',
+					'mensaje'=>$rt,
+					'pk'     =>'0'
+				);
+				echo $rt;
+				//.' '.anchor($back,'regresar');
+			}
+*/
 			//redirect($back);
 		}else{
 			exit();
@@ -1674,7 +1700,7 @@ class Stra extends Controller {
 		$dbalmacen= $this->db->escape($almacen);
 		$tipo     = trim($this->datasis->dameval("SELECT tipo FROM sinv WHERE codigo=${dbcodigo}"));
 		if(empty($tipo)){
-			$this->validation->set_message('chcananeg', 'El art&iacute;culo '.htmlspecialchars($codigo).' no tiene existe');
+			$this->validation->set_message('chcananeg', 'El producto '.htmlspecialchars($codigo).' no tiene existe');
 			return false;
 		}
 
@@ -1688,11 +1714,11 @@ class Stra extends Controller {
 			$existen = floatval($this->datasis->dameval($mSQL));
 			$val     = floatval($val);
 			if($val>$existen){
-				$this->validation->set_message('chcananeg', 'El art&iacute;culo '.htmlspecialchars($codigo).' no tiene cantidad suficiente para transferirse ('.nformat($existen).')');
+				$this->validation->set_message('chcananeg', 'El producto '.htmlspecialchars($codigo).' no tiene cantidad suficiente para transferirse ('.nformat($existen).')');
 				return false;
 			}
 		}else{
-			$this->validation->set_message('chcananeg', 'El art&iacute;culo '.htmlspecialchars($codigo).' no se puede transferir por el tipo, solo se permite articulo y fraccion');
+			$this->validation->set_message('chcananeg', 'El producto '.htmlspecialchars($codigo).' no se puede transferir por el tipo, solo se permite articulo y fraccion');
 			return false;
 		}
 		return true;
@@ -1702,7 +1728,7 @@ class Stra extends Controller {
 		$dbalma=$this->db->escape($val);
 		$invfis=$this->datasis->dameval('SELECT invfis FROM caub WHERE ubica='.$dbalma);
 		if($invfis=='S'){
-			$this->validation->set_message('chalma','El almac&eacute;n en el campo %s no puede ser tipo inventario');
+			$this->validation->set_message('chalma','El almacen en el campo %s no puede ser tipo inventario');
 			return false;
 		}
 		return true;
@@ -1713,7 +1739,7 @@ class Stra extends Controller {
 		if($recibe!=$envia){
 			return true;
 		}
-		$this->validation->set_message('chrecibe','El almac&eacute;n que env&iacute;a no puede ser igual a que recibe');
+		$this->validation->set_message('chrecibe','El almacen que envia no puede ser igual a que recibe');
 		return false;
 	}
 
