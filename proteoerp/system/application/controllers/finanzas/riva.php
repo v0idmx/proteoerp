@@ -32,6 +32,7 @@ class Riva extends Controller {
 		$grid = $this->defgrid();
 		$param['grids'][] = $grid->deploy();
 
+		$tfirma=intval($this->datasis->dameval('SELECT COUNT(*) AS cana FROM formatos WHERE nombre=\'RIVA\' AND proteo LIKE \'%$sfirma%\''));
 		$bodyscript = '
 		<script type="text/javascript">
 
@@ -39,7 +40,25 @@ class Riva extends Controller {
 				var id = jQuery("#newapi'. $param['grids'][0]['gridname'].'").jqGrid(\'getGridParam\',\'selrow\');
 				if(id){
 					var ret = jQuery("#newapi'. $param['grids'][0]['gridname'].'").jqGrid(\'getRowData\',id);
-					window.open(\''.base_url().'formatos/ver/RIVA/\'+id, \'_blank\', \'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-400), screeny=((screen.availWidth/2)-300)\');
+					';
+					if($tfirma>0){
+						$bodyscript .= '
+						btns={ "Con firma": "S","Sin firma":"N"};
+
+						$.prompt("<h2>Qu&eacute; modalidad desea imprimir?</h2>",{
+							buttons: btns,
+							submit: function(e,v,m,f){
+								if(v=="S"){
+									window.open(\''.site_url('formatos/ver/RIVA').'/\'+id+\'/S\', \'_blank\', \'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-400), screeny=((screen.availWidth/2)-300)\');
+								}else{
+									window.open(\''.site_url('formatos/ver/RIVA').'/\'+id+\'/N\', \'_blank\', \'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-400), screeny=((screen.availWidth/2)-300)\');
+								}
+							}
+						});';
+					}else{
+						$bodyscript .= 'window.open(\''.site_url('formatos/ver/RIVA').'/\'+id, \'_blank\', \'width=800,height=600,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-400), screeny=((screen.availWidth/2)-300)\');';
+					}
+					$bodyscript .= '
 				}else{
 					$.prompt("<h1>Por favor Seleccione una Retenci&oacute;n</h1>");
 				}

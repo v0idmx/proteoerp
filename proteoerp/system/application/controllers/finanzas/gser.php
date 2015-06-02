@@ -280,13 +280,31 @@ class gser extends Controller {
 		});';
 
 		//Imprimir retencion
+		$tfirma=intval($this->datasis->dameval('SELECT COUNT(*) AS cana FROM formatos WHERE nombre=\'RIVA\' AND proteo LIKE \'%$sfirma%\''));
 		$bodyscript .= '
 		$("#reteprint").click( function(){
 			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id)	{
 				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
-				if(Number(ret.reteiva) > 0){
-					window.open(\''.site_url($this->url.'printrete').'/\'+id, \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
+				if(Number(ret.reteiva) > 0){';
+					if($tfirma>0){
+						$bodyscript .= '
+						btns={ "Con firma": "S","Sin firma":"N"};
+
+						$.prompt("<h2>Qu&eacute; modalidad desea imprimir?</h2>",{
+							buttons: btns,
+							submit: function(e,v,m,f){
+								if(v=="S"){
+									window.open(\''.site_url($this->url.'printrete').'/\'+id+\'/S\', \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
+								}else{
+									window.open(\''.site_url($this->url.'printrete').'/\'+id+\'/N\', \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
+								}
+							}
+						});';
+					}else{
+						$bodyscript .= 'window.open(\''.site_url($this->url.'printrete').'/\'+id, \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');';
+					}
+					$bodyscript .= '
 				}else{
 					$.prompt("<h1>El gasto seleccionado no tiene retenci&oacute;n de iva</h1>");
 				}
@@ -4398,7 +4416,7 @@ class gser extends Controller {
 		}
 	}
 
-	function printrete($id_gser){
+	function printrete($id_gser,$firma='N'){
 		$sel=array('b.id');
 		$this->db->select($sel);
 		$this->db->from('gser AS a');
@@ -4410,7 +4428,11 @@ class gser extends Controller {
 
 		$row = $mSQL_1->row();
 		$id  = $row->id;
-		redirect("formatos/ver/RIVA/${id}");
+		if(!($firma=='N' || $firma=='S')){
+			$firma='N';
+		}
+
+		redirect("formatos/ver/RIVA/${id}/${firma}");
 	}
 
 	function sprvbu(){

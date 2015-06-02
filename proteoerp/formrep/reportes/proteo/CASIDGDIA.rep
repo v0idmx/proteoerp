@@ -1,20 +1,26 @@
-$this->rapyd->load("datafilter");
-$this->rapyd->load("datatable");
+/**
+ * ProteoERP
+ *
+ * @autor    Andres Hocevar
+ * @license  GNU GPL v3
+*/
+$this->rapyd->load('datafilter');
 $mCPLAD=array(
 	'tabla'   =>'cpla',
 	'columnas'=>array(
-	
-	'codigo' =>'Código',
-	'descrip'=>'Descripción'),
+		'codigo' =>'Código',
+		'descrip'=>'Descripción'
+	),
 	'filtro'  =>array('codigo'=>'Código','descrip'=>'Descripción'),
 	'retornar'=>array('codigo'=>'codigod'),
 	'titulo'  =>'Buscar Cuenta');
-  
+
 $mCPLAH=array(
 	'tabla'   =>'cpla',
 	'columnas'=>array(
 		'codigo' =>'Código',
-		'descrip'=>'Descripción'),
+		'descrip'=>'Descripción'
+	),
 	'filtro'  =>array('codigo'=>'Código','descrip'=>'Descripción'),
 	'retornar'=>array('codigo'=>'codigoh'),
 	'titulo'  =>'Buscar Cuenta');
@@ -22,49 +28,49 @@ $mCPLAH=array(
 $bCPLAD=$this->datasis->modbus($mCPLAD,'cplad');
 $bCPLAH=$this->datasis->modbus($mCPLAH,'cplah');
 
-$filter = new DataFilter("Filtro del Reporte");
+$filter = new DataFilter('Filtro del Reporte');
 $filter->attributes=array('onsubmit'=>'is_loaded()');
 
-$filter->db->select('CONCAT("REDG",a.fecha+0) comprob, MID(a.cuenta,1, 12) AS cuenta, sum(a.debe) debe, sum(a.haber) haber, a.fecha,  c.descrip as cpladesc');
-$filter->db->from('itcasi as a');
-$filter->db->join("cpla as c" ,"a.cuenta=c.codigo",'LEFT');
+$filter->db->select('CONCAT("REDG",a.fecha+0) comprob, MID(a.cuenta,1, 12) AS cuenta, SUM(a.debe) debe, SUM(a.haber) haber, a.fecha,  c.descrip AS cpladesc');
+$filter->db->from('itcasi AS a');
+$filter->db->join('cpla   AS c' ,'a.cuenta=c.codigo','LEFT');
 $filter->db->groupby('a.fecha, (debe=0), a.cuenta ');
 $filter->db->orderby('a.fecha');
 
-$filter->fechad = new dateField("Desde", "fechad",'d/m/Y');
-$filter->fechah = new dateField("Hasta", "fechah",'d/m/Y');
-$filter->fechad->clause  =$filter->fechah->clause="where";
-$filter->fechad->db_name =$filter->fechah->db_name="a.fecha";
-$filter->fechad->insertValue = date("Y-m-d");
-$filter->fechah->insertValue = date("Y-m-d");
-$filter->fechad->operator=">=";
-$filter->fechah->operator="<=";
-$filter->fechah->group = "Fecha";
-$filter->fechad->group = "Fecha";
+$filter->fechad = new dateField('Desde', 'fechad','d/m/Y');
+$filter->fechah = new dateField('Hasta', 'fechah','d/m/Y');
+$filter->fechad->clause  =$filter->fechah->clause='where';
+$filter->fechad->db_name =$filter->fechah->db_name='a.fecha';
+$filter->fechad->insertValue = date('Y-m-d');
+$filter->fechah->insertValue = date('Y-m-d');
+$filter->fechad->operator='>=';
+$filter->fechah->operator='<=';
+$filter->fechah->group = 'Fecha';
+$filter->fechad->group = 'Fecha';
 
-$filter->cuentad = new inputField("Desde la  Cuenta", "codigod");
-$filter->cuentad->db_name = "codigo";
-$filter->cuentad->clause  = "where";
-$filter->cuentad->operator=">="; 
+$filter->cuentad = new inputField('Desde la  Cuenta', 'codigod');
+$filter->cuentad->db_name = 'codigo';
+$filter->cuentad->clause  = 'where';
+$filter->cuentad->operator='>=';
 $filter->cuentad->append($bCPLAD);
-$filter->cuentad->group = "Cuenta";
+$filter->cuentad->group = 'Cuenta';
 
-$filter->cuentah = new inputField("Hasta", "codigoh");
-$filter->cuentah->db_name  = "codigo";
-$filter->cuentah->clause   = "where";
+$filter->cuentah = new inputField('Hasta', 'codigoh');
+$filter->cuentah->db_name  = 'codigo';
+$filter->cuentah->clause   = 'where';
 $filter->cuentah->append($bCPLAH);
-$filter->cuentah->group    = "Cuenta";
-$filter->cuentah->operator = "<=";
+$filter->cuentah->group    = 'Cuenta';
+$filter->cuentah->operator = '<=';
 
-$filter->salformat = new radiogroupField("Formato de salida","salformat");
+$filter->salformat = new radiogroupField('Formato de salida','salformat');
 $filter->salformat->options($this->opciones);
 $filter->salformat->insertValue ='PDF';
 $filter->salformat->clause = '';
 
-$filter->buttons("search");
+$filter->buttons('search');
 $filter->build();
 
-if($this->rapyd->uri->is_set("search")){
+if($this->rapyd->uri->is_set('search')){
 
 	$mSQL=$this->rapyd->db->_compile_select();
 	//echo $mSQL;
@@ -75,19 +81,18 @@ if($this->rapyd->uri->is_set("search")){
 	if (!empty($filter->cuentad->newValue))  $sobretabla.='  Cuenta Desde: ('.$filter->cuentad->newValue.') '.$this->datasis->dameval('SELECT descrip FROM cpla WHERE codigo="'.$filter->cuentad->newValue.'"');
 	if (!empty($filter->cuentah->newValue))  $sobretabla.='  Cuenta Hasta: ('.$filter->cuentah->newValue.') '.$this->datasis->dameval('SELECT descrip FROM cpla WHERE codigo="'.$filter->cuentah->newValue.'"');
 
-
 	$pdf = new PDFReporte($mSQL);
 	$pdf->setHeadValores('TITULO1');
 	$pdf->setSubTitulo($sobretabla);
 	$pdf->setSubHead('RIF: '.$this->datasis->traevalor('RIF'),9);
 
-	$pdf->setTitulo("Libro Diario General");
+	$pdf->setTitulo('Libro Diario General');
 	$pdf->AddPage();
 	$pdf->setTableTitu(8,'Times');
-	$pdf->AddCol('cuenta'  ,30,'Cuenta'             ,'L',8);
-	$pdf->AddCol('cpladesc',55,'Nombre de la Cuenta','L',8);
-	$pdf->AddCol('debe'    ,30,'Debitos'            ,'R',8);
-	$pdf->AddCol('haber'   ,30,'Creditos'           ,'R',8);
+	$pdf->AddCol('cuenta'  ,30,'Cuenta'             ,'L',10);
+	$pdf->AddCol('cpladesc',90,'Nombre de la Cuenta','L',10);
+	$pdf->AddCol('debe'    ,35,'Debitos'            ,'R',10);
+	$pdf->AddCol('haber'   ,35,'Creditos'           ,'R',10);
 	$pdf->setTotalizar('debe','haber');
 
 	$pdf->setGrupoLabel('Comprobante (<#comprob#>) Fecha: <#fecha#>');
@@ -97,6 +102,6 @@ if($this->rapyd->uri->is_set("search")){
 }else{
 	$data['filtro'] = $filter->output;
 	$data['titulo'] = '<h2 class="mainheader">Libro Diario General</h2>';
-	$data['head'] = $this->rapyd->get_head();
+	$data['head']   = $this->rapyd->get_head();
 	$this->load->view('view_freportes', $data);
 }

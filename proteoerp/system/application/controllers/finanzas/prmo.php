@@ -1572,12 +1572,6 @@ class Prmo extends Controller {
 			return false;
 		}
 
-		/*$reg = $this->datasis->damereg("SELECT * FROM prmo WHERE transac=${transacdb}");
-		if(empty($reg)){
-			$do->error_message_ar['pre_del'] = 'Transaccion no valida '.$transac;
-			return false;
-		}*/
-
 		$mSQL = "SELECT COUNT(*) AS cana FROM sprm WHERE transac=${transacdb} AND abonos>0";
 		$cana = intval($this->datasis->dameval($mSQL));
 		if($cana > 0){
@@ -1605,6 +1599,7 @@ class Prmo extends Controller {
 		$negreso = $do->get('negreso');
 		$tipo    = $do->get('tipo');
 		$docum   = $do->get('docum');
+		$numero  = $do->get('numero');
 
 
 		$dbcodban= $this->db->escape($codban);
@@ -2086,7 +2081,7 @@ class Prmo extends Controller {
 
 		}
 
-		logusu($do->table,"Creo $this->tits ${primary} ");
+		logusu($do->table,"Creo $this->tits ${numero} ${primary} ");
 	}
 
 	function _post_update($do){
