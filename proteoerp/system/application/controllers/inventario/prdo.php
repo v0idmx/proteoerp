@@ -275,7 +275,7 @@ class Prdo extends Controller {
 					buttons: { Descargar: true, Cancelar: false },
 					submit: function(e,v,m,f){
 						if(v){
-							$.get("'.site_url('inventario/stra/creaprdo').'/"+id,
+							$.get("'.site_url('inventario/stra/creaprdo/insert').'/"+id,
 							function(r){
 								try{
 									var json = JSON.parse(r);
@@ -287,7 +287,7 @@ class Prdo extends Controller {
 										alert(json.mensaje);
 									}
 								}catch(e){
-									alert("Error en respuesta");
+									alert("Error en respuesta "+r);
 								}
 							});
 						}
