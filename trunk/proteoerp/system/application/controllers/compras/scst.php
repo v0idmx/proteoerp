@@ -284,6 +284,8 @@ class Scst extends Controller {
 			} else { $.prompt("<h1>Por favor Seleccione un registro</h1>");}
 		});';
 
+
+		$tfirma=intval($this->datasis->dameval('SELECT COUNT(*) AS cana FROM formatos WHERE nombre=\'RIVA\' AND proteo LIKE \'%$sfirma%\''));
 		//Imprimir retencion
 		$bodyscript .= '
 			jQuery("#reteprin").click( function(){
@@ -291,9 +293,25 @@ class Scst extends Controller {
 				if (id)	{
 					var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 					var ret    = $("#newapi'.$grid0.'").getRowData(id);
-					if ( ret.actuali >= ret.fecha ) {
-						'.$this->datasis->jwinopen(site_url($this->url.'printrete').'/\'+id+"/id"').';
+					if ( ret.actuali >= ret.fecha ) {';
+					if($tfirma>0){
+						$bodyscript .= '
+						btns={ "Con firma": "S","Sin firma":"N"};
+
+						$.prompt("<h2>Qu&eacute; modalidad desea imprimir?</h2>",{
+							buttons: btns,
+							submit: function(e,v,m,f){
+								if(v=="S"){
+									'.$this->datasis->jwinopen(site_url($this->url.'printrete').'/\'+id+\'/S\'').';
+								}else{
+									'.$this->datasis->jwinopen(site_url($this->url.'printrete').'/\'+id+\'/N\'').';
+								}
+							}
+						});';
 					}else{
+						$bodyscript .= $this->datasis->jwinopen(site_url($this->url.'printrete').'/\'+id').';';
+					}
+					$bodyscript .= '}else{
 						$.prompt("<h1>Debe actualizar el documento para imprimir la retenci&oacute;n.</h1>");
 					}
 				} else {
@@ -5062,7 +5080,7 @@ class Scst extends Controller {
 		return false;
 	}
 
-	function printrete($id_scst){
+	function printrete($id_scst,$firma='N'){
 		$sel=array('b.id');
 		$this->db->select($sel);
 		$this->db->from('scst AS a');
@@ -5074,7 +5092,10 @@ class Scst extends Controller {
 
 		$row = $mSQL_1->row();
 		$id  = $row->id;
-		redirect("formatos/ver/RIVA/${id}");
+		if(!($firma=='N' || $firma=='S')){
+			$firma='N';
+		}
+		redirect("formatos/ver/RIVA/${id}/${firma}");
 	}
 
 	function _pond($existen,$itcana,$pond,$ultimo){
