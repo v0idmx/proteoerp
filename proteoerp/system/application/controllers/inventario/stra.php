@@ -870,6 +870,12 @@ class Stra extends Controller {
 		$edit->observ1->size =32;
 		$edit->observ1->maxlength =30;
 
+		$edit->ordp= new inputField('O. Prod', 'ordp');
+		$edit->ordp->mode='autohide';
+		$edit->ordp->size=10;
+		$edit->ordp->when=array('show','modify');
+
+
 		//**************************************************************
 		// Comienza el Detalle
 		$edit->codigo = new inputField('C&oacute;digo <#o#>', 'codigo_<#i#>');
@@ -950,13 +956,13 @@ class Stra extends Controller {
 		$modbus=array(
 			'tabla'   =>'sinv',
 			'columnas'=>array(
-				'codigo' =>'C&oacute;digo',
-				'descrip'=>'Descripci&oacute;n',
-				'precio1' =>'Precio 1',
-				'precio2' =>'Precio 2',
-				'precio3' =>'Precio 3',
-				'existen' =>'Existencia',
-				'peso'=>'Peso'),
+				'codigo'  => 'C&oacute;digo',
+				'descrip' => 'Descripci&oacute;n',
+				'precio1' => 'Precio 1',
+				'precio2' => 'Precio 2',
+				'precio3' => 'Precio 3',
+				'existen' => 'Existencia',
+				'peso'    => 'Peso'),
 			'filtro'  =>array('codigo' =>'C&oacute;digo','descrip'=>'Descripci&oacute;n'),
 			'retornar'=>array('codigo'=>'codigo_<#i#>','descrip'=>'descrip_<#i#>'),
 			'where'   =>'activo = "S" AND tipo="Articulo"',
@@ -1621,6 +1627,7 @@ class Stra extends Controller {
 		$this->db->select(array('a.fecha','a.almacen','a.numero','a.status'));
 		$this->db->from('prdo AS a');
 		$this->db->where('a.id' , $id_prdo);
+		$this->db->where('a.status' , 'A');
 		$mSQL_1 = $this->db->get();
 
 		if($mSQL_1->num_rows() == 1 ){
@@ -1630,7 +1637,8 @@ class Stra extends Controller {
 				'envia'      => $row->almacen,
 				'fecha'      => dbdate_to_human($row->fecha),
 				'recibe'     => 'PROD',
-				'observ1'    => 'ORDEN DE PRODUCCION NRO.'.$row->numero
+				'observ1'    => 'INGREDIENTES OP NRO.'.$row->numero,
+				'ordp'       => $row->numero
 			);
 
 			$mSQL = "SELECT c.codigo, c.descrip, SUM(a.cana * c.cantidad) cantidad
@@ -1660,33 +1668,91 @@ class Stra extends Controller {
 				$rt['status']  = 'B';
 				$rt['mensaje'] = 'Problema al descontar: '.$jsal->mensaje;
 			}else{
-				$data = array('status' => 'A');
+				$data = array('status' => 'I');
 				$this->db->where('id', $id_prdo);
 				$this->db->update('prdo', $data);
 				$rt['status']  = 'A';
-				$rt['mensaje'] = 'Descuento : '.$jsal->mensaje;
+				$rt['mensaje'] = 'Ingredientes descontados: '.$jsal->mensaje;
+			}
+			echo json_encode($rt);;
+		}else{
+			$rt['status']  = 'X';
+			$rt['mensaje'] = 'Orden esta apta';
+			echo json_encode($rt);;
+		}
+	}
+
+	//******************************************************************
+	// Carga los productos terminados
+	//
+	function creaprdoc($status,$id_prdo){
+		$url='inventario/prdo/dataedit/show/'.$id_prdo;
+
+		$this->rapyd->uri->keep_persistence();
+		$persistence = $this->rapyd->session->get_persistence($url, $this->rapyd->uri->gfid);
+		//$back= (isset($persistence['back_uri'])) ? $persistence['back_uri'] : $url;
+		$back= $url;
+
+		$this->genesal = true;
+
+		// Por si falta el Almacen
+		$mSQL="INSERT IGNORE INTO caub  (ubica,ubides,gasto) VALUES ('PROD','PRODUCCION','S')";
+		$this->db->simple_query($mSQL);
+
+		$this->db->select(array('a.fecha','a.almacen','a.numero','a.status'));
+		$this->db->from('prdo AS a');
+		$this->db->where('a.status' , 'I');
+		$this->db->where('a.id' , $id_prdo);
+		$mSQL_1 = $this->db->get();
+
+		if($mSQL_1->num_rows() == 1 ){
+			$row = $mSQL_1->row();
+			$_POST=array(
+				'btn_submit' => 'Guardar',
+				'recibe'     => $row->almacen,
+				'fecha'      => dbdate_to_human($row->fecha),
+				'envia'      => 'PROD',
+				'observ1'    => 'TERMINADOS OP NRO.'.$row->numero,
+				'ordp'       => $row->numero
+			);
+
+			$mSQL = "SELECT a.codigo, b.descrip, a.producido cantidad
+				FROM itprdop   a
+				JOIN sinv      b ON a.codigo = b.codigo
+				WHERE a.numero = '".$row->numero."'";
+
+			$mSQL_2 = $this->db->query($mSQL);
+			$items  = $mSQL_2->result();
+
+			foreach ( $items as $id => $itrow ){
+				$ind='codigo_'.$id;
+				$_POST[$ind] = $itrow->codigo;
+				$ind='descrip_'.$id;
+				$_POST[$ind] = $itrow->descrip;
+				$ind='cantidad_'.$id;
+				$_POST[$ind] = $itrow->cantidad;
+			}
+			ob_start();
+				$this->dataedit();
+				$sal = ob_get_contents();
+			@ob_end_clean();
+			$jsal=json_decode($sal);
+			if($jsal->status=='B'){
+				$rt['status']  = 'B';
+				$rt['mensaje'] = 'Problema al descontar: '.$jsal->mensaje;
+			}else{
+				$data = array('status' => 'C');
+				$this->db->where('id', $id_prdo);
+				$this->db->update('prdo', $data);
+				$rt['status']  = 'C';
+				$rt['mensaje'] = 'Produccion cargada : '.$jsal->mensaje;
 
 			}
 			echo json_encode($rt);;
-/*
-			$rt = $this->dataedit();
-			if(strripos($rt,'Guardada')){
-				$data = array('status' => 'A');
-				$this->db->where('id', $id_prdo);
-				$this->db->update('prdo', $data);
-			} else {
-				$rt1=array(
-					'status' =>'B',
-					'mensaje'=>$rt,
-					'pk'     =>'0'
-				);
-				echo $rt;
-				//.' '.anchor($back,'regresar');
-			}
-*/
-			//redirect($back);
 		}else{
-			exit();
+			$rt['status']  = 'X';
+			$rt['mensaje'] = 'Orden esta apta';
+			echo json_encode($rt);;
 		}
 	}
 
