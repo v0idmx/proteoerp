@@ -49,7 +49,7 @@ class Prdo extends Controller {
 		$grid->wbotonadd(array("id"=>"ordene" ,  "img"=>"images/engrana.png",  "alt" => "Orden Estimada",     "label"=>"Orden Estimada"));
 		$grid->wbotonadd(array("id"=>"descar",   "img"=>"images/engrana.png",  "alt" => "Descargar Ingredientes", "label"=>"Descargar Ingred."));
 		$grid->wbotonadd(array("id"=>"recibir",  "img"=>"images/engrana.png",  "alt" => "Recibir Produccion", "label"=>"Recibir Produccion"));
-		$grid->wbotonadd(array("id"=>"cerraro",  "img"=>"images/engrana.png",  "alt" => "Cerrar Orden", "label"=>"Cerrar Orden"));
+		$grid->wbotonadd(array("id"=>"cerrado",  "img"=>"images/engrana.png",  "alt" => "Cerrar Orden", "label"=>"Cerrar Orden"));
 
 		$WestPanel = $grid->deploywestp();
 
@@ -153,6 +153,7 @@ class Prdo extends Controller {
 				$.prompt("<h1>Por favor Seleccione un Registro</h1>");
 			}
 		};';
+
 		//Wraper de javascript
 		$bodyscript .= '
 		$(function() {
@@ -228,7 +229,7 @@ class Prdo extends Controller {
 			buttons: {
 				"Aceptar": function() {
 					$("#fborra").html("");
-					jQuery("#newapi'.$grid0.'").trigger("reloadGrid");
+					$("#newapi'.$grid0.'").trigger("reloadGrid");
 					$( this ).dialog( "close" );
 				},
 			},
@@ -253,46 +254,90 @@ class Prdo extends Controller {
 			function(){
 				var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 				if(id){
-					$.ajax({
-						url: "'.base_url().$this->url.'fabri/"+id+"/1",
-						success: function(msg){
-							$("#ladicional").html(msg);
-						}
-					});
-					//window.open(\''.site_url('inventario/prdo/recibir/').'/\'+id, \'_blank\', \'width=700, height=500, scrollbars=yes, status=yes, resizable=yes,screenx=((screen.availHeight/2)-300), screeny=((screen.availWidth/2)-400)\');
+					var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+					if ( ret.status <> "C" ){
+						$.ajax({
+							url: "'.base_url().$this->url.'fabri/"+id+"/1",
+							success: function(msg){
+								$("#ladicional").html(msg);
+							}
+						});
+					} else {
+						$.prompt("<h1>Por favor Seleccione una Orden no Cerrada</h1>");
+					}
 				} else {
 					$.prompt("<h1>Por favor Seleccione una Orden</h1>");
 				}
 		})';
 
+		$bodyscript .= '
+		$("#cerrado").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			if(id){
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				if ( ret.status == "I" ){
+					$.prompt( "<h1>Cerrar Orden Nro. "+ret.numero+" ?</h1>", {
+						buttons: { Cerrar: true, Salir: false },
+						submit: function(e,v,m,f){
+							if(v){
+								$.get("'.site_url('inventario/stra/creaprdoc/insert').'/"+id,
+								function(r){
+									try{
+										var json = JSON.parse(r);
+										if (json.status == "A"){
+											alert(json.mensaje);
+											grid.trigger("reloadGrid");
+											return true;
+										}else{
+											alert(json.mensaje);
+										}
+									} catch(e) {
+										alert("Error en respuesta "+r);
+									}
+								});
+							}
+						}
+					});
+				} else {
+					$.prompt("<h1>Por favor Seleccione una Orden con status I</h1>");
+				}
+			} else {
+				$.prompt("<h1>Por favor Seleccione una Orden</h1>");
+			}
+
+		})';
 
 		$bodyscript .= '
 		$("#descar").click(function(){
 			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if(id){
 				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
-				$.prompt( "<h1>Descargar ingredientes Orden Nro. "+ret.numero+" ?</h1>", {
-					buttons: { Descargar: true, Cancelar: false },
-					submit: function(e,v,m,f){
-						if(v){
-							$.get("'.site_url('inventario/stra/creaprdo/insert').'/"+id,
-							function(r){
-								try{
-									var json = JSON.parse(r);
-									if (json.status == "A"){
-										alert("Ingredientes descargado");
-										grid.trigger("reloadGrid");
-										return true;
-									}else{
-										alert(json.mensaje);
+				if ( ret.status == "A" ){
+					$.prompt( "<h1>Descargar ingredientes Orden Nro. "+ret.numero+" ?</h1>", {
+						buttons: { Descargar: true, Cancelar: false },
+						submit: function(e,v,m,f){
+							if(v){
+								$.get("'.site_url('inventario/stra/creaprdo/insert').'/"+id,
+								function(r){
+									try{
+										var json = JSON.parse(r);
+										if (json.status == "A"){
+											alert(json.mensaje);
+											grid.trigger("reloadGrid");
+											return true;
+										}else{
+											alert(json.mensaje);
+										}
+									}catch(e){
+										alert("Error en respuesta "+r);
 									}
-								}catch(e){
-									alert("Error en respuesta "+r);
-								}
-							});
+								});
+							}
 						}
-					}
-				});
+					});
+				} else {
+					$.prompt("<h1>Por favor Seleccione una Orden con status A</h1>");
+				}
 			} else {
 				$.prompt("<h1>Por favor Seleccione una Orden</h1>");
 			}
