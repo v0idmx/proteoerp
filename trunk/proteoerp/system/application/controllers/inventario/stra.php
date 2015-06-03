@@ -1641,7 +1641,7 @@ class Stra extends Controller {
 				'ordp'       => $row->numero
 			);
 
-			$mSQL = "SELECT c.codigo, c.descrip, SUM(a.cana * c.cantidad) cantidad
+			$mSQL = "SELECT c.codigo, c.descrip, SUM(a.ordenado * c.cantidad) cantidad
 				FROM itprdo    a
 				JOIN sinv      b ON a.codigo=b.codigo
 				JOIN sinvpitem c ON a.codigo = c.producto
