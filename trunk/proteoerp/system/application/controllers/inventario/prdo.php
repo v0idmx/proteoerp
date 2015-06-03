@@ -286,7 +286,7 @@ class Prdo extends Controller {
 										var json = JSON.parse(r);
 										if (json.status == "A"){
 											alert(json.mensaje);
-											grid.trigger("reloadGrid");
+											$("#newapi'.$grid0.'").trigger("reloadGrid");
 											return true;
 										}else{
 											alert(json.mensaje);
@@ -323,7 +323,7 @@ class Prdo extends Controller {
 										var json = JSON.parse(r);
 										if (json.status == "A"){
 											alert(json.mensaje);
-											grid.trigger("reloadGrid");
+											$("#newapi'.$grid0.'").trigger("reloadGrid");
 											return true;
 										}else{
 											alert(json.mensaje);
