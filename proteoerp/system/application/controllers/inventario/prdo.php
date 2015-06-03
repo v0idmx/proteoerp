@@ -1428,7 +1428,7 @@ $tabla .= '
 		}
 
 		// Calcular ingredientes
-		$mSQL = "SELECT c.codigo, SUM(a.cana * c.cantidad) canti  
+		$mSQL = "SELECT c.codigo, SUM(a.ordenado * c.cantidad) canti  
 				FROM itprdo    a 
 				JOIN sinv      b ON a.codigo=b.codigo
 				JOIN sinvpitem c ON a.codigo = c.producto
