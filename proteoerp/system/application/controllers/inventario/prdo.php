@@ -114,7 +114,7 @@ class Prdo extends Controller {
 
 		$bodyscript .= '
 		function prdoshow(){
-			var id     = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			var id     = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if(id){
 				var ret    = $("#newapi'.$grid0.'").getRowData(id);
 				mId = id;
@@ -129,7 +129,7 @@ class Prdo extends Controller {
 
 		$bodyscript .= '
 		function prdodel() {
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if(id){
 				if(confirm(" Seguro desea eliminar el registro?")){
 					var ret    = $("#newapi'.$grid0.'").getRowData(id);
@@ -139,7 +139,7 @@ class Prdo extends Controller {
 							var json = JSON.parse(data);
 							if (json.status == "A"){
 								apprise("Registro eliminado");
-								jQuery("#newapi'.$grid0.'").trigger("reloadGrid");
+								$("#newapi'.$grid0.'").trigger("reloadGrid");
 							}else{
 								apprise("Registro no se puede eliminado");
 							}
@@ -250,24 +250,23 @@ class Prdo extends Controller {
 		';
 
 		$bodyscript .= '
-		$("#recibir").click(
-			function(){
-				var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
-				if(id){
-					var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
-					if ( ret.status <> "C" ){
-						$.ajax({
-							url: "'.base_url().$this->url.'fabri/"+id+"/1",
-							success: function(msg){
-								$("#ladicional").html(msg);
-							}
-						});
-					} else {
-						$.prompt("<h1>Por favor Seleccione una Orden no Cerrada</h1>");
-					}
+		$("#recibir").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			if(id){
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				if ( ret.status != "C" ){
+					$.ajax({
+						url: "'.base_url().$this->url.'fabri/"+id+"/1",
+						success: function(msg){
+							$("#ladicional").html(msg);
+						}
+					});
 				} else {
-					$.prompt("<h1>Por favor Seleccione una Orden</h1>");
+					$.prompt("<h1>Por favor Seleccione una Orden no Cerrada</h1>");
 				}
+			} else {
+				$.prompt("<h1>Por favor Seleccione una Orden</h1>");
+			}
 		})';
 
 		$bodyscript .= '
@@ -770,7 +769,7 @@ class Prdo extends Controller {
 		if(empty($id)) return "";
 		$numero   = $this->datasis->dameval("SELECT numero FROM prdo WHERE id=$id");
 		$grid    = $this->jqdatagrid;
-		$mSQL    = "SELECT * FROM itprdo WHERE numero='$numero' ";
+		$mSQL    = "SELECT * FROM itprdo WHERE numero='${numero}' ";
 		$response   = $grid->getDataSimple($mSQL);
 		$rs = $grid->jsonresult( $response);
 		echo $rs;
