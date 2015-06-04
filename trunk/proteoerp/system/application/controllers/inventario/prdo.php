@@ -306,17 +306,22 @@ class Prdo extends Controller {
 
 		})';
 
+		$mSQL = 'SELECT ubica, CONCAT(ubica," ",ubides) descrip FROM caub WHERE gasto="N" ORDER BY ubica';
+		$caub = $this->datasis->llenaopciones($mSQL, false, 'malma');
+		$caub = str_replace('"',"'",$caub);
+
+
 		$bodyscript .= '
 		$("#descar").click(function(){
 			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if(id){
 				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 				if ( ret.status == "A" ){
-					$.prompt( "<h1>Descargar ingredientes Orden Nro. "+ret.numero+" ?</h1>", {
+					$.prompt( "<h1>Descargar ingredientes Orden Nro. "+ret.numero+" ?</h1> Almacen: '.$caub.'", {
 						buttons: { Descargar: true, Cancelar: false },
 						submit: function(e,v,m,f){
 							if(v){
-								$.get("'.site_url('inventario/stra/creaprdo/insert').'/"+id,
+								$.get("'.site_url('inventario/stra/creaprdo/insert').'/"+id+"/"+f.malma,
 								function(r){
 									try{
 										var json = JSON.parse(r);

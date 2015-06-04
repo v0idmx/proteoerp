@@ -1610,9 +1610,24 @@ class Stra extends Controller {
 	//******************************************************************
 	// Carga los ingredientes
 	//
-	function creaprdo($status,$id_prdo){
+	function creaprdo( $status, $id_prdo, $alma ){
 		$url='inventario/prdo/dataedit/show/'.$id_prdo;
 
+		$dbalma = $this->db->escape($alma);
+		$hay = $this->datasis->dameval("SELECT COUNT(*) FROM caub WHERE gasto='N' AND ubica=".$dbalma);
+		if ( $hay == 0){
+			$rt['status']  = 'X';
+			$rt['mensaje'] = 'Almacen no existe';
+			echo json_encode($rt);
+			return;
+			
+		}
+/*
+			$rt['status']  = 'X';
+			$rt['mensaje'] = 'Almacen no existe '.$alma.' '.$id_prdo;
+			echo json_encode($rt);
+		return;
+*/
 		$this->rapyd->uri->keep_persistence();
 		$persistence = $this->rapyd->session->get_persistence($url, $this->rapyd->uri->gfid);
 		//$back= (isset($persistence['back_uri'])) ? $persistence['back_uri'] : $url;
@@ -1634,7 +1649,7 @@ class Stra extends Controller {
 			$row = $mSQL_1->row();
 			$_POST=array(
 				'btn_submit' => 'Guardar',
-				'envia'      => $row->almacen,
+				'envia'      => $alma,
 				'fecha'      => dbdate_to_human($row->fecha),
 				'recibe'     => 'PROD',
 				'observ1'    => 'INGREDIENTES OP NRO.'.$row->numero,
