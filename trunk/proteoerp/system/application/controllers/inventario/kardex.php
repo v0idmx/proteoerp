@@ -30,7 +30,8 @@ class Kardex extends Controller {
 				'status'    =>'yes',
 				'resizable' =>'yes',
 				'screenx'   =>'5',
-				'screeny'   =>'5');
+				'screeny'   =>'5',
+				'style'     =>'text-decoration:none;font-weight: bold;font-size:0.85em;color:#2357B5');
 
 			switch ($par) {
 				case '3I': return(anchor_popup($link,'Ventas Caja'         ,$atts)); break;
