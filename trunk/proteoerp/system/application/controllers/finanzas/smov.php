@@ -1952,7 +1952,17 @@ class Smov extends Controller {
 		}elseif($tipo_doc=='GI'){
 			$mnum = $this->datasis->fprox_numero('ngicli');
 		}elseif($tipo_doc=='NC'){
-			$mnum = $this->datasis->fprox_numero('nccli');
+			$prefijo='';
+			$sucursal=$this->secu->getsucursal();
+			if(!empty($sucursal)){
+				$dbsucu =$this->db->escape($sucursal);
+				$prefijo=trim($this->datasis->dameval("SELECT prefijo FROM sucu WHERE codigo=${dbsucu}"));
+				if((preg_match('/^[a-zA-Z0-9]+$/',$prefijo)==0) || (preg_match('/^0+$/',$prefijo)>0)){
+					$prefijo='';
+				}
+			}
+
+			$mnum = $this->datasis->fprox_numero('nccli'.$prefijo);
 		}else{
 			$mnum = $this->datasis->fprox_numero('nancli');
 		}
@@ -2199,7 +2209,7 @@ class Smov extends Controller {
 					if($ban==false){ memowrite($mSQL,'ccli'); }
 				}
 
-				// Para Inmobiliaras 
+				// Para Inmobiliaras
 				if( $tipo_doc=='ND' && substr($numero,0,1) == 'R' ){
 					$numref = $this->datasis->dameval('SELECT num_ref FROM smov WHERE tipo_doc="ND" AND numero='.$dbnumero);
 					$an = $this->datasis->dameval('SELECT COUNT(*) FROM edrec WHERE numero='.$this->db->escape($numref));
