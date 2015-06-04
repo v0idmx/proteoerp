@@ -193,7 +193,7 @@ class Kardex extends Controller {
 			$grid->db->orderby('almacen, fecha, origen');
 			$grid->per_page = 60;
 
-			$grid->column('Or&iacute;gen','<p style="background-color: rgba<colorgal><#origen#></colorgal>;font-size:1.3em;font-weight: bold;margin:0px;padding:0px;border:0px;"><convierte><#origen#>|'.$link.'</convierte></p>','align=\'left\'' );
+			$grid->column('Or&iacute;gen','<p style="background-color: rgba<colorgal><#origen#></colorgal>;font-size:1.3em;font-weight: bold;margin:0px;padding:0px;border:0px;"><convierte><#origen#>|'.$link.'</convierte></p>','align=\'left\' nowrap' );
 			$grid->column('Fecha'        ,'<dbdate_to_human><#fecha#></dbdate_to_human>');
 			$grid->column('Cantidad'     ,'<nformat><#cantidad#></nformat>'  ,'align=\'right\'');
 			$grid->column('<b style="color:#FFFFFF">Acumulado</b>','<b style="font-size:1.3em"><nformat><#salcant#></nformat></b>'   ,'align=\'right\'');
