@@ -56,7 +56,7 @@ class Bcaj extends Controller {
 
 		$grid->wbotonadd(array('id'=>'impbtn',    'img'=>'assets/default/images/print.png',   'alt'=>'Cargos Indebidos en Banco', 'label'=>'Imprimir Documento',    'tema'=>'anexos'));
 		$grid->wbotonadd(array('id'=>'dtarjeta',  'img'=>'images/tarjetas.jpg',               'alt'=>'Deposito de Tarjetas',      'label'=>'Deposito de Tarjetas',  'tema'=>'anexos'));
-		$grid->wbotonadd(array('id'=>'cerrardpt', 'img'=>'images/candado.png',                'alt'=>'Cerrar Deposito',           'label'=>'Cerrar Deposito CH',    'tema'=>'anexos'));
+		$grid->wbotonadd(array('id'=>'cerrardpt', 'img'=>'images/candado.png',                'alt'=>'Cerrar Deposito',           'label'=>'Cerrar Deposito',       'tema'=>'anexos'));
 		$grid->wbotonadd(array('id'=>'transferen','img'=>'images/fusionar.png',               'alt'=>'Cerrar Deposito',           'label'=>'Transferencias',        'tema'=>'anexos'));
 		$grid->wbotonadd(array('id'=>'borrar',    'img'=>'images/delete.png',                 'alt'=>'Eliminar Movimiento',       'label'=>'Eliminar Movimiento',   'tema'=>'anexos'));
 		$grid->wbotonadd(array('id'=>'chdevo',    'img'=>'images/delete.png',                 'alt'=>'Eliminar Cheque Devuelto',  'label'=>'Eliminar CH. Devuelto', 'tema'=>'anexos'));

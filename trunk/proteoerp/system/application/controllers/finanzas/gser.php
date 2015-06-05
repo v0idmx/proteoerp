@@ -3714,11 +3714,11 @@ class gser extends Controller {
 
 			$importe=round($iva+$precio,2);
 			$total+=$importe;
-			$ivat +=$iva;
 			$subt +=$precio;
 
 			$do->set_rel('gitser','iva'    ,round($iva,2),$i);
 			$do->set_rel('gitser','importe',$importe,$i);
+			$ivat += round($iva,2);
 		}
 		$ivat=round($ivat,2);
 

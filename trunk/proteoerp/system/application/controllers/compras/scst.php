@@ -262,7 +262,7 @@ class Scst extends Controller {
 
 		// Imprime Compra
 		$bodyscript .= '
-			jQuery("#imprimir").click( function(){
+			$("#imprimir").click( function(){
 				var id = jQuery("#newapi'. $grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 				if(id){
 					var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
@@ -272,10 +272,10 @@ class Scst extends Controller {
 
 		//Imprime retencion islr
 		$bodyscript .= '
-		jQuery("#reteislr").click( function(){
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#reteislr").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id){
-				var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 				if(Number(ret.reten) > 0){
 					window.open(\''.site_url('formatos/ver/SCSTRT/').'/\'+id, \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
 				}else{
@@ -288,11 +288,11 @@ class Scst extends Controller {
 		$tfirma=intval($this->datasis->dameval('SELECT COUNT(*) AS cana FROM formatos WHERE nombre=\'RIVA\' AND proteo LIKE \'%$sfirma%\''));
 		//Imprimir retencion
 		$bodyscript .= '
-			jQuery("#reteprin").click( function(){
-				var id = jQuery("#newapi'. $grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+			$("#reteprin").click( function(){
+				var id = $("#newapi'. $grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 				if (id)	{
-					var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
-					var ret    = $("#newapi'.$grid0.'").getRowData(id);
+					var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+					var ret = $("#newapi'.$grid0.'").getRowData(id);
 					if ( ret.actuali >= ret.fecha ) {';
 					if($tfirma>0){
 						$bodyscript .= '
@@ -320,10 +320,10 @@ class Scst extends Controller {
 			});';
 
 		$bodyscript .= '
-			jQuery("#serie").click( function(){
+			$("#serie").click( function(){
 				var gr = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 				if( gr != null ){
-					jQuery("#newapi'.$grid0.'").jqGrid(\'editGridRow\',gr,
+					$("#newapi'.$grid0.'").jqGrid(\'editGridRow\',gr,
 					{
 						closeAfterEdit:true,
 						mtype: "POST",
@@ -342,7 +342,7 @@ class Scst extends Controller {
 			});';
 
 		$bodyscript .= '
-			jQuery("#vehiculo").click(function(){
+			$("#vehiculo").click(function(){
 				var id     = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 				if (id)	{
 					var rt= $.ajax({ type: "POST", url: "'.site_url($this->url.'getvehicular').'/"+id, async: false }).responseText;
@@ -364,7 +364,7 @@ class Scst extends Controller {
 			});';
 
 		$bodyscript .= '
-			jQuery("#bcmonto").click(function(){
+			$("#bcmonto").click(function(){
 				var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 				if (id){
 					var ret    = $("#newapi'.$grid0.'").getRowData(id);
@@ -465,8 +465,8 @@ class Scst extends Controller {
 						});
 					';
 		} else {
-		$bodyscript .= '
-						$.prompt( "<h1>Opci&oacute;n no Autorizada, comuniquese con el supervisor.</h1>");
+			$bodyscript .= '
+					$.prompt( "<h1>Opci&oacute;n no Autorizada, comuniquese con el supervisor.</h1>");
 					';
 		}
 

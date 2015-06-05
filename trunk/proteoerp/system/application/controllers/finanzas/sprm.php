@@ -3444,7 +3444,7 @@ class Sprm extends Controller {
 		$campos=$this->db->list_fields('sprm');
 		if(!in_array('id',$campos)){
 			$this->db->simple_query('ALTER TABLE sprm DROP PRIMARY KEY');
-			$this->db->simple_query('ALTER TABLE sprm ADD UNIQUE INDEX `unico` (`cod_prv`, `tipo_doc`, `numero`)');
+			$this->db->simple_query('ALTER TABLE sprm ADD UNIQUE INDEX `unico` (cod_prv, tipo_doc, numero, fecha)');
 			$this->db->simple_query('ALTER TABLE sprm ADD COLUMN id INT(11) NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)');
 		}
 
