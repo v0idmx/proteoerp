@@ -51,7 +51,7 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
 	$mEnca = $this->db->query($mSQL);
 	$cfilas=$mEnca->num_rows();
 	if($cfilas==0) die ('Nomina no generada o vacia');
-	$cell_size=184/$cfilas;
+	$cell_size=164/$cfilas;
 	//$mFONT2 = 6;
 	$mFONT1 = 6;
 	if($cfilas<=5)$cfilas=8;
@@ -63,6 +63,7 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
 		$mSQL .= ", SUM(valor*(concepto='".$row->concepto."'))  C".$row->concepto ;
 	}
 	//$fecha=$this->datasis->dameval("SELECT DATE_FORMAT(fecha, '%d/%m/%Y') FROM nomina order by fecha desc limit 1");
+	$mSQL .= ", ABS(SUM(a.valor*(concepto='PRES'))) prestamo ";
 	$mSQL .= ", SUM(a.valor) totalnom, ";
 	$mSQL .= "(SELECT sum(IF(d.monto-d.abonos-c.cuota>0, c.cuota, d.monto-d.abonos )) neto ";
 	$mSQL .= "FROM pres c JOIN smov d ON  c.cod_cli=d.cod_cli AND c.tipo_doc=d.tipo_doc AND c.numero=d.numero 	WHERE c.codigo=a.codigo AND c.apartir<=a.fecha )   prestamo ";
@@ -90,8 +91,9 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
 		$pdf->setTotalizar('C'.$row->concepto);
 	}
 
-	$pdf->AddCol('totalnom', 20,  array('Total','Nomina') ,'R', $mFONT2);
-	$pdf->setTotalizar('totalnom');
+	$pdf->AddCol('prestamo' , 20,  array('Prestamos',' ')  ,'R', $mFONT2);
+	$pdf->AddCol('totalnom' , 20,  array('Total','Nomina') ,'R', $mFONT2);
+	$pdf->setTotalizar('totalnom','prestamo');
 	$pdf->setGrupoLabel('Numero: <#numero#>   Fecha: <#fecha#>');
 	$pdf->setGrupo('numero');
 	$pdf->Table();
