@@ -961,12 +961,18 @@ function autocod(id){
 							$('#cana_'+id).val('');
 							post_modbus_sinv(Number(id));
 						}else{
-							$.each(data,
-								function(i, val){
-									sugiere.push( val );
-								}
-							);
-							add(sugiere);
+							var ccana=Number(data[0].cana);
+							if(data.length==1 && ccana>0){
+								$('#codigoa_'+id).data('ui-autocomplete')._trigger('select', 'autocompleteselect', {item : data[0]});
+								$('#codigoa_'+id).autocomplete('close');
+							}else{
+								$.each(data,
+									function(i, val){
+										sugiere.push( val );
+									}
+								);
+								add(sugiere);
+							}
 						}
 					},
 			})

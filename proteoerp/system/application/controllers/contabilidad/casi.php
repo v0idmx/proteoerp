@@ -1018,19 +1018,19 @@ class Casi extends Controller {
 
 	function auditoria(){
 
-		$arr[] = anchor('contabilidad/casi/auditcasi'  ,'Auditoria en Asientos'         ,'title="Registros con cuentas contables inv&aacute;lidas"');
-		$arr[].= anchor('contabilidad/casi/auditsprv'  ,'Auditoria en Proveedores'      ,'title="Registros con cuentas contables inv&aacute;lidas"');
-		$arr[].= anchor('contabilidad/casi/auditscli'  ,'Auditoria en Clientes'         ,'title="Registros con cuentas contables inv&aacute;lidas"');
-		$arr[].= anchor('contabilidad/casi/auditbotr'  ,'Auditoria en Conceptos'        ,'title="Registros con cuentas contables inv&aacute;lidas"');
-		$arr[].= anchor('contabilidad/casi/auditmgas'  ,'Auditoria en Maestro de gatos' ,'title="Registros con cuentas contables inv&aacute;lidas"');
-		$arr[].= anchor('contabilidad/casi/auditban'   ,'Auditoria en Bancos'           ,'title="Registros con cuentas contables inv&aacute;lidas"');
-		$arr[].= anchor('contabilidad/casi/auditreglas','Auditoria en Reglas contables' ,'title="Registros con cuentas contables inv&aacute;lidas"');
-		$arr[].= anchor('contabilidad/casi/auditline'  ,'Auditoria en L&iacute;neas de inventario' ,'title="Registros con cuentas contables inv&aacute;lidas"');
-		$arr[].= anchor('contabilidad/casi/auditconc'  ,'Auditoria en Conceptos de nomina' ,'title="Registros con cuentas contables inv&aacute;lidas"');
-		$arr[].= anchor('contabilidad/casi/auditrete'  ,'Auditoria en Retenciones'      ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[] = anchor('contabilidad/casi/auditcasi'    ,'Auditoria en Asientos'         ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[].= anchor('contabilidad/casi/auditsprv'    ,'Auditoria en Proveedores'      ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[].= anchor('contabilidad/casi/auditscli'    ,'Auditoria en Clientes'         ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[].= anchor('contabilidad/casi/auditbotr'    ,'Auditoria en Conceptos'        ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[].= anchor('contabilidad/casi/auditmgas'    ,'Auditoria en Maestro de gatos' ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[].= anchor('contabilidad/casi/auditban'     ,'Auditoria en Bancos'           ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[].= anchor('contabilidad/casi/auditreglas'  ,'Auditoria en Reglas contables' ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[].= anchor('contabilidad/casi/auditline'    ,'Auditoria en L&iacute;neas de inventario' ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[].= anchor('contabilidad/casi/auditconc'    ,'Auditoria en Conceptos de nomina' ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[].= anchor('contabilidad/casi/auditrete'    ,'Auditoria en Retenciones'         ,'title="Registros con cuentas contables inv&aacute;lidas"');
+		$arr[].= anchor('contabilidad/casi/transacnocasi','Trans. fuera de contabilidad'     ,'title="Transacciones que no estan en contabilidad"');
 		$arr[].= anchor('contabilidad/casi/localizador/transac' ,'Localizador de Transacciones' ,'title="Busca una transacci&oacute;n en la base de datos"');
 		$arr[].= anchor('contabilidad/casi/localizador/cuenta'  ,'Localizador de Cuentas'       ,'title="Busca una cuenta en la base de datos"');
-
 
 		$this->db->simple_query("INSERT IGNORE INTO `sprv` (`proveed`, `nombre`, `ncorto`, `rif`, `tipo`, `grupo`, `cuenta`, `canticipo`, `copre`, `ocompra`, `dcredito`, `despacho`, `visita`, `cate`, `gr_desc`, `direc1`, `direc2`, `direc3`, `telefono`, `contacto`, `cliente`, `observa`, `nit`, `codigo`, `email`, `url`, `banco1`, `cuenta1`, `banco2`, `cuenta2`, `tiva`, `nomfis`, `reteiva`, `prefpago`, `modificado`, `estado`, `aniversario`, `registrado`) VALUES ('SSO', 'SEGURO SOCIAL OBLIGATORIO', NULL, 'J000000000', '5', '05', '', '', NULL, NULL, 0, NULL, NULL, NULL, '', '', '', '', '', '', '', '', NULL, '', '', '', '', '', '', '', 'N', 'SEGURO SOCIAL OBLIGATORIO', 75.00, 'T', '2014-02-26 09:39:12', 16, NULL, NULL)");
 		$this->db->simple_query("INSERT IGNORE INTO `sprv` (`proveed`, `nombre`, `ncorto`, `rif`, `tipo`, `grupo`, `cuenta`, `canticipo`, `copre`, `ocompra`, `dcredito`, `despacho`, `visita`, `cate`, `gr_desc`, `direc1`, `direc2`, `direc3`, `telefono`, `contacto`, `cliente`, `observa`, `nit`, `codigo`, `email`, `url`, `banco1`, `cuenta1`, `banco2`, `cuenta2`, `tiva`, `nomfis`, `reteiva`, `prefpago`, `modificado`, `estado`, `aniversario`, `registrado`) VALUES ('NOMIA', 'NOMINA ACUMULADA', NULL, 'J000000000', '1', '02', '', NULL, NULL, NULL, 0, NULL, NULL, NULL, 'PROVEEDORES DE MERCA', '', '', '', '', '', '', '', NULL, NULL, '', '', '', '', '', '', 'N', 'NOMINA ACUMULADA', 75.00, 'T', '2014-02-26 10:12:48', 0, NULL, NULL)");
@@ -1140,17 +1140,18 @@ class Casi extends Controller {
 		}
 
 		function vtransa($comprob){
-				$atts = array(
-				'width'      => '800',
-				'height'     => '600',
-				'scrollbars' => 'yes',
-				'status'     => 'yes',
-				'resizable'  => 'yes',
-				'screenx'    => '0',
-				'screeny'    => '0'
-			);
 
 			if(preg_match('/[0-9]{8,}/',$comprob)){
+				$atts = array(
+					'width'      => '800',
+					'height'     => '600',
+					'scrollbars' => 'yes',
+					'status'     => 'yes',
+					'resizable'  => 'yes',
+					'screenx'    => '0',
+					'screeny'    => '0'
+				);
+
 				return anchor_popup('contabilidad/casi/localizador/transac/procesar/'.$comprob,$comprob,$atts);
 			}else{
 				return $comprob;
@@ -1851,6 +1852,121 @@ class Casi extends Controller {
 		$this->load->view('view_ventanas', $data);
 	}
 
+	//Busca transacciones fuera de contabilidad
+	function transacnocasi(){
+		$this->rapyd->load('datagrid','dataform');
+
+		$filter = new dataForm('contabilidad/casi/transacnocasi/procesar');
+		$filter->fecha = new dateonlyField('Mes', 'mes','m/Y');
+		$filter->fecha->insertValue = date('Y-m-d');
+		$filter->fecha->dbformat    = 'Ym';
+		$filter->fecha->size        = 7;
+		$filter->fecha->rule        = 'required';
+		$filter->fecha->append(' mes/año');
+
+		$action = "javascript:window.location='".site_url('contabilidad/casi/auditoria')."'";
+		$filter->button('btn_regresa', 'Regresar', $action, 'BL');
+		$filter->submit('btnsubmit','Buscar');
+		$filter->build_form();
+
+		$sal='';
+		if($filter->on_success() && $filter->is_valid()){
+			$fecha  = $filter->fecha->newValue;
+			$dbfdesde = $this->db->escape($fecha.'01');
+			$dbfhasta = $this->db->escape($fecha.days_in_month(substr($fecha,-2),substr($fecha,0,4)));
+
+			$mSQL="SELECT COUNT(*) AS cana FROM `casi` WHERE fecha BETWEEN ${dbfdesde} AND ${dbfhasta}";
+			$cana=intval($this->datasis->dameval($mSQL));
+			$sal .= 'Asientos registrados en el mes '.$filter->fecha->value.' <b>'.$cana.'</b> ';
+
+			if($cana>0){
+				$transacs=$etransacs=$fechs=$estam=array();
+				$tables = $this->db->list_tables();
+				$ignoratabla = array('casi','itcasi','pfac','itpfac','ordc','itordc','spre','itspre','stra','conv');
+				foreach ($tables as $table){
+					if (preg_match("/^view_.*$|^sp_.*$|^viemovinxventas$|^vietodife$/i",$table)) continue;
+					if(in_array($table,$ignoratabla)) continue;
+
+					$fields = $this->db->list_fields($table);
+					if(in_array('transac', $fields)){
+						if(in_array('fecha', $fields)){
+							$busc='fecha';
+						}elseif(in_array('recep', $fields)){
+							$busc='recep';
+						}else{
+							continue;
+						}
+
+						if(in_array('estampa', $fields)){
+							$estampa='estampa';
+						}else{
+							$estampa=$busc;
+						}
+
+						if($table=='sfac'){
+							$tdoc='a.tipo_doc';
+						}else{
+							$tdoc='""';
+						}
+
+
+						$mSQL="SELECT a.transac, `a`.`${busc}` AS fecha, `a`.`${estampa}` AS estampa, ${tdoc} AS tipo_doc
+							FROM `${table}` AS a
+							LEFT JOIN casi AS b ON a.transac=b.comprob
+							WHERE `b`.`comprob` IS NULL
+								AND `a`.`${busc}` BETWEEN ${dbfdesde} AND ${dbfhasta}
+								AND `a`.`transac` IS NOT NULL
+								AND `a`.`transac`<>''
+								AND `a`.`transac` NOT LIKE '\_%'";
+						$query = $this->db->query($mSQL);
+						foreach ($query->result() as $row){
+							$idtransac=trim($row->transac);
+							$transacs[$idtransac][]=$table;
+							$fechs[$idtransac] = dbdate_to_human($row->fecha);
+							$estam[$idtransac] = $row->estampa;
+
+							if($row->tipo_doc=='D' || $row->tipo_doc=='F' || $row->tipo_doc=='X' || $row->tipo_doc=='T'){
+								$etransacs[]=$row->transac;
+							}
+						}
+					}
+				}
+				if(count($transacs)>0){
+					$atts = array(
+						'width'      => '800',
+						'height'     => '600',
+						'scrollbars' => 'yes',
+						'status'     => 'yes',
+						'resizable'  => 'yes',
+						'screenx'    => '0',
+						'screeny'    => '0'
+					);
+
+					$this->load->library('table');
+					$this->table->set_heading('Transacci&oacute;n', 'Fecha', 'Estampa', 'M&oacute;dulo');
+					$tmpl = array('table_open'  => '<table id="tabladist" width="100%">');
+					$this->table->set_template($tmpl);
+
+					$etransacs = array_unique($etransacs);
+					$sal .= ', transacciones fuera de contabilidad <b>'.(count($transacs)-count($etransacs)).'</b>';
+					foreach($transacs as $tabla=>$val){
+						if(in_array($tabla,$etransacs)) continue;
+						$val = array_unique($val);
+						$link= anchor_popup('contabilidad/casi/localizador/transac/procesar/'.$tabla,$tabla,$atts);
+						$this->table->add_row($link,$fechs[$tabla],$estam[$tabla],implode(', ',$val));
+					}
+					$sal .= $this->table->generate();
+				}
+			}
+		}
+
+		$data['content'] = $filter->output.$sal;
+		$data['script']  = '<style type="text/css">#tabladist tr:hover { background-color: #ffff99; }</style>';
+		$data['title']   = heading('Transacciones fuera de contabilidad');
+		$data['head']    = $this->rapyd->get_head();
+		$this->load->view('view_ventanas', $data);
+	}
+
 	function localizador($tipo){
 		if($tipo=='cuenta'){
 			$cc = 'cuenta';
@@ -1899,8 +2015,6 @@ class Casi extends Controller {
 		}
 
 		if ( $verdad ) {
-			$this->load->library('table');
-			$this->table->set_heading('Tabla', 'Campo', 'Coincidencias');
 			$valor = str_pad($filter->valor->newValue,8,'0', STR_PAD_LEFT);
 
 			if ( $valor == '00000000' )
@@ -1911,6 +2025,8 @@ class Casi extends Controller {
 			$tables = $this->db->list_tables();
 			foreach ($tables as $table){
 				if (preg_match("/^view_.*$|^sp_.*$|^viemovinxventas$|^vietodife$/i",$table)) continue;
+				if($cc == 'cuenta' && $table=='itcasi') continue;
+
 
 				$valasi=($cc=='transac' && ($table=='casi' || $table=='itcasi'));
 				$fields = $this->db->list_fields($table);

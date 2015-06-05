@@ -33,7 +33,7 @@ $fecha    = dbdate_to_human($row->fecha);
 $numero   = htmlspecialchars(trim($row->numero));
 $proveed  = htmlspecialchars(trim($row->proveed));
 $rifci    = htmlspecialchars(trim($row->rif));
-$nombre   = $this->us_ascii2html($row->nombre);
+$nombre   = htmlspecialchars(trim($row->nombre));
 $stotal   = nformat($row->totals);
 $gtotal   = nformat($row->totalg);
 $peso     = nformat($row->peso);
@@ -43,7 +43,7 @@ $direccion= htmlspecialchars(trim($row->direccion));
 $dbnumero = $this->db->escape($numero);
 $lineas   = 0;
 $uline    = array();
-$mSQL_2   = $this->db->query('SELECT a.codigo, b.alterno, a.descrip AS desca, a.cantidad AS cana, a.costo AS preca, a.importe
+$mSQL_2   = $this->db->query('SELECT a.codigo, b.alterno, a.descrip AS desca, a.cantidad AS cana, a.costo AS preca, a.importe, b.tdecimal
 FROM itordc AS a
 JOIN sinv AS b ON a.codigo=b.codigo
 WHERE a.numero='.$dbnumero);
@@ -194,7 +194,7 @@ $mod     = $clinea = false;
 $npagina = true;
 $i       = 0;
 
-foreach ($detalle AS $items){ $i++;
+foreach ($detalle as $items){ $i++;
 	do {
 		if($npagina){
 			$this->incluir('X_CINTILLO');
@@ -204,8 +204,8 @@ foreach ($detalle AS $items){ $i++;
 		}
 ?>
 			<tr class="<?php if(!$mod) echo 'even_row'; else  echo 'odd_row'; ?>">
-				<td style="text-align: center"><?php echo ($clinea)? '': $items->codigo;  ?></td>
-				<td style="text-align: center"><?php echo ($clinea)? '': $items->alterno; ?></td>
+				<td style="text-align: left">&nbsp;<?php echo ($clinea)? '': $items->codigo;  ?></td>
+				<td style="text-align: left">&nbsp;<?php echo ($clinea)? '': $items->alterno; ?></td>
 				<td>
 					<?php
 					if(!$clinea){
@@ -218,7 +218,7 @@ foreach ($detalle AS $items){ $i++;
 
 					while(count($arr_des)>0){
 						$uline   = array_shift($arr_des);
-						echo $this->us_ascii2html($uline).'<br>';
+						echo $uline.'<br>';
 						$lineas++;
 						if($lineas >= $maxlin){
 							$lineas =0;
@@ -234,7 +234,11 @@ foreach ($detalle AS $items){ $i++;
 					if(count($arr_des)==0 && $clinea) $clinea=false;
 					?>
 				</td>
-				<td style="text-align: center;"><?php echo ($clinea)? '': nformat($items->cana,3); ?></td>
+			   <?php if ( $items->tdecimal == 'N' ){ ?>
+				<td style="text-align: right;"><?php echo ($clinea)? '': nformat($items->cana,0); ?></td>
+			   <?php } else { ?>
+				<td style="text-align: right;"><?php echo ($clinea)? '': nformat($items->cana,3); ?></td>
+			   <?php } ?>
 				<?php if($mprec){ ?>
 				<td style="text-align: right;" ><?php echo ($clinea)? '': nformat($items->preca); ?></td>
 				<td class="change_order_total_col"><?php echo ($clinea)? '':nformat($items->preca*$items->cana); ?></td>

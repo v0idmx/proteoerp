@@ -1248,7 +1248,7 @@ class gser extends Controller {
 					if ( $data['fondo'] ){
 						$mSQL = "
 						INSERT IGNORE INTO sprm (cod_prv, nombre, tipo_doc, numero, fecha, monto, impuesto, abonos, vence, transac, estampa, hora, usuario, reteiva, reten, montasa, monredu, monadic, tasa, reducida, sobretasa, exento)
-						SELECT a.fondo proveed, b.banco nombre, 'NC' tipo_doc, a.numero, a.fecha, a.totbruto monto, 0 impuesto, 0 abonos, a.vence, a.transac, a.estampa, a.hora, a.usuario, 0 reteiva, 0 reten, 0 montasa, 0 monredu, 0 monadic, 0 tasa, 0 reducida, 0 sobretasa, 0 exento 
+						SELECT a.fondo proveed, b.banco nombre, 'NC' tipo_doc, a.numero, a.fecha, a.totbruto monto, 0 impuesto, 0 abonos, a.vence, a.transac, a.estampa, a.hora, a.usuario, 0 reteiva, 0 reten, 0 montasa, 0 monredu, 0 monadic, 0 tasa, 0 reducida, 0 sobretasa, 0 exento
 						FROM gser a JOIN banc b ON a.fondo=b.codbanc
 						WHERE a.id=${id} ";
 						$this->db->query($mSQL);
@@ -1256,13 +1256,13 @@ class gser extends Controller {
 						$num = $this->datasis->banprox($row['fondo']);
 						$mSQL = "
 						INSERT INTO bmov (codbanc, codcp, banco, negreso, numero, fecha, monto, benefi, transac, tipo_op, concepto)
-						SELECT fondo, proveed codcp, fondo, 0 negreso, ${num} cheque, fecha, totbruto, 
-						   'FONDOS' benefi, transac, 'ND' tipo_op, 
+						SELECT fondo, proveed codcp, fondo, 0 negreso, ${num} cheque, fecha, totbruto,
+						   'FONDOS' benefi, transac, 'ND' tipo_op,
 						   CONCAT('DESCARGO DEL FONDO SEGUN FACTURA' ,numero)  concepto
 						FROM gser WHERE id=${id} ";
 						$this->db->query($mSQL);
 						$this->datasis->actusal($row['fondo'], $row['fecha'], -$row['totbruto'] );
-						
+
 					}
 
 					logusu('GSER','Gasto/Egreso '.$row['fecha'].'-'.$row['tipo_doc'].'-'.$row['numero'].'-'.$row['proveed'].' MODIFICADO');
@@ -2453,6 +2453,19 @@ class gser extends Controller {
 		return true;
 	}
 
+	function chdupli($numero){
+		$sprv = $this->input->post('proveed');
+		$dbsprv   = $this->db->escape($sprv);
+		$dbnumero = $this->db->escape(substr($numero,(-1)*$this->datasis->long));
+
+		$cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM scst WHERE proveed=${dbsprv} AND numero=${dbnumero}"));
+		if($cana>0){
+			$this->validation->set_message('chdupli','Ya existe una compra registrada con el mismo numero y proveedor');
+			return false;
+		}
+		return true;
+	}
+
 	function chtipoe($tipoe){
 		$eenvia = $this->input->post('codb1');
 		if(!empty($eenvia)){
@@ -3068,7 +3081,7 @@ class gser extends Controller {
 		$edit->numero->size = 10;
 		$edit->numero->maxlength=12;
 		$edit->numero->autocomplete=false;
-		$edit->numero->rule='condi_required|callback_chnumero';
+		$edit->numero->rule='condi_required|callback_chnumero|callback_chdupli';
 
 		$edit->proveed = new inputField('Proveedor','proveed');
 		$edit->proveed->size = 6;
@@ -3960,7 +3973,7 @@ class gser extends Controller {
 			$tipo_op='ND';
 			$num = $this->datasis->banprox($row['fondo']);
 			$this->_bmovgser($fondo,$codprv,$fondo,$negreso,$num,$fecha,$monto1,$benefi,$transac,$tipo_op,$msj);
-			
+
 			// Crea la NC en proveedores
 			$control = $this->datasis->fprox_numero('nsprm');
 			$nfondo  = $this->datasis->dameval('SELECT banco FROM banc WHERE codbanc='.$this->db->escape($fondo));

@@ -779,7 +779,7 @@ class Scst extends Controller {
 
 
 		$grid->addField('depo');
-		$grid->label('Deposito');
+		$grid->label('Almac&eacute;n');
 		$grid->params(array(
 			'search'        => 'true',
 			'editable'      => $editar,
@@ -2114,7 +2114,7 @@ class Scst extends Controller {
 		$edit->serie = new inputField('N&uacute;mero', 'serie');
 		$edit->serie->size = 15;
 		$edit->serie->autocomplete=false;
-		$edit->serie->rule = 'required';
+		$edit->serie->rule = 'required|callback_chdupli';
 		$edit->serie->mode = 'autohide';
 		$edit->serie->maxlength=20;
 
@@ -2834,6 +2834,19 @@ class Scst extends Controller {
 		$cana=$this->db->count_all_results('sinvehiculo');
 		if($cana>0){
 			$this->validation->set_message('chrepetido', "Ya existe un veh&iacute;culo con el mismo ${campo} registrado.");
+			return false;
+		}
+		return true;
+	}
+
+	function chdupli($numero){
+		$sprv = $this->input->post('proveed');
+		$dbsprv   = $this->db->escape($sprv);
+		$dbnumero = $this->db->escape(substr($numero,(-1)*$this->datasis->long));
+
+		$cana=intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM gser WHERE proveed=${dbsprv} AND numero=${dbnumero}"));
+		if($cana>0){
+			$this->validation->set_message('chdupli','Ya existe un gasto registrada con el mismo numero y proveedor');
 			return false;
 		}
 		return true;
