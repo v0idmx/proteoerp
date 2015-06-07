@@ -257,9 +257,9 @@ class Rivc extends Controller {
 		return $bodyscript;
 	}
 
-	//***************************
-	//Definicion del Grid y la Forma
-	//***************************
+	//******************************************************************
+	// Definicion del Grid y la Forma
+	//
 	function defgrid( $deployed = false ){
 		$i      = 1;
 		$editar = 'false';
@@ -1137,7 +1137,6 @@ class Rivc extends Controller {
 			'formoptions'   => '{ label:"Fecha" }'
 		));
 
-
 		//$grid->addField('modificado');
 		//$grid->label('Modificado');
 		//$grid->params(array(
@@ -1177,7 +1176,7 @@ class Rivc extends Controller {
 		SELECT a.numero FROM itrivc a LEFT JOIN smov b ON a.transac=b.transac AND a.numero=b.num_ref
 		WHERE a.transac='.$transac.' AND b.cod_cli IS NULL';
 		$query = $this->db->query($mSQL);
-		if ($query->num_rows() > 0){
+		if ( $query->num_rows() < 0){
 			foreach( $query->result_array() as  $row ) {
 				$numero = $row['numero'];
 				$mnumnc = 'I'.$this->datasis->fprox_numero('ncint',-1);
@@ -1191,8 +1190,8 @@ class Rivc extends Controller {
 				FROM itrivc a
 				JOIN rivc b ON a.transac=b.transac
 				WHERE a.transac='${transac}' AND a.numero='${numero}'";
-				$ban = $this->db->simple_query($mSQL);
-				if($ban==false){ memowrite($mSQL,'RIVCFIXNC'); }
+				//$ban = $this->db->simple_query($mSQL);
+				//if($ban==false){ memowrite($mSQL,'RIVCFIXNC'); }
 				$idi = $this->db->insert_id();
 
 
@@ -1201,10 +1200,10 @@ class Rivc extends Controller {
 				$hay  = $this->datasis->dameval($mSQL);
 				if ( $hay == 1 && $idi > 0 ){
 					$mSQL = "UPDATE itccli SET numero='${mnumnc}' WHERE transac='${transac}' AND numccli='${numero}' ";
-					$ban = $this->db->simple_query($mSQL);
-					if($ban==false){ memowrite($mSQL,'RIVCFIXCC'); }
+					//$ban = $this->db->simple_query($mSQL);
+					//if($ban==false){ memowrite($mSQL,'RIVCFIXCC'); }
 					$mSQL = "UPDATE smov SET abonos=monto WHERE id=${idi} ";
-					$ban = $this->db->simple_query($mSQL);
+					//$ban = $this->db->simple_query($mSQL);
 				}
 
 				$mSQL = "
@@ -1216,33 +1215,12 @@ class Rivc extends Controller {
 				JOIN rivc b ON a.transac=b.transac
 				JOIN scli c ON c.cliente='REIVA'
 				WHERE a.transac='${transac}' AND a.numero='${numero}'";
-				$ban=$this->db->simple_query($mSQL);
-				if($ban==false){ memowrite($mSQL,'RIVCFIXND'); }
+				//$ban=$this->db->simple_query($mSQL);
+				//if($ban==false){ memowrite($mSQL,'RIVCFIXND'); }
 				$salida = 'Arreglado';
-
 			}
 		}
-
 		echo $salida;
-
-/*
-SELECT b.cod_cli, b.nombre, 'NC' tipo_doc, ' 0' numero, b.fecha, a.reiva monto, 0 impuesto,
-a.reiva abonos, b.fecha vence, if(a.tipo_doc='F','FC','NC') tipo_ref, a.numero num_ref,
-CONCAT('APLICACION DE RET/IVA A ',if(a.tipo_doc='F','FC','NC'),a.numero) observa1, 'NOCON' codigo, 'NOTA DE CONTABILIDAD' descrip, a.usuario, a.estampa, a.hora, a.transac, CONCAT(b.periodo,b.nrocomp) nroriva, b.emision emiriva, a.fecha fecdoc
-FROM itrivc a
-JOIN rivc b ON a.transac=b.transac
-WHERE a.transac='01707884' AND a.numero='01314300'
-
-UNION ALL
-SELECT c.cliente,  c.nombre, 'ND' tipo_doc, ' 0' numero, b.fecha, a.reiva monto, 0 impuesto,
-0 abonos, LAST_DAY(b.fecha) vence, if(a.tipo_doc='F','FC','NC') tipo_ref, a.numero num_ref,
-CONCAT('RET/IVA DE 01136 A DOC. ',if(a.tipo_doc='F','FC','NC'),a.numero)       observa1, 'NOCON' codigo, 'NOTA DE CONTABILIDAD' descrip, a.usuario, a.estampa, a.hora, a.transac, CONCAT(b.periodo,b.nrocomp) nroriva, b.emision emiriva, NULL fecdoc
-FROM itrivc a
-JOIN rivc b ON a.transac=b.transac
-JOIN scli c ON c.cliente='REIVA'
-WHERE a.transac='01707884' AND a.numero='01314300'
-*/
-
 	}
 
 
@@ -2113,11 +2091,12 @@ WHERE a.transac='01707884' AND a.numero='01314300'
 	}
 
 	function _post_insert($do){
-		$primary = $do->get('id');
-		$error   = 0;
-		$montan  = 0; //Monto para anticipar
-		$sobrante= 0; //Monto sobrante para anticipar, reitegrar o pagar
-		$rp      = false; //Bandera para indicar retencion pendiente
+		$primary  = $do->get('id');
+		$error    = 0;
+		$montan   = 0;     // Monto para anticipar
+		$sobrante = 0;     // Monto sobrante para anticipar, reitegrar o pagar
+		$abonado  = 0;     // Abonado si alguna factura esta pagada
+		$rp       = false; // Bandera para indicar retencion pendiente
 
 		$transac   = $do->get('transac');
 		$estampa   = $do->get('estampa');
@@ -2142,17 +2121,16 @@ WHERE a.transac='01707884' AND a.numero='01314300'
 		$mNUMERO = 'R'.str_pad($primary, $this->datasis->long-1, '0', STR_PAD_LEFT);
 
 		$mSQL = "DELETE FROM smov WHERE transac='${transac}'";
-		$ban=$this->db->simple_query($mSQL);
+		$ban  = $this->db->simple_query($mSQL);
 		if($ban==false){ memowrite($mSQL,'RIVC'); }
 
 		$rel='itrivc';
 		$cana = $do->count_rel($rel);
 		for($i = 0;$i < $cana;$i++){
-			$ittipo_doc  = $do->get_rel($rel, 'tipo_doc', $i);
-			$itnumero    = $do->get_rel($rel, 'numero'  , $i);
-			$itmonto     = $do->get_rel($rel, 'reiva'  , $i);
-			$itfecha     = $do->get_rel($rel, 'fecha'  , $i);
-
+			$ittipo_doc   = $do->get_rel($rel, 'tipo_doc', $i);
+			$itnumero     = $do->get_rel($rel, 'numero'  , $i);
+			$itmonto      = $do->get_rel($rel, 'reiva'  , $i);
+			$itfecha      = $do->get_rel($rel, 'fecha'  , $i);
 			$dbitnumero   = $this->db->escape($itnumero);
 			$dbittipo_doc = $this->db->escape($ittipo_doc);
 
@@ -2162,7 +2140,6 @@ WHERE a.transac='01707884' AND a.numero='01314300'
 				$query = $this->db->query($sql);
 				if($query->num_rows() > 0){
 					$row = $query->row();
-
 					$anterior  = $row->reiva;
 					$itreferen = $row->referen;
 					$itfactura = $row->factura;
@@ -2173,6 +2150,7 @@ WHERE a.transac='01707884' AND a.numero='01314300'
 					$ban=$this->db->simple_query($mSQL);
 					if($ban==false){ memowrite($mSQL,'rivc'); }
 				}
+
 			}else{//En caso de provenir de smov
 				if($ittipo_doc=='NC'){
 					$mSQL = "UPDATE smov SET reteiva=${itmonto}, nroriva='${periodo}${numero}', emiriva='${efecha}' WHERE numero=${dbitnumero} AND tipo_doc=${dbittipo_doc} AND cod_cli=${dbcod_cli} LIMIT 1";
@@ -2444,12 +2422,13 @@ WHERE a.transac='01707884' AND a.numero='01314300'
 		//$totneto  = $do->get('reiva');
 		if($sobrante>0){
 			if($operacion=='A' && $sobrante>0){
-				$mnumant = $this->datasis->fprox_numero('nancli');
+				//$mnumant = $this->datasis->fprox_numero('nancli');
+				$mnumant = 'I'.$this->datasis->fprox_numero('ncint',-1);
 
 				$data=array();
 				$data['cod_cli']    = $cod_cli;
 				$data['nombre']     = $nombre;
-				$data['tipo_doc']   = 'AN';
+				$data['tipo_doc']   = 'NC';      // AN
 				$data['numero']     = $mnumant;
 				$data['fecha']      = $fecha;
 				$data['monto']      = $sobrante;
@@ -2646,38 +2625,39 @@ WHERE a.transac='01707884' AND a.numero='01314300'
 		}
 
 		if (!$this->db->table_exists('itrivc')) {
-			$mSQL="CREATE TABLE `itrivc` (
-			`id` int(6) NOT NULL AUTO_INCREMENT,
-			`idrivc` int(6) DEFAULT NULL,
-			`tipo_doc` char(2) DEFAULT NULL,
-			`fecha` date DEFAULT NULL,
-			`numero` varchar(8) DEFAULT NULL,
-			`nfiscal` char(12) DEFAULT NULL,
-			`exento` decimal(15,2) DEFAULT NULL,
-			`tasa` decimal(5,2) DEFAULT NULL,
-			`general` decimal(15,2) DEFAULT NULL,
-			`geneimpu` decimal(15,2) DEFAULT NULL,
-			`tasaadic` decimal(5,2) DEFAULT NULL,
-			`adicional` decimal(15,2) DEFAULT NULL,
-			`adicimpu` decimal(15,2) DEFAULT NULL,
-			`tasaredu` decimal(5,2) DEFAULT NULL,
-			`reducida` decimal(15,2) DEFAULT NULL,
-			`reduimpu` decimal(15,2) DEFAULT NULL,
-			`stotal` decimal(15,2) DEFAULT NULL,
-			`impuesto` decimal(15,2) DEFAULT NULL,
-			`gtotal` decimal(15,2) DEFAULT NULL,
-			`reiva` decimal(15,2) DEFAULT NULL,
-			`transac` char(8) DEFAULT NULL,
-			`estampa` date DEFAULT NULL,
-			`hora` char(8) DEFAULT NULL,
-			`usuario` char(12) DEFAULT NULL,
-			`ffactura` date DEFAULT '0000-00-00',
-			`modificado` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			PRIMARY KEY (`id`),
-			KEY `tipo_doc_numero` (`tipo_doc`,`numero`),
-			KEY `Numero` (`numero`),
-			KEY `modificado` (`modificado`),
-			KEY `rivatra` (`transac`)
+			$mSQL="
+			CREATE TABLE itrivc (
+				id         INT(6)         NOT NULL AUTO_INCREMENT,
+				idrivc     INT(6)         DEFAULT NULL,
+				tipo_doc   CHAR(2)        DEFAULT NULL,
+				fecha      DATE           DEFAULT NULL,
+				numero     VARCHAR(8)     DEFAULT NULL,
+				nfiscal    CHAR(12)       DEFAULT NULL,
+				exento     DECIMAL(15,2)  DEFAULT NULL,
+				tasa       DECIMAL(5,2)   DEFAULT NULL,
+				general    DECIMAL(15,2)  DEFAULT NULL,
+				geneimpu   DECIMAL(15,2)  DEFAULT NULL,
+				tasaadic   DECIMAL(5,2)   DEFAULT NULL,
+				adicional  DECIMAL(15,2)  DEFAULT NULL,
+				adicimpu   DECIMAL(15,2)  DEFAULT NULL,
+				tasaredu   DECIMAL(5,2)   DEFAULT NULL,
+				reducida   DECIMAL(15,2)  DEFAULT NULL,
+				reduimpu   DECIMAL(15,2)  DEFAULT NULL,
+				stotal     DECIMAL(15,2)  DEFAULT NULL,
+				impuesto   DECIMAL(15,2)  DEFAULT NULL,
+				gtotal     DECIMAL(15,2)  DEFAULT NULL,
+				reiva      DECIMAL(15,2)  DEFAULT NULL,
+				transac    CHAR(8)        DEFAULT NULL,
+				estampa    DATE           DEFAULT NULL,
+				hora       CHAR(8)        DEFAULT NULL,
+				usuario    CHAR(12)       DEFAULT NULL,
+				ffactura   DATE           DEFAULT '0000-00-00',
+				modificado TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			KEY tipo_doc_numero (tipo_doc,numero),
+			KEY Numero (numero),
+			KEY modificado (modificado),
+			KEY rivatra (transac)
 			) ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED";
 			$this->db->simple_query($mSQL);
 		}
