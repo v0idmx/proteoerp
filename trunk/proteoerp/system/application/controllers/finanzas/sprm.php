@@ -203,10 +203,10 @@ class Sprm extends Controller {
 
 		//Imprimir retencion
 		$bodyscript .= '
-		jQuery("#reteprint").click( function(){
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#reteprint").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id)	{
-				var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 				if(Number(ret.reteiva) > 0){
 					window.open(\''.site_url($this->url.'printrete').'/\'+id, \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
 				}else{
@@ -219,10 +219,10 @@ class Sprm extends Controller {
 
 		//Imprime retencion islr
 		$bodyscript .= '
-		jQuery("#reteislrprint").click( function(){
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#reteislrprint").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id){
-				var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 				if(Number(ret.reten) > 0){
 					window.open(\''.site_url($this->url.'printreteislr').'/\'+ret.transac, \'_blank\', \'width=900,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-450), screeny=((screen.availWidth/2)-400)\');
 				}else{
@@ -232,10 +232,10 @@ class Sprm extends Controller {
 		});';
 
 		$bodyscript .= '
-		jQuery("#princheque").click( function(){
-			var id = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#princheque").click( function(){
+			var id = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id)	{
-				var ret = jQuery("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
+				var ret = $("#newapi'.$grid0.'").jqGrid(\'getRowData\',id);
 				if(ret.tipo_op=="CH"){
 					window.open(\''.site_url($this->url.'impcheque').'/\'+id, \'_blank\', \'width=300,height=400,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-200), screeny=((screen.availWidth/2)-150)\');
 				}else{
@@ -256,10 +256,10 @@ class Sprm extends Controller {
 		});';
 
 		$bodyscript .= '
-		jQuery("#imprime").click( function(){
-			var id = jQuery("#newapi'. $grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+		$("#imprime").click( function(){
+			var id = $("#newapi'. $grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 			if (id)	{
-				var ret = jQuery("#newapi'. $grid0.'").jqGrid(\'getRowData\',id);
+				var ret = $("#newapi'. $grid0.'").jqGrid(\'getRowData\',id);
 				window.open(\''.site_url($this->url.'sprmprint').'/\'+id, \'_blank\', \'width=300,height=300,scrollbars=yes,status=yes,resizable=yes,screenx=((screen.availHeight/2)-400), screeny=((screen.availWidth/2)-300)\');
 			} else { $.prompt("<h1>Por favor Seleccione un Movimiento</h1>");}
 		});';
@@ -268,7 +268,7 @@ class Sprm extends Controller {
 		//Abonos
 		$bodyscript .= '
 			$("#abonos").click(function() {
-				var id  = jQuery("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
+				var id  = $("#newapi'.$grid0.'").jqGrid(\'getGridParam\',\'selrow\');
 				if (id)	{
 					var ret = $("#newapi'.$grid0.'").getRowData(id);
 					mId = id;
@@ -326,7 +326,7 @@ class Sprm extends Controller {
 			});';
 
 		$bodyscript .= '
-		jQuery("#pago").click( function(){
+		$("#pago").click( function(){
 			$.post("'.site_url($this->url.'selsprv/').'",
 				function(data){
 					$("#fsprvsel").html(data);

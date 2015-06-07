@@ -121,7 +121,7 @@ class Ppro extends Controller {
 			var mId = 0;
 			var montotal = 0;
 			var ffecha = $("#ffecha");
-			var grid = jQuery("#newapi'.$grid.'");
+			var grid = $("#newapi'.$grid.'");
 			var s;
 			var allFields = $( [] ).add( ffecha );
 
@@ -132,7 +132,7 @@ class Ppro extends Controller {
 
 		//Prepara Pago o Abono
 		$bodyscript .= '
-			$( "#preabono" ).click(function() {
+			$("#preabono").click(function() {
 				var id     = jQuery("#newapi'.$grid.'").jqGrid(\'getGridParam\',\'selrow\');
 				if (id)	{
 					var ret    = $("#newapi'.$grid.'").getRowData(id);
@@ -548,7 +548,7 @@ class Ppro extends Controller {
 	var lastcell = 0;
 	var totalapa = 0;
 	var grid1 = jQuery("#aceptados");
-	jQuery("#aceptados").jqGrid({
+	$("#aceptados").jqGrid({
 		datatype: "local",
 		height: 250,
 		colNames:["id","Tipo","Numero","Fecha","Vence","Monto","Saldo", "Faltante","Abonar","P.Pago"],
@@ -700,8 +700,8 @@ class Ppro extends Controller {
 <script type="text/javascript">
 	var lastcell = 0;
 	var totalapa = 0;
-	var grid1 = jQuery("#abonados");
-	jQuery("#abonados").jqGrid({
+	var grid1    = $("#abonados");
+	$("#abonados").jqGrid({
 		datatype: "local",
 		height: 240,
 		colNames:["id","Tipo","Numero","Fecha","Vence","Monto","Saldo", "Abonar","P.Pago"],
@@ -728,7 +728,6 @@ class Ppro extends Controller {
 		},
 		editurl: "clientArray"
 	});
-
 	var mefectos = [
 ';
 
@@ -765,20 +764,17 @@ class Ppro extends Controller {
 
 		$salida .= '
 	];
-	for(var i=0;i<=mefectos.length;i++) jQuery("#abonados").jqGrid(\'addRowData\',i+1,mefectos[i]);
+	for(var i=0;i<=mefectos.length;i++) $("#abonados").jqGrid(\'addRowData\',i+1,mefectos[i]);
 	$("#ffecha").datepicker({dateFormat:"dd/mm/yy"});
-	function sumabo()
-        {
-		var grid = jQuery("#abonados");
+	function sumabo(){
+		var grid = $("#abonados");
 		var s;
 		var total = 0;
 		var rowcells = new Array();
 		var entirerow;
 		s = grid.jqGrid("getGridParam","data");
-		if(s.length)
-		{
-			for(var i=0; i< s.length; i++)
-			{
+		if(s.length){
+			for(var i=0; i< s.length; i++){
 				entirerow = s[i];
 				if ( Number(entirerow["abonar"])>Number(entirerow["saldo"]) ){
 					grid.jqGrid("setCell",s[i]["id"],"abonar", entirerow["saldo"]);
@@ -845,7 +841,7 @@ class Ppro extends Controller {
 	<input id="fgrid"    name="fgrid"    type="hidden">
 	<br>
 	<center><table id="abonados"><table></center>
-	<table width="100%">
+	<table width="600">
 	<tr>
 		<td align="center"><div id="grantotal" style="font-size:20px;font-weight:bold">Monto a pagar: 0.00</div></td>
 	</tr>
@@ -857,11 +853,8 @@ class Ppro extends Controller {
 		echo $salida;
 	}
 
-//	function abonoguarda(){
-//		echo 'a' ;
-//	}
 
-	//*********************************************************
+	//******************************************************************
 	// Forma de Notas de Credito
 	//
 	function formancredito(){
@@ -1062,10 +1055,10 @@ class Ppro extends Controller {
 		echo '{"status":"A","id":"'.$id.'","mensaje":"Aprobacion Guardada"}';
 	}
 
-	//**************************************************
+	//******************************************************************
 	// Guarda el Abono
 	//
-	//**************************************************
+	//
 	function abono(){
 		$numche  = $this->input->post('fcomprob');
 		$tipo_op = $this->input->post('ftipo');
