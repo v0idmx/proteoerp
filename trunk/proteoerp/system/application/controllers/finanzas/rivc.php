@@ -1321,7 +1321,7 @@ class Rivc extends Controller {
 		$edit->rif->maxlength =14;
 		$edit->rif->autocomplete = false;
 
-		$edit->operacion = new radiogroupField('Operaci&oacute;n', 'operacion', array('R'=>'Reintegrar','A'=>'Crear anticipo','P'=>'Crear CxP'));
+		$edit->operacion = new radiogroupField('Operaci&oacute;n', 'operacion', array('R'=>'Reintegrar','A'=>'Crear NC','P'=>'Crear CxP'));
 		$edit->operacion->insertValue='A';
 		$edit->operacion->rule='required|enum[R,A,P]';
 

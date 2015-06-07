@@ -15,7 +15,7 @@ $scampos .='<td class="littletablerow" align="left" ><b id="fecha_val_<#i#>"></b
 $scampos .='<td class="littletablerow" align="right"><b id="gtotal_val_<#i#>"></b>'.$campos['it_gtotal']['field'].'</td>';
 $scampos .='<td class="littletablerow" align="right"><b id="impuesto_val_<#i#>"></b>'.$campos['it_impuesto']['field'].'</td>';
 $scampos .='<td class="littletablerow" align="right">'.$campos['it_reiva']['field'].'</td>';
-$scampos .='<td class="littletablerow"><a href=# onclick="del_itrivc(<#i#>);return false;">'.img("images/delete.jpg").'</a></td></tr>';
+$scampos .='<td class="littletablerow"><a href=# onclick="del_itrivc(<#i#>);return false;">'.img('images/delete.jpg').'</a></td></tr>';
 $campos=$form->js_escape($scampos);
 
 if(isset($form->error_string)) echo '<div class="alert">'.$form->error_string.'</div>';
@@ -322,7 +322,7 @@ function autocod(id){
 				<td class="littletablerow" align="right"><?php echo $form->$it_reiva->output;    ?></td>
 				<?php if($form->_status!='show') {?>
 				<td class="littletablerow">
-					<a href='#' onclick='del_itrivc(<?php echo $i ?>);return false;'><?php echo img("images/delete.jpg");?></a>
+					<a href='#' onclick='del_itrivc(<?php echo $i ?>);return false;'><?php echo img('images/delete.jpg');?></a>
 				</td>
 				<?php } ?>
 			</tr>

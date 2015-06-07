@@ -62,7 +62,7 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
 	foreach ($mEnca->result() as $row){
 		$mSQL .= ", SUM(valor*(concepto='".$row->concepto."'))  C".$row->concepto ;
 	}
-	//$fecha=$this->datasis->dameval("SELECT DATE_FORMAT(fecha, '%d/%m/%Y') FROM nomina order by fecha desc limit 1");
+	//$fecha=$this->datasis->dameval("SELECT DATE_FORMAT(fecha, '%d/%m/%Y') FROM nomina ORDER BY fecha DESC LIMIT 1");
 	$mSQL .= ", ABS(SUM(a.valor*(concepto='PRES'))) prestamo ";
 	$mSQL .= ", SUM(a.valor) totalnom, ";
 	$mSQL .= "(SELECT sum(IF(d.monto-d.abonos-c.cuota>0, c.cuota, d.monto-d.abonos )) neto ";
