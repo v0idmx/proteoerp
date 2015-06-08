@@ -555,20 +555,6 @@ class Usol extends Controller {
 			'stype'         => "'text'",
 		));
 
-/*
-		$grid->addField('fecha');
-		$grid->label('Fecha');
-		$grid->params(array(
-			'search'        => 'true',
-			'editable'      => $editar,
-			'width'         => 80,
-			'align'         => "'center'",
-			'edittype'      => "'text'",
-			'editrules'     => '{ required:true,date:true}',
-			'formoptions'   => '{ label:"Fecha" }'
-		));
-*/
-
 		$grid->showpager(true);
 		$grid->setViewRecords(false);
 		$grid->setWidth('490');
@@ -594,7 +580,7 @@ class Usol extends Controller {
 		';
 
 		$msalida .= '</script>';
-		$msalida .= '<id class="anexos"><table id="newapi'.$mgrid['gridname'].'"></table>';
+		$msalida .= '<div class="anexos"><table id="newapi'.$mgrid['gridname'].'"></table>';
 		$msalida .= '<div   id="pnewapi'.$mgrid['gridname'].'"></div></div>';
 
 		echo $msalida;

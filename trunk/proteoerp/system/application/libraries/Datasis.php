@@ -1286,8 +1286,7 @@ class Datasis {
 		$query = $CI->db->query("DESCRIBE $tabla");
 		$i = 0;
 		if ($query->num_rows() > 0){
-			$str  = 'jQuery("#'.$id.'").jqGrid({ '."\n";
-
+			$str  = '$("#'.$id.'").jqGrid({ '."\n";
 			$str .= '	url:\''.$directo.'/'.$contro.'/'.$id.'/g\','."\n";
 			$str .= '	ajaxGridOptions: { type: "POST"}, '."\n";
 			$str .= '	jsonReader: { root: "data", repeatitems: false}, '."\n";
@@ -1337,8 +1336,228 @@ class Datasis {
 			$str .= '	caption: "Using navigator" '."\n";
 			$str .= '}); '."\n";
 
-			$str .= 'jQuery("#'.$id.'").jqGrid(\'navGrid\',"#p'.$id.'",{edit:false,add:false,del:false}); '."\n";
-			$str .= 'jQuery("#'.$id.'").jqGrid(\'inlineNav\',"#p'.$id.'");'."\n";
+			$str .= '$("#'.$id.'").jqGrid(\'navGrid\',"#p'.$id.'",{edit:false,add:false,del:false}); '."\n";
+			$str .= '$("#'.$id.'").jqGrid(\'inlineNav\',"#p'.$id.'");'."\n";
+
+			return $str;
+		}
+
+
+
+
+	}
+
+	//****************************************************
+	// Genera un jqgrid Completo
+	//
+	function jqsimpleform($tabla, $contro, $directo, $id){
+		$tab1 = "\t";
+		$tab2 = "\t\t";
+		$tab3 = "\t\t\t";
+
+		$CI =& get_instance();
+		$query = $CI->db->query("DESCRIBE $tabla");
+		$i = 0;
+		if ($query->num_rows() > 0){
+
+			$str = '
+		// Boton de Agregar
+		$bodyscript .= \'
+		$("#'.$id.'").click(function(){
+			$.post("\'.site_url(\''.$directo.'/'.$contro.'/'.$id.'form\').\'",
+			function(data){
+				$("#fshow").html(data);
+				$("#fshow").dialog({height: 450, width: 510, title: "'.$id.'"});
+				$("#fshow").dialog( "open" );
+			});
+		});\';
+			';
+
+
+			$str .= '
+	//******************************************************************
+	// Forma de Grupos
+	//
+	function '.$id.'form(){
+		$grid  = new $this->jqdatagrid;
+		$editar = \'true\';
+
+		// ejemplos de dropdown
+		//$mSQL  = "SELECT id, CONCAT(codigo,\' \',nombre) nombre FROM tabla ORDER BY codigo";
+		//$cargo = $this->datasis->llenajqselect($mSQL, true );
+
+		//$activo = \'\'{"S": "Activo", "N": "Inactivo"}\'\';
+		';
+
+			$str .= '
+		$grid->addField(\'id\');
+		$grid->label(\'Id\');
+		$grid->params(array(
+			\'align\'         => "\'center\'",
+			\'hidden\'        => \'true\',
+			\'frozen\'        => \'true\',
+			\'width\'         => 40,
+			\'editable\'      => \'false\',
+			\'search\'        => \'false\'
+		));
+		';
+
+			foreach ($query->result() as $row){
+				if ( $row->Field != 'id') {
+					$str .= $tab2.'$grid->addField(\''.$row->Field.'\');'."\n";
+					$str .= $tab2.'$grid->label(\''.ucfirst($row->Field).'\');'."\n";
+
+					$str .= $tab2.'$grid->params(array('."\n";
+					$str .= $tab3.'\'search\'        => \'true\','."\n";
+					$str .= $tab3.'\'editable\'      => $editar,'."\n";
+
+					if ( $row->Type == 'date' or $row->Type == 'timestamp' ) {
+						$str .= $tab3.'\'width\'         => 80,'."\n";
+						$str .= $tab3.'\'align\'         => "\'center\'",'."\n";
+						$str .= $tab3.'\'edittype\'      => "\'text\'",'."\n";
+						$str .= $tab3.'\'editrules\'     => \'{ required:true,date:true}\','."\n";
+						$str .= $tab3.'\'formoptions\'   => \'{ label:"Fecha" }\''."\n";
+
+					} elseif ( substr($row->Type,0,7) == 'decimal' or substr($row->Type,0,3) == 'int'  ) {
+						$str .= $tab3.'\'align\'         => "\'right\'",'."\n";
+						$str .= $tab3.'\'edittype\'      => "\'text\'",'."\n";
+						$str .= $tab3.'\'width\'         => 100,'."\n";
+						$str .= $tab3.'\'editrules\'     => \'{ required:true }\','."\n";
+						$str .= $tab3.'\'editoptions\'   => \'{ size:10, maxlength: 10, dataInit: function (elem) { $(elem).numeric(); }  }\','."\n";
+						$str .= $tab3.'\'formatter\'     => "\'number\'",'."\n";
+						if (substr($row->Type,0,3) == 'int'){
+							$str .= $tab3.'\'formatoptions\' => \'{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 0 }\''."\n";
+						} else {
+							$str .= $tab3.'\'formatoptions\' => \'{decimalSeparator:".", thousandsSeparator: ",", decimalPlaces: 2 }\''."\n";
+						}
+
+					} elseif ( substr($row->Type,0,7) == 'varchar' or substr($row->Type,0,4) == 'char'  ) {
+						$long = str_replace(array('varchar(','char(',')'),"", $row->Type)*10;
+						$maxlong = $long/10;
+						if ( $long > 200 ) $long = 200;
+						if ( $long < 40 ) $long = 40;
+
+						$str .= $tab3.'\'width\'         => '.$long.','."\n";
+						$str .= $tab3.'\'edittype\'      => "\'text\'",'."\n";
+						$str .= $tab3.'\'editrules\'     => \'{ required:true}\','."\n";
+						$str .= $tab3.'\'editoptions\'   => \'{ size:'.$maxlong.', maxlength: '.$maxlong.' }\','."\n";
+
+					} elseif ( $row->Type == 'text' ) {
+						$long = 250;
+						$str .= $tab3.'\'width\'         => '.$long.','."\n";
+						$str .= $tab3.'\'edittype\'      => "\'textarea\'",'."\n";
+						$str .= $tab3.'\'editoptions\'   => "\'{rows:2, cols:60}\'",'."\n";
+
+					} else {
+						$str .= $tab3.'\'width\'         => 140,'."\n";
+						$str .= $tab3.'\'edittype\'      => "\'text\'",'."\n";
+					}
+					$str .= $tab2.'));'."\n\n";
+				}
+			}
+
+			$str .= '
+		$grid->showpager(true);
+		$grid->setViewRecords(false);
+		$grid->setWidth(\'490\');
+		$grid->setHeight(\'280\');
+
+		$grid->setUrlget(site_url(\''.$directo.'/'.$contro.'/'.$id.'get\'));
+		$grid->setUrlput(site_url(\''.$directo.'/'.$contro.'/'.$id.'set\'));
+
+		$mgrid = $grid->deploy();
+
+		$msalida  = \'&lt;script type="text/javascript">\'."\n";
+		$msalida .= \'
+		$("#newapi\'.$mgrid[\'gridname\'].\'").jqGrid({
+			ajaxGridOptions : {type:"POST"}
+			,jsonReader : { root:"data", repeatitems: false }
+			\'.$mgrid[\'table\'].\'
+			,scroll: true
+			,pgtext: null, pgbuttons: false, rowList:[]
+		})
+		$("#newapi\'.$mgrid[\'gridname\'].\'").jqGrid(\\\'navGrid\\\',  "#pnewapi\'.$mgrid[\'gridname\'].\'",{edit:false, add:false, del:true, search: false});
+		$("#newapi\'.$mgrid[\'gridname\'].\'").jqGrid(\\\'inlineNav\\\',"#pnewapi\'.$mgrid[\'gridname\'].\'");
+		$("#newapi\'.$mgrid[\'gridname\'].\'").jqGrid(\\\'filterToolbar\\\');
+		\';
+
+		$msalida .= \'&lt;/script&gt;\';
+		$msalida .= \'&lt;div class="anexos">&lt;table id="newapi\'.$mgrid[\'gridname\'].\'">&lt;/table>\';
+		$msalida .= \'&lt;div id="pnewapi\'.$mgrid[\'gridname\'].\'">&lt;/div>&lt;/div>\';
+
+		echo $msalida;
+
+	}
+			';
+
+			$str .= '
+	//******************************************************************
+	// Busca la data en el Servidor por json
+	//
+	function '.$id.'get(){
+		$grid       = $this->jqdatagrid;
+		// CREA EL WHERE PARA LA BUSQUEDA EN EL ENCABEZADO
+		$mWHERE = $grid->geneTopWhere(\''.$tabla.'\');
+		$response   = $grid->getData(\''.$tabla.'\', array(array()), array(), false, $mWHERE );
+		$rs = $grid->jsonresult( $response);
+		echo $rs;
+	}
+
+			';
+
+			$str .= '
+	//******************************************************************
+	// Guarda los cambios
+	//
+	function '.$id.'set(){
+		$this->load->library(\'jqdatagrid\');
+		$oper   = $this->input->post(\'oper\');
+		$id     = intval($this->input->post(\'id\'));
+		$data   = $_POST;
+		$mcodp  = \'codigo\';
+		$check  = 0;
+
+		unset($data[\'oper\']);
+		unset($data[\'id\']);
+		if($oper == \'add\'){
+			if(false == empty($data)){
+				$check = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM '.$tabla.' WHERE codigo=".$this->db->escape($data[\'codigo\'])));
+				if($check == 0){
+					$this->db->insert(\''.$tabla.'\', $data);
+					echo \'Registro Agregado\';
+
+					logusu(\''.$tabla.'\',\'Registro \'.$data[\'descrip\'].\' INCLUIDO\');
+				}else{
+					echo "Ya existe un cargo con ese codigo";
+				}
+			}else{
+				echo \'Fallo Agregado!!!\';
+			}
+		}elseif($oper == \'edit\'){
+			if($id<=0){
+				return false;
+			}
+
+			$nuevo  = $data[$mcodp];
+			unset($data[$mcodp]);
+			$this->db->where(\'id\', $id);
+			$this->db->update(\''.$tabla.'\', $data);
+
+			logusu(\''.$tabla.'\',\'Cargos \'.$nuevo.\' MODIFICADO\');
+			echo $nuevo." Modificada";
+
+		}elseif($oper == \'del\'){
+			if($id<=0){
+				return false;
+			}
+			//$this->db->where(\'id\', $id);
+			$this->db->delete(\''.$tabla.'\', $id);
+
+			logusu(\''.$tabla.'\',"Registro ELIMINADO");
+			echo \'Registro Eliminado\';
+		}
+	}
+			';
 
 			return $str;
 		}

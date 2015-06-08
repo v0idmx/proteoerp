@@ -46,7 +46,6 @@ class Edinmue extends Controller {
 				<tr>
 					 <td style='vertical-align:top;' colspan='2'><div class='botones'><a style='width:100%;text-align:left;vertical-align:top;' href='#' id='galicuota'>Alicuotas</a></div></td>
 				</tr>
-
 				";
 
 		$WpAdic .= "
