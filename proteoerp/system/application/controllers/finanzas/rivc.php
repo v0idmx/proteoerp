@@ -2422,13 +2422,13 @@ class Rivc extends Controller {
 		//$totneto  = $do->get('reiva');
 		if($sobrante>0){
 			if($operacion=='A' && $sobrante>0){
-				//$mnumant = $this->datasis->fprox_numero('nancli');
-				$mnumant = 'I'.$this->datasis->fprox_numero('ncint',-1);
+				$mnumant = $this->datasis->fprox_numero('nancli');
+				//$mnumant = 'I'.$this->datasis->fprox_numero('ncint',-1);
 
 				$data=array();
 				$data['cod_cli']    = $cod_cli;
 				$data['nombre']     = $nombre;
-				$data['tipo_doc']   = 'NC';      // AN
+				$data['tipo_doc']   = 'AN';
 				$data['numero']     = $mnumant;
 				$data['fecha']      = $fecha;
 				$data['monto']      = $sobrante;
