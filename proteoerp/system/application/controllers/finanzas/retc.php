@@ -1452,8 +1452,11 @@ class Retc extends Controller {
 			}elseif($row->tipo_doc=='ND'){
 				//Chequea que las notas de debito no esten aplicadas
 				if($row->abonos>0){
-					$do->error_message_ar['pre_del'] = $do->error_message_ar['delete']='Algunos de los movimientos asociados han sido aplicados, debe reversarlos antes de proceder';
-					return false;
+					$chnd = intval($this->datasis->dameval("SELECT COUNT(*) AS cana FROM itccli WHERE transac=${dbtransac} AND cod_cli=${dbecod_cli} AND ((tipo_doc='ND' AND numero=${dbnumero}) OR (tipoccli='ND' AND numccli=${dbnumero}))"));
+					if($chnd == 0){
+						$do->error_message_ar['pre_del'] = $do->error_message_ar['delete']='Algunos de los movimientos asociados han sido aplicados, debe reversarlos antes de proceder';
+						return false;
+					}
 				}
 			}
 			$sqls[]="DELETE FROM smov WHERE ${ww}";
@@ -1530,6 +1533,7 @@ class Retc extends Controller {
 		$operacion = $do->get('operacion');
 		$id        = $do->get('id');
 		$dbcod_cli = $this->db->escape($cod_cli);
+		$dbtransac = $this->db->escape($transac);
 
 		//$reinte  = $this->uri->segment($this->uri->total_segments());
 		$efecha   = $do->get('emision');
@@ -1537,9 +1541,12 @@ class Retc extends Controller {
 		$ex_fecha = explode('-',$fecha);
 		$vence    = $ex_fecha[0].$ex_fecha[1].days_in_month($ex_fecha[1],$ex_fecha[0]);
 
-		$mSQL = "DELETE FROM smov WHERE transac='${transac}'";
+		$mSQL = "DELETE FROM smov WHERE transac=${dbtransac}";
 		$ban=$this->db->simple_query($mSQL);
 		if($ban==false){ memowrite($mSQL,'RETC'); }
+
+		$arr_dev=array();
+		$cli_dev=0;
 
 		$rel='itretc';
 		$cana = $do->count_rel($rel);
@@ -1584,10 +1591,12 @@ class Retc extends Controller {
 			//Si es una factura o una nota de debito por causa o no causa de una RP
 			if($ittipo_doc == 'F' || $ittipo_doc=='ND'){
 				//Si el saldo es 0  o menor que el monto retenido
-				if($saldo==0 || $itmonto>$saldo){
+				if($saldo==0){
 					$sobrante+=$itmonto;
 				}else{
 					//Como tiene saldo suficiente crea una NC y la aplica a la FC
+					$aplmonto = ($itmonto>$saldo)? $saldo : $itmonto;
+					$sobrante+= $itmonto-$aplmonto;
 
 					//$mnumnc = $this->datasis->fprox_numero('nccli');
 					$mnumnc = 'I'.$this->datasis->fprox_numero('ncint',-1);
@@ -1597,9 +1606,9 @@ class Retc extends Controller {
 					$data['tipo_doc']   = 'NC';
 					$data['numero']     = $mnumnc;
 					$data['fecha']      = $fecha;
-					$data['monto']      = $itmonto;
+					$data['monto']      = $aplmonto;
 					$data['impuesto']   = 0;
-					$data['abonos']     = $itmonto;
+					$data['abonos']     = $aplmonto;
 					$data['vence']      = $fecha;
 					$data['tipo_ref']   = $ittipo_doc;
 					$data['num_ref']    = $do->get_rel($rel,'numero',$i);
@@ -1624,8 +1633,8 @@ class Retc extends Controller {
 					$data['tipo_doc']   = 'NC';
 					$data['numero']     = $mnumnc;
 					$data['fecha']      = $fecha;
-					$data['monto']      = $itmonto;
-					$data['abono']      = $itmonto;
+					$data['monto']      = $aplmonto;
+					$data['abono']      = $aplmonto;
 					$data['ppago']      = 0;
 					$data['reten']      = 0;
 					$data['cambio']     = 0;
@@ -1642,7 +1651,7 @@ class Retc extends Controller {
 
 					// Abona la factura
 					$tiposfac = ($ittipo_doc=='F')? 'FC':'ND';
-					$mSQL = "UPDATE smov SET abonos=abonos+${itmonto} WHERE numero='${itnumero}' AND cod_cli='${cod_cli}' AND tipo_doc='${tiposfac}'";
+					$mSQL = "UPDATE smov SET abonos=abonos+${aplmonto} WHERE numero='${itnumero}' AND cod_cli='${cod_cli}' AND tipo_doc='${tiposfac}'";
 					$ban=$this->db->simple_query($mSQL);
 					if($ban==false){ memowrite($mSQL,'retc'); }
 				}
@@ -1699,6 +1708,9 @@ class Retc extends Controller {
 				$ban=$this->db->simple_query($mSQL);
 				if($ban==false){ memowrite($mSQL,'retc'); }
 
+				$arr_dev[$mnumnd] = $itmonto;
+				$cli_dev += $itmonto;
+
 				//Devoluciones debe crear un NC si esta en el periodo
 				//$mnumnc = $this->datasis->fprox_numero('nccli');
 				$mnumnc = 'I'.$this->datasis->fprox_numero('ncint',-1);
@@ -1739,13 +1751,13 @@ class Retc extends Controller {
 					$this->db->where('a.cod_cli'  , 'RETEN');
 					$qquery=$this->db->get();
 
-					if ($qquery->num_rows() == 1){
+					if($qquery->num_rows() == 1){
 						$rrrow = $qquery->row();
 						if($rrrow->saldo >= $itmonto){
 							$data=array();
 							$data['numccli']    = $mnumnc;
 							$data['tipoccli']   = 'NC';
-							$data['cod_cli']    = $cod_cli;
+							$data['cod_cli']    = 'RETEN';
 							$data['tipo_doc']   = 'ND';
 							$data['numero']     = $rrrow->numero;
 							$data['fecha']      = $rrrow->fecha;
@@ -1795,8 +1807,92 @@ class Retc extends Controller {
 		}
 
 		//Chequea si es un reintegro para crear un solo egreso de caja
-		//$totneto  = $do->get('reiva');
 		if($sobrante>0){
+
+			//Revisa si tiene que cruzar sobrante
+			if(count($arr_dev)>0){
+				$aplmonto = ($cli_dev > $sobrante)? $sobrante: $cli_dev;
+
+				$mnumnc = 'I'.$this->datasis->fprox_numero('ncint',-1); //$this->datasis->fprox_numero('nccli');
+				$data=array();
+				$data['cod_cli']    = $cod_cli;
+				$data['nombre']     = $nombre;
+				$data['tipo_doc']   = 'NC';
+				$data['numero']     = $mnumnc;
+				$data['fecha']      = $fecha;
+				$data['monto']      = $aplmonto;
+				$data['impuesto']   = 0;
+				$data['abonos']     = $aplmonto;
+				$data['vence']      = $fecha;
+				$data['tipo_ref']   = '';
+				$data['num_ref']    = '';
+				$data['observa1']   = 'SOBRANTE DE RET/IVA '.$comprob;
+				$data['estampa']    = $estampa;
+				$data['hora']       = $hora;
+				$data['transac']    = $transac;
+				$data['usuario']    = $usuario;
+				$data['codigo']     = 'NOCON';
+				$data['descrip']    = 'NOTA DE CONTABILIDAD';
+				$data['fecdoc']     = $fecha;
+				$data['nroriva']    = $comprob;
+				$data['emiriva']    = $efecha;
+
+				$mSQL = $this->db->insert_string('smov', $data);
+				$ban=$this->db->simple_query($mSQL);
+				if($ban==false){ memowrite($mSQL,'retc'); }
+
+				foreach($arr_dev as $num=>$valor){
+					if($sobrante==0) break;
+					if($sobrante>=$valor){
+						$sobrante -= $valor;
+					}else{
+						$valor    = $sobrante;
+						$sobrante = 0;
+					}
+
+					$data=array();
+					$data['numccli']    = $mnumnc;
+					$data['tipoccli']   = 'NC';
+					$data['cod_cli']    = $cod_cli;
+					$data['tipo_doc']   = 'ND';
+					$data['numero']     = $num;
+					$data['fecha']      = $fecha;
+					$data['monto']      = $valor;
+					$data['abono']      = $valor;
+					$data['ppago']      = 0;
+					$data['reten']      = 0;
+					$data['cambio']     = 0;
+					$data['mora']       = 0;
+					$data['transac']    = $transac;
+					$data['estampa']    = $estampa;
+					$data['hora']       = $hora;
+					$data['usuario']    = $usuario;
+					$data['reteiva']    = 0;
+					$data['nroriva']    = '';
+					$data['emiriva']    = '';
+					$data['recriva']    = '';
+
+					$mSQL = $this->db->insert_string('itccli', $data);
+					$ban=$this->db->simple_query($mSQL);
+					if($ban==false){ memowrite($mSQL,'retc');}
+
+					//Abona la ND
+					$dbfecha =$this->db->escape($fecha);
+					$dbnumero=$this->db->escape($num);
+					$mSQL="UPDATE smov SET abonos=monto
+					WHERE
+					cod_cli =${dbcod_cli} AND
+					tipo_doc='ND' AND
+					numero  = ${dbnumero} AND
+					transac = ${dbtransac}";
+					$ban=$this->db->simple_query($mSQL);
+					if($ban==false){ memowrite($mSQL,'retc');}
+				}
+			}
+			//Fin del cruce del sobrante
+
+
+
 			if($operacion=='A' && $sobrante>0){
 				$mnumant = $this->datasis->fprox_numero('nancli');
 
