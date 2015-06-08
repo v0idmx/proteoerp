@@ -58,7 +58,7 @@ if($operacion=='R'){
 }elseif($operacion=='A'){
 	$mSQL="SELECT SUM(monto*IF(tipo_doc IN ('AN','NC'),1,-1)) AS anticipo,GROUP_CONCAT(numero) AS numero
 	FROM smov
-	WHERE transac=${dbtransac} AND tipo_doc IN ('AN','ND') AND cod_cli=${dbcod_cli}";
+	WHERE transac=${dbtransac} AND tipo_doc IN ('AN') AND cod_cli=${dbcod_cli}";
 	$mSQL_3 = $this->db->query($mSQL);
 	$rrow = $mSQL_3->row();
 	$anticipo = floatval($rrow->anticipo);
