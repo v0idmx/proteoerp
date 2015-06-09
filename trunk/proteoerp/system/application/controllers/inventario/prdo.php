@@ -1340,7 +1340,7 @@ $tabla .= '
 	}
 
 	//******************************************************************
-	//
+	// 
 	//
 	function fabri( $id = 0, $ver = 0){
 		if ( $id == 0 ) die('Error no hay orden seleccionada');
@@ -1680,7 +1680,7 @@ $tabla .= '
 		$t = 0;
 		// calcula el total de
 		for ( $i=0; $i < $m; $i++ ){
-			$t += intval($_POST['cana_'.$i]);
+			$t += $_POST['cana_'.$i];
 		}
 		if ( $t <= 0 ) {
 			echo "No hay cambios";
@@ -1690,7 +1690,7 @@ $tabla .= '
 		$ids = '';
 		for ( $i=0; $i < $m; $i++ ){
 			// Guarda
-			$cana = intval($_POST['cana_'.$i]);
+			$cana = $_POST['cana_'.$i];
 			$id   = intval($_POST['codigo_'.$i]);
 			$mSQL = "UPDATE itprdop SET producido = ${cana} WHERE id= ${id}";
 			$this->db->query($mSQL);
