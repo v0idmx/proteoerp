@@ -61,7 +61,7 @@ class Afdeta extends Controller {
 	}
 
 	//******************************************************************
-	// Funciones de los Botones
+	// Funciones de los Botones    A-000351  A-000351
 	//
 	function bodyscript( $grid0 ){
 		$bodyscript = '<script type="text/javascript">';
