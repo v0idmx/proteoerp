@@ -63,10 +63,9 @@ if($this->rapyd->uri->is_set('search') && $filter->is_valid()){
 		$mSQL .= ", SUM(valor*(concepto='".$row->concepto."'))  C".$row->concepto ;
 	}
 	//$fecha=$this->datasis->dameval("SELECT DATE_FORMAT(fecha, '%d/%m/%Y') FROM nomina ORDER BY fecha DESC LIMIT 1");
-	$mSQL .= ", ABS(SUM(a.valor*(concepto='PRES'))) prestamo ";
 	$mSQL .= ", SUM(a.valor) totalnom, ";
-	$mSQL .= "(SELECT sum(IF(d.monto-d.abonos-c.cuota>0, c.cuota, d.monto-d.abonos )) neto ";
-	$mSQL .= "FROM pres c JOIN smov d ON  c.cod_cli=d.cod_cli AND c.tipo_doc=d.tipo_doc AND c.numero=d.numero 	WHERE c.codigo=a.codigo AND c.apartir<=a.fecha )   prestamo ";
+	$mSQL .= "COALESCE((SELECT sum(IF(d.monto-d.abonos-c.cuota>0, c.cuota, d.monto-d.abonos )) neto ";
+	$mSQL .= "FROM pres c JOIN smov d ON  c.cod_cli=d.cod_cli AND c.tipo_doc=d.tipo_doc AND c.numero=d.numero 	WHERE c.codigo=a.codigo AND c.apartir<=a.fecha),0)   prestamo ";
 	$mSQL .= "FROM nomina a JOIN pers b ON a.codigo=b.codigo ";
 	$mSQL .= "WHERE MID(a.concepto,1,1) != '9' AND a.contrato='".$filter->contrato->newValue."' AND a.fecha BETWEEN '".$filter->fechad->newValue."' AND '".$filter->fechah->newValue."' ";
 	$mSQL .= "GROUP BY a.numero, a.codigo ORDER BY  a.numero,a.codigo ";

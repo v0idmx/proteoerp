@@ -1211,6 +1211,21 @@ function elminacenti(cual){
 		return $rt;
 	}
 
+	function limpiarcontadores(){
+		$rt='';
+
+		$tables = $this->db->list_tables();
+		foreach ($tables as $table){
+			$fields = $this->db->list_fields($table);
+			if(count($fields)==3){
+				if($fields[0]=='numero' && $fields[1]=='usuario' && $fields[2]=='fecha'){
+					$mSQL="DELETE FROM `${table}` WHERE fecha<CURDATE()";
+					$this->db->simple_query($mSQL);
+				}
+			}
+		}
+		return $rt;
+	}
 
 	function statuscont(){
 		$tables = $this->db->list_tables();
