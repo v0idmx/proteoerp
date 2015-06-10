@@ -1268,7 +1268,7 @@ class Edrec extends Controller {
 				FROM edgasmed a 
 				JOIN edinmue  b ON a.inmueble = b.id
 				JOIN gitser   c ON a.gasto    = c.id
-				WHERE a.status = 'P' AND a.monto>0 AND b.codigo=${inmueble}
+				WHERE a.status = 'P' AND a.monto>0 AND b.codigo=${inmueble} AND EXTRACT(YEAR_MONTH FROM fecha) = ${anomes} 
 				";
 
 				// Reinicia Contadores
