@@ -1259,7 +1259,7 @@ if ($query->num_rows() > 0){
 		$tabla .= "	<td align='right'>".$row->producido."</td>\n";
 
 		$tabla .= "	<td>\n";
-		$tabla .= "		<input class='inputnum' name='cana_$i' id='cana_$i' size='4' onkeyUp='sumar($c)' value='0' >\n";
+		$tabla .= "		<input class='inputnum' name='cana_$i' id='cana_$i' size='4' onkeyUp='sumar($c)' value='0.00' >\n";
 		$tabla .= "		<input name='codigo_$c' id='codigo_$c' type='hidden' value='$i' >\n";
 		$tabla .= "		<input name='idpfac_$i' id='idpfac_$i' type='hidden' value='".$row->id.   "' >\n";
 		$tabla .= "		<input name='falta_$i'  id='falta_$i'  type='hidden' value='".$row->falta."' >\n";
@@ -1291,7 +1291,7 @@ $tabla .= '
 		$t = 0;
 		// calcula el total de
 		for ( $i=0; $i < $m; $i++ ){
-			$t += intval($_POST['cana_'.$i]);
+			$t += $_POST['cana_'.$i];
 		}
 		if ( $t <= 0 ) {
 			echo "No hay pedido";
@@ -1315,7 +1315,7 @@ $tabla .= '
 		// Crea Detalle
 		$ids = '';
 		for ( $i=0; $i < $m; $i++ ){
-			$cana = intval($_POST['cana_'.$i]);
+			$cana = $_POST['cana_'.$i];
 			if ( $cana > 0 ){
 				// Guarda
 				$id = intval($_POST['idpfac_'.$i]);
